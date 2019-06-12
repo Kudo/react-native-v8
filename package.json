@@ -1,0 +1,22 @@
+{
+  "name": "react-native-v8",
+  "version": "0.60.0-rc.1",
+  "description": "Opt-in V8 runtime for React Native Android",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kudo/react-native-v8.git"
+  },
+  "keywords": [
+    "react-native",
+    "android",
+    "v8"
+  ],
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/Kudo/react-native-v8/issues"
+  },
+  "homepage": "https://github.com/Kudo/react-native-v8#readme",
+  "files": [
+    "/dist"
+  ]
+}
