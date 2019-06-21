@@ -9,6 +9,11 @@ jobs:
       - checkout
 
       - run:
+          name: Add V8
+          command: |
+            yarn install
+
+      - run:
           name: Export settings from npm package
           command: |
             npm run export_npm_env
