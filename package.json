@@ -11,12 +11,20 @@
     "android",
     "v8"
   ],
-  "license": "BSD-2-Clause",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/Kudo/react-native-v8/issues"
   },
   "homepage": "https://github.com/Kudo/react-native-v8#readme",
   "files": [
     "/dist"
-  ]
+  ],
+  "scripts": {
+    "clean": "rm -rf dist; rm -rf build",
+    "export_npm_env": "./scripts/export_npm_env.sh",
+    "build": "bash -c '. ./scripts/export_npm_env.sh && ./scripts/build.sh'"
+  },
+  "config": {
+    "RN_VERSION": "v0.60.0-rc.1"
+  }
 }
