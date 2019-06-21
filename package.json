@@ -26,5 +26,8 @@
   },
   "config": {
     "RN_VERSION": "v0.60.0-rc.1"
+  },
+  "dependencies": {
+    "v8-android": "^7.4.6"
   }
 }
