@@ -1,0 +1,87 @@
+[![npm version](https://badge.fury.io/js/react-native-v8.svg)](https://badge.fury.io/js/react-native-v8)
+[![CircleCI](https://circleci.com/gh/Kudo/react-native-v8.svg?style=svg)](https://circleci.com/gh/Kudo/react-native-v8)
+
+# React Native with V8 Runtime
+
+The aim of this project is to support V8 runtime for React Native. Designed as opt-in package, it should easy to integrate with existing React Native projects.
+
+## Integration with React Native
+
+To make RN integration easier, we publish prebuilt AAR into [npm](https://www.npmjs.com/package/react-native-v8).
+
+The versioning is aligned with React Native.
+E.g.
+If your React Native version is `0.60.0-rc.2`, you should use react-native-v8 `^0.60.0-rc.2` as well.
+
+Following steps will take 0.60.0-rc.2 as example.
+
+1. Install react-native-v8
+
+```sh
+yarn add 'react-native-v8@^0.60.0-rc.2'
+
+# [OPTIONAL] If to use different V8 version
+# yarn add 'v8-android@7.5.0'
+```
+
+2. Modify your React Native build.gradle
+
+```diff
+--- a/android/app/build.gradle
++++ b/android/app/build.gradle
+@@ -161,11 +161,18 @@ android {
+             }
+         }
+     }
++
++    packagingOptions {
++        // Make sure libjsc.so does not packed in APK
++        exclude "**/libjsc.so"
++    }
+ }
+
+ dependencies {
+     implementation fileTree(dir: "libs", include: ["*.jar"])
+     implementation "com.facebook.react:react-native:+"  // From node_modules
++    // Add v8-android - prebuilt libv8.so into APK 
++    implementation 'org.chromium:v8-android:+'
+
+     // JSC from node_modules
+     if (useIntlJsc) {
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -24,8 +24,12 @@ allprojects {
+     repositories {
+         mavenLocal()
+         maven {
+-            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+-            url("$rootDir/../node_modules/react-native/android")
++            // Replace AAR from original RN with AAR from react-native-v8
++            url("$rootDir/../node_modules/react-native-v8/dist")
++        }
++        maven {
++            // prebuilt libv8.so
++            url("$rootDir/../node_modules/v8-android/dist")
+         }
+         maven {
+             // Android JSC is installed from npm
+```
+
+3. Gradle rebuild or `react-native run-android`
+
+4. Start application and could verify by JS `global._v8runtime().version` which expected to return V8 version.
+
+## Builtin JavaScript object
+
+`global._v8runtime()` has some builtin information such as v8 version.
+
+```js
+console.log(`V8 version is ${global._v8runtime().version}`);
+```
+
+## TODO
+
+- [ ] Performance comparison with JavaScriptCore in React Native
+- [ ] V8 inspector integration
+- [ ] V8 snapshot integration
+- [ ] V8 code cache experiment
