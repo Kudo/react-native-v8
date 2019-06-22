@@ -79,6 +79,13 @@ yarn add 'react-native-v8@^0.60.0-rc.2'
 console.log(`V8 version is ${global._v8runtime().version}`);
 ```
 
+## V8 Features Flags
+V8 provides many feature flags and the most important one should be JIT.
+Currently JIT is disabled except on arm64-v8a.
+
+react-native-v8 use the V8 shared libray from [v8-android-buildscripts](https://github.com/Kudo/v8-android-buildscripts).
+For detailed V8 features, please check [there](https://github.com/Kudo/v8-android-buildscripts/blob/master/README.md#v8-feature-flags).
+
 ## TODO
 
 - [ ] Performance comparison with JavaScriptCore in React Native
