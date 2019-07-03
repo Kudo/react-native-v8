@@ -11,14 +11,14 @@ To make RN integration easier, we publish prebuilt AAR into [npm](https://www.np
 
 The versioning is aligned with React Native.
 E.g.
-If your React Native version is `0.60.0-rc.2`, you should use react-native-v8 `^0.60.0-rc.2` as well.
+If your React Native version is `0.60.0`, you should use react-native-v8 `^0.60.0` as well.
 
-Following steps will take 0.60.0-rc.2 as example.
+Following steps will take 0.60.0 as example.
 
 1. Install react-native-v8
 
 ```sh
-yarn add 'react-native-v8@^0.60.0-rc.2'
+yarn add 'react-native-v8@^0.60.0'
 
 # [OPTIONAL] If to use different V8 version
 # yarn add 'v8-android@7.5.0'
