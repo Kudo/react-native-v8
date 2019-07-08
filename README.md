@@ -9,16 +9,16 @@ The aim of this project is to support V8 runtime for React Native. Designed as o
 
 To make RN integration easier, we publish prebuilt AAR into [npm](https://www.npmjs.com/package/react-native-v8).
 
-The versioning is aligned with React Native.
+The versioning is aligned with React Native but suffixed with a `-patch.N` in version
 E.g.
-If your React Native version is `0.60.0`, you should use react-native-v8 `^0.60.0` as well.
+If your React Native version is `0.60.0`, you should use react-native-v8 `>=0.60.0-patch.0 <0.60.1`.
 
 Following steps will take 0.60.0 as example.
 
 1. Install react-native-v8
 
 ```sh
-yarn add 'react-native-v8@^0.60.0'
+yarn add 'react-native-v8@>=0.60.0-patch.0 <0.60.1'
 
 # [OPTIONAL] If to use different V8 version
 # yarn add 'v8-android@7.5.0'
