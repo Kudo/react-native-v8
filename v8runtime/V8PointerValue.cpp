@@ -6,7 +6,6 @@ V8PointerValue::V8PointerValue(
     v8::Isolate *isolate,
     const v8::Local<v8::Value> &value)
     : value_(isolate, value) {
-  value_.SetWeak(this, Finalizer, v8::WeakCallbackType::kParameter);
 }
 
 V8PointerValue::~V8PointerValue() {
@@ -16,14 +15,6 @@ V8PointerValue::~V8PointerValue() {
 v8::Local<v8::Value> V8PointerValue::Get(v8::Isolate *isolate) const {
   v8::EscapableHandleScope scopedIsolate(isolate);
   return scopedIsolate.Escape(value_.Get(isolate));
-}
-
-// static
-void V8PointerValue::Finalizer(
-    const v8::WeakCallbackInfo<V8PointerValue> &data) {
-  auto *pThis = data.GetParameter();
-  pThis->value_.Reset();
-  delete pThis;
 }
 
 // static

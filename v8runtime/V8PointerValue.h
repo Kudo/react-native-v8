@@ -14,8 +14,6 @@ class V8PointerValue final : public V8Runtime::PointerValue {
   v8::Local<v8::Value> Get(v8::Isolate *isolate) const;
 
  public:
-  static void Finalizer(const v8::WeakCallbackInfo<V8PointerValue> &data);
-
   static V8PointerValue *
   createFromOneByte(v8::Isolate *isolate, const char *str, size_t length);
 
