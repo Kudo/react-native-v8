@@ -26,6 +26,7 @@ done
 ######################################################################################
 
 cd $BUILD_DIR
+yarn
 ./gradlew :ReactAndroid:installArchives
 
 mkdir -p $DIST_DIR
