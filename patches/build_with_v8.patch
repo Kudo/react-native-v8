@@ -1,6 +1,6 @@
 --- a/ReactAndroid/build.gradle
 +++ b/ReactAndroid/build.gradle
-@@ -162,6 +162,24 @@ task prepareJSC {
+@@ -170,6 +170,24 @@ task prepareJSC {
          }
      }
  }
@@ -25,19 +25,19 @@
  task downloadNdkBuildDependencies {
      if (!boostPath) {
          dependsOn(downloadBoost)
-@@ -232,7 +250,7 @@ def getNdkBuildFullPath() {
+@@ -240,7 +258,7 @@ def getNdkBuildFullPath() {
      return ndkBuildFullPath
  }
 
--task buildReactNdkLib(dependsOn: [prepareJSC, prepareBoost, prepareDoubleConversion, prepareFolly, prepareGlog], type: Exec) {
-+task buildReactNdkLib(dependsOn: [prepareV8, prepareBoost, prepareDoubleConversion, prepareFolly, prepareGlog], type: Exec) {
+-task buildReactNdkLib(dependsOn: [prepareJSC, prepareHermes, prepareBoost, prepareDoubleConversion, prepareFolly, prepareGlog], type: Exec) {
++task buildReactNdkLib(dependsOn: [prepareV8, prepareHermes, prepareBoost, prepareDoubleConversion, prepareFolly, prepareGlog], type: Exec) {
      inputs.dir("$projectDir/../ReactCommon")
      inputs.dir("src/main/jni")
      outputs.dir("$buildDir/react-ndk/all")
-@@ -269,6 +287,7 @@ task packageReactNdkLibs(dependsOn: buildReactNdkLib, type: Copy) {
-     from("$buildDir/react-ndk/all")
+@@ -277,6 +295,7 @@ task packageReactNdkLibs(dependsOn: buildReactNdkLib, type: Copy) {
      into("$buildDir/react-ndk/exported")
      exclude("**/libjsc.so")
+     exclude("**/libhermes.so")
 +    exclude("**/libv8.so")
  }
 
@@ -77,7 +77,7 @@ index ebf4d22683..9cabd4518f 100644
          installBindings);
 --- a/ReactAndroid/src/main/jni/react/jni/Android.mk
 +++ b/ReactAndroid/src/main/jni/react/jni/Android.mk
-@@ -62,6 +62,7 @@ include $(BUILD_SHARED_LIBRARY)
+@@ -53,7 +53,8 @@ include $(BUILD_SHARED_LIBRARY)
  $(call import-module,folly)
  $(call import-module,fb)
 -$(call import-module,jsc)
