@@ -78,6 +78,7 @@ index ebf4d22683..9cabd4518f 100644
 --- a/ReactAndroid/src/main/jni/react/jni/Android.mk
 +++ b/ReactAndroid/src/main/jni/react/jni/Android.mk
 @@ -53,7 +53,8 @@ include $(BUILD_SHARED_LIBRARY)
+ #   to the specification inside <dir>/<module-dir>/Android.mk.
  $(call import-module,folly)
  $(call import-module,fb)
 -$(call import-module,jsc)
