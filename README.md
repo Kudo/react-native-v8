@@ -88,7 +88,10 @@ For detailed V8 features, please check [there](https://github.com/Kudo/v8-androi
 
 ## TODO
 
-- [ ] Performance comparison with JavaScriptCore in React Native
+- [x] Performance comparison with JavaScriptCore in React Native
+
+  Please check https://github.com/Kudo/react-native-js-benchmark for the benchmark and result
+      
 - [ ] V8 inspector integration
 - [ ] V8 snapshot integration
 - [ ] V8 code cache experiment
