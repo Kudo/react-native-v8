@@ -33,9 +33,9 @@ class JSIV8ValueConverter {
       const V8Runtime &runtime,
       const std::shared_ptr<const jsi::Buffer> &buffer);
 
-  static v8::Local<v8::Symbol> ToV8Symbol(
+  static v8::MaybeLocal<v8::String> ToV8String(
       const V8Runtime &runtime,
-      const jsi::Symbol &symbol);
+      std::unique_ptr<const jsi::Buffer> buffer);
 
   static v8::Local<v8::Object> ToV8Object(
       const V8Runtime &runtime,

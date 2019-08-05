@@ -4,7 +4,6 @@
 #include "HostProxy.h"
 #include "JSIV8ValueConverter.h"
 #include "V8PointerValue.h"
-#include "jsi/jsilib.h"
 
 namespace facebook {
 
@@ -138,32 +137,14 @@ void V8Runtime::ReportException(v8::Isolate *isolate, v8::TryCatch *tryCatch)
 //
 // jsi::Runtime implementations
 //
-jsi::Value V8Runtime::evaluateJavaScript(
-    const std::shared_ptr<const jsi::Buffer> &buffer,
+void V8Runtime::evaluateJavaScript(
+    std::unique_ptr<const jsi::Buffer> buffer,
     const std::string &sourceURL) {
   v8::HandleScope scopedIsolate(isolate_);
   v8::Local<v8::String> string;
-  if (JSIV8ValueConverter::ToV8String(*this, buffer).ToLocal(&string)) {
-    return ExecuteScript(isolate_, string, sourceURL);
+  if (JSIV8ValueConverter::ToV8String(*this, std::move(buffer)).ToLocal(&string)) {
+    ExecuteScript(isolate_, string, sourceURL);
   }
-  return {};
-}
-
-std::shared_ptr<const jsi::PreparedJavaScript> V8Runtime::prepareJavaScript(
-    const std::shared_ptr<const jsi::Buffer> &buffer,
-    std::string sourceURL) {
-  return std::make_shared<jsi::SourceJavaScriptPreparation>(
-      buffer, std::move(sourceURL));
-}
-
-jsi::Value V8Runtime::evaluatePreparedJavaScript(
-    const std::shared_ptr<const jsi::PreparedJavaScript> &js) {
-  assert(
-      dynamic_cast<const jsi::SourceJavaScriptPreparation *>(js.get()) &&
-      "preparedJavaScript must be a SourceJavaScriptPreparation");
-  auto sourceJs =
-      std::static_pointer_cast<const jsi::SourceJavaScriptPreparation>(js);
-  return evaluateJavaScript(sourceJs, sourceJs->sourceURL());
 }
 
 jsi::Object V8Runtime::global() {
@@ -183,23 +164,6 @@ bool V8Runtime::isInspectable() {
 }
 
 // These clone methods are shallow clone
-jsi::Runtime::PointerValue *V8Runtime::cloneSymbol(
-    const Runtime::PointerValue *pv) {
-  if (!pv) {
-    return nullptr;
-  }
-  v8::HandleScope scopedIsolate(isolate_);
-  const V8PointerValue *v8PointerValue =
-      static_cast<const V8PointerValue *>(pv);
-  assert(v8PointerValue->Get(isolate_)->IsSymbol());
-
-  v8::Local<v8::Symbol> object =
-      v8::Local<v8::Symbol>::Cast(v8PointerValue->Get(isolate_));
-  v8::Local<v8::Symbol> newSymbol =
-      v8::Local<v8::Symbol>::New(isolate_, object);
-  return new V8PointerValue(isolate_, newSymbol);
-}
-
 jsi::Runtime::PointerValue *V8Runtime::cloneString(
     const Runtime::PointerValue *pv) {
   if (!pv) {
@@ -301,10 +265,6 @@ bool V8Runtime::compare(const jsi::PropNameID &a, const jsi::PropNameID &b) {
   v8::Local<v8::String> v8StringB =
       v8::Local<v8::String>::Cast(v8PointerValueB->Get(isolate_));
   return v8StringA->StringEquals(v8StringB);
-}
-
-std::string V8Runtime::symbolToString(const jsi::Symbol &symbol) {
-  return jsi::Value(*this, symbol).toString(*this).utf8(*this);
 }
 
 jsi::String V8Runtime::createStringFromAscii(const char *str, size_t length) {
@@ -739,19 +699,6 @@ jsi::Value V8Runtime::callAsConstructor(
   }
 
   return JSIV8ValueConverter::ToJSIValue(isolate_, v8Object);
-}
-
-bool V8Runtime::strictEquals(const jsi::Symbol &a, const jsi::Symbol &b) const {
-  v8::HandleScope scopedIsolate(isolate_);
-  v8::TryCatch tryCatch(isolate_);
-  v8::Local<v8::Symbol> v8SymbolA = JSIV8ValueConverter::ToV8Symbol(*this, a);
-  v8::Local<v8::Symbol> v8SymbolB = JSIV8ValueConverter::ToV8Symbol(*this, b);
-  bool result = v8SymbolA->StrictEquals(v8SymbolB);
-
-  if (tryCatch.HasCaught()) {
-    ReportException(isolate_, &tryCatch);
-  }
-  return result;
 }
 
 bool V8Runtime::strictEquals(const jsi::String &a, const jsi::String &b) const {

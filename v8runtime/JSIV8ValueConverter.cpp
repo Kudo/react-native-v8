@@ -46,9 +46,6 @@ jsi::Value JSIV8ValueConverter::ToJSIValue(
   if (value->IsString()) {
     return V8Runtime::make<jsi::String>(new V8PointerValue(isolate, value));
   }
-  if (value->IsSymbol()) {
-    return V8Runtime::make<jsi::Symbol>(new V8PointerValue(isolate, value));
-  }
   if (value->IsObject()) {
     return V8Runtime::make<jsi::Object>(new V8PointerValue(isolate, value));
   }
@@ -123,15 +120,11 @@ v8::MaybeLocal<v8::String> JSIV8ValueConverter::ToV8String(
 }
 
 // static
-v8::Local<v8::Symbol> JSIV8ValueConverter::ToV8Symbol(
+v8::MaybeLocal<v8::String> JSIV8ValueConverter::ToV8String(
     const V8Runtime &runtime,
-    const jsi::Symbol &symbol) {
-  v8::EscapableHandleScope scopedIsolate(runtime.isolate_);
-  const V8PointerValue *v8PointerValue =
-      static_cast<const V8PointerValue *>(runtime.getPointerValue(symbol));
-  assert(v8PointerValue->Get(runtime.isolate_)->IsSymbol());
-  return scopedIsolate.Escape(
-      v8::Local<v8::Symbol>::Cast(v8PointerValue->Get(runtime.isolate_)));
+    std::unique_ptr<const jsi::Buffer> buffer) {
+  std::shared_ptr<const jsi::Buffer> shared_buffer(std::move(buffer));
+  return ToV8String(runtime, shared_buffer);
 }
 
 // static

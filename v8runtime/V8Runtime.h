@@ -26,22 +26,15 @@ class V8Runtime : public jsi::Runtime {
   // jsi::Runtime implementations
   //
  public:
-  jsi::Value evaluateJavaScript(
-      const std::shared_ptr<const jsi::Buffer> &buffer,
+  void evaluateJavaScript(
+      std::unique_ptr<const jsi::Buffer> buffer,
       const std::string &sourceURL) override;
-
-  std::shared_ptr<const jsi::PreparedJavaScript> prepareJavaScript(
-      const std::shared_ptr<const jsi::Buffer> &buffer,
-      std::string sourceURL) override;
-  jsi::Value evaluatePreparedJavaScript(
-      const std::shared_ptr<const jsi::PreparedJavaScript> &js) override;
 
   jsi::Object global() override;
   std::string description() override;
   bool isInspectable() override;
 
  protected:
-  PointerValue *cloneSymbol(const Runtime::PointerValue *pv) override;
   PointerValue *cloneString(const Runtime::PointerValue *pv) override;
   PointerValue *cloneObject(const Runtime::PointerValue *pv) override;
   PointerValue *clonePropNameID(const Runtime::PointerValue *pv) override;
@@ -53,8 +46,6 @@ class V8Runtime : public jsi::Runtime {
   jsi::PropNameID createPropNameIDFromString(const jsi::String &str) override;
   std::string utf8(const jsi::PropNameID &) override;
   bool compare(const jsi::PropNameID &, const jsi::PropNameID &) override;
-
-  std::string symbolToString(const jsi::Symbol &) override;
 
   jsi::String createStringFromAscii(const char *str, size_t length) override;
   jsi::String createStringFromUtf8(const uint8_t *utf8, size_t length) override;
@@ -112,7 +103,6 @@ class V8Runtime : public jsi::Runtime {
       const jsi::Value *args,
       size_t count) override;
 
-  bool strictEquals(const jsi::Symbol &a, const jsi::Symbol &b) const override;
   bool strictEquals(const jsi::String &a, const jsi::String &b) const override;
   bool strictEquals(const jsi::Object &a, const jsi::Object &b) const override;
 
