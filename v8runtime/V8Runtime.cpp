@@ -812,8 +812,31 @@ void V8Runtime::GetRuntimeInfo(
       v8::String::NewFromUtf8(
           args.GetIsolate(), v8::V8::GetVersion(), v8::NewStringType::kNormal)
           .ToLocalChecked();
-
   runtimeInfo->Set(versionKey, versionValue);
+
+  v8::Local<v8::String> memoryKey =
+      v8::String::NewFromUtf8(isolate, "memory", v8::NewStringType::kNormal)
+          .ToLocalChecked();
+  v8::Local<v8::Object> memoryInfo = v8::Object::New(isolate);
+  v8::HeapStatistics heapStats;
+  isolate->GetHeapStatistics(&heapStats);
+  memoryInfo->Set(
+      v8::String::NewFromUtf8(
+          isolate, "jsHeapSizeLimit", v8::NewStringType::kNormal)
+          .ToLocalChecked(),
+      heapStats.heap_size_limit());
+  memoryInfo->Set(
+      v8::String::NewFromUtf8(
+          isolate, "totalJSHeapSize", v8::NewStringType::kNormal)
+          .ToLocalChecked(),
+      heapStats.total_heap_size());
+  memoryInfo->Set(
+      v8::String::NewFromUtf8(
+          isolate, "usedJSHeapSize", v8::NewStringType::kNormal)
+          .ToLocalChecked(),
+      heapStats.used_heap_size());
+  runtimeInfo->Set(memoryKey, memoryInfo);
+
   args.GetReturnValue().Set(runtimeInfo);
 }
 
