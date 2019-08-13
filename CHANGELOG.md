@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+Version 0.60.4-patch.1 *(2019-08-14)*
+-----------------------------
+
+ * Add heap memory statistics `global._v8runtime().memory`
+ 
 Version 0.60.4-patch.0 *(2019-07-25)*
 -----------------------------
 
