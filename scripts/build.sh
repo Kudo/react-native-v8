@@ -13,7 +13,9 @@ PATCHSET=(
   "build_with_v8.patch"
 )
 
-cp -Rf $ROOT_DIR/v8runtime $BUILD_DIR/ReactCommon/jsi/
+cp -Rf $SRC_DIR/v8runtime $BUILD_DIR/ReactCommon/jsi/
+cp -Rf $SRC_DIR/androidexecutor $BUILD_DIR/ReactAndroid/src/main/java/com/facebook/v8
+cp -Rf $SRC_DIR/sowrapper $BUILD_DIR/ReactAndroid/src/main/jni/third-party/v8
 
 for patch in "${PATCHSET[@]}"
 do
