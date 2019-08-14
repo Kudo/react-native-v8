@@ -1,0 +1,98 @@
+diff --git a/ReactAndroid/build.gradle b/ReactAndroid/build.gradle
+index 0859fcd..0fdff9f 100644
+--- a/ReactAndroid/build.gradle
++++ b/ReactAndroid/build.gradle
+@@ -170,6 +170,24 @@ task prepareJSC {
+         }
+     }
+ }
++
++task prepareV8 {
++    doLast {
++        def v8PackageRoot = file("$projectDir/../../node_modules/v8-android/dist")
++        def v8AAR = fileTree(v8PackageRoot).matching({ it.include "**/v8-android/**/*.aar" }).singleFile
++        def soFiles = zipTree(v8AAR).matching({ it.include "**/*.so" })
++        def headerFiles = fileTree(v8PackageRoot).matching({ it.include "**/include/**" })
++
++        copy {
++            from(soFiles)
++            from(headerFiles)
++            from("src/main/jni/third-party/v8/Android.mk")
++            includeEmptyDirs(false)
++            into("$thirdPartyNdkDir/v8")
++        }
++    }
++}
++
+ task downloadNdkBuildDependencies {
+     if (!boostPath) {
+         dependsOn(downloadBoost)
+@@ -240,7 +258,7 @@ def getNdkBuildFullPath() {
+     return ndkBuildFullPath
+ }
+ 
+-task buildReactNdkLib(dependsOn: [prepareJSC, prepareHermes, prepareBoost, prepareDoubleConversion, prepareFolly, prepareGlog], type: Exec) {
++task buildReactNdkLib(dependsOn: [prepareJSC, prepareHermes, prepareV8, prepareBoost, prepareDoubleConversion, prepareFolly, prepareGlog], type: Exec) {
+     inputs.dir("$projectDir/../ReactCommon")
+     inputs.dir("src/main/jni")
+     outputs.dir("$buildDir/react-ndk/all")
+@@ -277,6 +295,7 @@ task packageReactNdkLibs(dependsOn: buildReactNdkLib, type: Copy) {
+     into("$buildDir/react-ndk/exported")
+     exclude("**/libjsc.so")
+     exclude("**/libhermes.so")
++    exclude("**/libv8.so")
+ }
+ 
+ task packageReactNdkLibsForBuck(dependsOn: packageReactNdkLibs, type: Copy) {
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
+index 3f089b9..080943a 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
++++ b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
+@@ -25,6 +25,7 @@ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
+ import com.facebook.react.packagerconnection.RequestHandler;
+ import com.facebook.react.uimanager.UIImplementationProvider;
+ import com.facebook.soloader.SoLoader;
++import com.facebook.v8.reactexecutor.V8ExecutorFactory;
+ import java.util.ArrayList;
+ import java.util.List;
+ import java.util.Map;
+@@ -299,6 +300,12 @@ public class ReactInstanceManagerBuilder {
+   }
+ 
+   private JavaScriptExecutorFactory getDefaultJSExecutorFactory(String appName, String deviceName) {
++    try {
++      // Try V8 first
++      return new V8ExecutorFactory();
++    } catch(UnsatisfiedLinkError e) {
++    }
++
+     try {
+       // If JSC is included, use it as normal
+       SoLoader.loadLibrary("jscexecutor");
+diff --git a/ReactAndroid/src/main/jni/react/jni/Android.mk b/ReactAndroid/src/main/jni/react/jni/Android.mk
+index 0e99e44..c73aa3a 100644
+--- a/ReactAndroid/src/main/jni/react/jni/Android.mk
++++ b/ReactAndroid/src/main/jni/react/jni/Android.mk
+@@ -61,6 +61,8 @@ $(call import-module,jsi)
+ $(call import-module,jsiexecutor)
+ $(call import-module,jscallinvoker)
+ $(call import-module,hermes)
++$(call import-add-path, $(REACT_COMMON_DIR)/jsi)
++$(call import-module,v8runtime)
+ 
+ include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
+ 
+@@ -70,3 +72,4 @@ include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
+ 
+ include $(REACT_SRC_DIR)/jscexecutor/Android.mk
+ include $(REACT_SRC_DIR)/../hermes/reactexecutor/Android.mk
++include $(REACT_SRC_DIR)/../v8/reactexecutor/Android.mk
+diff --git a/ReactCommon/cxxreact/Android.mk b/ReactCommon/cxxreact/Android.mk
+index 5ac26f4..c3afdae 100644
+--- a/ReactCommon/cxxreact/Android.mk
++++ b/ReactCommon/cxxreact/Android.mk
+@@ -31,3 +31,4 @@ $(call import-module,glog)
+ $(call import-module,jsi)
+ $(call import-module,jsinspector)
+ $(call import-module,hermes/inspector)
++$(call import-module,v8)
