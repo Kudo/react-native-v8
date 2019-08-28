@@ -14,7 +14,11 @@ LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/*.cpp)
 LOCAL_C_INCLUDES := $(LOCAL_PATH) $(LOCAL_PATH)/..
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
 
-LOCAL_CFLAGS := -fexceptions -frtti -O3
+LOCAL_CFLAGS := -fexceptions -frtti
+ifeq ($(APP_OPTIM),release)
+  LOCAL_CFLAGS += -O3
+endif
+
 LOCAL_SHARED_LIBRARIES := libfolly_json libv8 glog
 
 include $(BUILD_STATIC_LIBRARY)
