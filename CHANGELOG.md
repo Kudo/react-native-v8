@@ -1,6 +1,17 @@
 Change Log
 ==========
 
+Version 0.60.5-patch.0 *(2019-08-29)*
+-----------------------------
+
+ * Support React Native v0.60.5
+ 
+Version 0.60.4-patch.2 / 0.59.10-patch.2 *(2019-08-29)*
+-------------------------------------------------------
+
+ * Fix parsing UTF-8 JS script error
+ * Fix JSI crash during convert property numeric names
+ 
 Version 0.60.4-patch.1 *(2019-08-14)*
 -----------------------------
 
