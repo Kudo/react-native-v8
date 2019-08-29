@@ -574,7 +574,14 @@ jsi::Array V8Runtime::getPropertyNames(const jsi::Object &object) {
   v8::Local<v8::Object> v8Object =
       JSIV8ValueConverter::ToV8Object(*this, object);
   v8::Local<v8::Array> propertyNames;
-  if (!v8Object->GetPropertyNames(isolate_->GetCurrentContext())
+  if (!v8Object
+           ->GetPropertyNames(
+               isolate_->GetCurrentContext(),
+               v8::KeyCollectionMode::kIncludePrototypes,
+               static_cast<v8::PropertyFilter>(
+                   v8::ONLY_ENUMERABLE | v8::SKIP_SYMBOLS),
+               v8::IndexFilter::kIncludeIndices,
+               v8::KeyConversionMode::kConvertToString)
            .ToLocal(&propertyNames)) {
     std::abort();
   }
