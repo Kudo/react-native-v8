@@ -4,27 +4,6 @@
 
 namespace facebook {
 
-namespace {
-
-class ExternalOneByteStringResourceJSIBufferImpl
-    : public v8::String::ExternalOneByteStringResource {
- public:
-  explicit ExternalOneByteStringResourceJSIBufferImpl(
-      const std::shared_ptr<const jsi::Buffer> &buffer)
-      : buffer_(std::move(buffer)) {}
-  const char *data() const override {
-    return reinterpret_cast<const char *>(buffer_->data());
-  }
-  size_t length() const override {
-    return buffer_->size();
-  }
-
- private:
-  const std::shared_ptr<const jsi::Buffer> buffer_;
-};
-
-} // namespace
-
 // static
 jsi::Value JSIV8ValueConverter::ToJSIValue(
     v8::Isolate *isolate,
@@ -113,12 +92,11 @@ v8::MaybeLocal<v8::String> JSIV8ValueConverter::ToV8String(
     const V8Runtime &runtime,
     const std::shared_ptr<const jsi::Buffer> &buffer) {
   v8::EscapableHandleScope scopedIsolate(runtime.isolate_);
-  auto *stringResource = new ExternalOneByteStringResourceJSIBufferImpl(buffer);
-  v8::MaybeLocal<v8::String> ret =
-      v8::String::NewExternalOneByte(runtime.isolate_, stringResource);
-  if (ret.IsEmpty()) {
-    delete stringResource;
-  }
+  v8::MaybeLocal<v8::String> ret = v8::String::NewFromUtf8(
+      runtime.isolate_,
+      reinterpret_cast<const char *>(buffer->data()),
+      v8::NewStringType::kNormal,
+      buffer->size());
   return scopedIsolate.EscapeMaybe(ret);
 }
 
