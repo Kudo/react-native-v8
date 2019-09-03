@@ -79,6 +79,9 @@ yarn add 'react-native-v8@>=0.60.0-patch.0 <0.60.1'
 console.log(`V8 version is ${global._v8runtime().version}`);
 ```
 
+Please note that `global._v8runtime()` existed only for V8 enabled environment but not React Native remote debugging mode.
+For remote debugging mode, the JavaScript actually runs on Chrome from your host and there is no V8Runtime. 
+   
 ## V8 Features Flags
 V8 provides many feature flags and the most important one should be JIT.
 Currently JIT is disabled except on arm64-v8a.
