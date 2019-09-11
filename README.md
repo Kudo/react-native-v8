@@ -89,6 +89,34 @@ Currently JIT is disabled except on arm64-v8a.
 react-native-v8 use the V8 shared libray from [v8-android-buildscripts](https://github.com/Kudo/v8-android-buildscripts).
 For detailed V8 features, please check [there](https://github.com/Kudo/v8-android-buildscripts/blob/master/README.md#v8-feature-flags).
 
+## FAQ
+
+### How to reduce APK size ?
+
+The V8 currently bundled by default supports [Intl](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl) and the ICU data costs about 7MiB per ABI.
+If you are not going to use `Intl`, you could use no-Intl version to reduce APK size.
+(jsc-android and Hermes have no Intl by default)
+
+1. Add `v8-android-nointl` package
+```sh
+$ yarn add v8-android-nointl
+```
+
+2. Modify gradle dependency to use `v8-android-nointl`
+```diff
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -29,7 +29,7 @@ allprojects {
+         }
+         maven {
+             // prebuilt libv8.so
+-            url("$rootDir/../node_modules/v8-android/dist")
++            url("$rootDir/../node_modules/v8-android-nointl/dist")
+         }
+         maven {
+             // Android JSC is installed from npm
+```
+
 ## TODO
 
 - [x] Performance comparison with JavaScriptCore in React Native
