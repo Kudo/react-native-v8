@@ -23,6 +23,9 @@ bin/
 gen/
 out/
 
+# Python generated files
+*.pyc
+
 # Gradle files
 .gradle/
 build/
