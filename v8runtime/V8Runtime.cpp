@@ -63,7 +63,7 @@ jsi::Value V8Runtime::ExecuteScript(
   v8::MaybeLocal<v8::String> sourceURLValue = v8::String::NewFromUtf8(
       isolate,
       sourceURL.c_str(),
-      v8::String::kNormalString,
+      v8::NewStringType::kNormal,
       sourceURL.length());
   v8::ScriptOrigin origin(sourceURLValue.ToLocalChecked());
 
