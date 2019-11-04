@@ -1,8 +1,8 @@
 diff --git a/ReactAndroid/build.gradle b/ReactAndroid/build.gradle
-index 0859fcd..0fdff9f 100644
+index 1ef2f60..252f232 100644
 --- a/ReactAndroid/build.gradle
 +++ b/ReactAndroid/build.gradle
-@@ -170,6 +170,24 @@ task prepareJSC {
+@@ -183,6 +183,24 @@ task prepareJSC {
          }
      }
  }
@@ -27,7 +27,7 @@ index 0859fcd..0fdff9f 100644
  task downloadNdkBuildDependencies {
      if (!boostPath) {
          dependsOn(downloadBoost)
-@@ -240,7 +258,7 @@ def getNdkBuildFullPath() {
+@@ -253,7 +271,7 @@ def getNdkBuildFullPath() {
      return ndkBuildFullPath
  }
  
@@ -36,7 +36,7 @@ index 0859fcd..0fdff9f 100644
      inputs.dir("$projectDir/../ReactCommon")
      inputs.dir("src/main/jni")
      outputs.dir("$buildDir/react-ndk/all")
-@@ -277,6 +295,7 @@ task packageReactNdkLibs(dependsOn: buildReactNdkLib, type: Copy) {
+@@ -291,6 +309,7 @@ task packageReactNdkLibs(dependsOn: buildReactNdkLib, type: Copy) {
      into("$buildDir/react-ndk/exported")
      exclude("**/libjsc.so")
      exclude("**/libhermes.so")
@@ -45,10 +45,10 @@ index 0859fcd..0fdff9f 100644
  
  task packageReactNdkLibsForBuck(dependsOn: packageReactNdkLibs, type: Copy) {
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
-index 3f089b9..080943a 100644
+index e58b8cc..995c1a0 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
 +++ b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
-@@ -25,6 +25,7 @@ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
+@@ -26,6 +26,7 @@ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
  import com.facebook.react.packagerconnection.RequestHandler;
  import com.facebook.react.uimanager.UIImplementationProvider;
  import com.facebook.soloader.SoLoader;
@@ -56,7 +56,7 @@ index 3f089b9..080943a 100644
  import java.util.ArrayList;
  import java.util.List;
  import java.util.Map;
-@@ -299,6 +300,12 @@ public class ReactInstanceManagerBuilder {
+@@ -285,6 +286,12 @@ public class ReactInstanceManagerBuilder {
    }
  
    private JavaScriptExecutorFactory getDefaultJSExecutorFactory(String appName, String deviceName) {
@@ -70,10 +70,10 @@ index 3f089b9..080943a 100644
        // If JSC is included, use it as normal
        SoLoader.loadLibrary("jscexecutor");
 diff --git a/ReactAndroid/src/main/jni/react/jni/Android.mk b/ReactAndroid/src/main/jni/react/jni/Android.mk
-index 0e99e44..c73aa3a 100644
+index 20b2171..cd0ad24 100644
 --- a/ReactAndroid/src/main/jni/react/jni/Android.mk
 +++ b/ReactAndroid/src/main/jni/react/jni/Android.mk
-@@ -61,6 +61,8 @@ $(call import-module,jsi)
+@@ -69,6 +69,8 @@ $(call import-module,jsi)
  $(call import-module,jsiexecutor)
  $(call import-module,jscallinvoker)
  $(call import-module,hermes)
@@ -82,10 +82,10 @@ index 0e99e44..c73aa3a 100644
  
  include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
  
-@@ -70,3 +72,4 @@ include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
- 
+@@ -79,3 +81,4 @@ include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
  include $(REACT_SRC_DIR)/jscexecutor/Android.mk
  include $(REACT_SRC_DIR)/../hermes/reactexecutor/Android.mk
+ include $(REACT_SRC_DIR)/../hermes/instrumentation/Android.mk
 +include $(REACT_SRC_DIR)/../v8/reactexecutor/Android.mk
 diff --git a/ReactCommon/cxxreact/Android.mk b/ReactCommon/cxxreact/Android.mk
 index 5ac26f4..c3afdae 100644
