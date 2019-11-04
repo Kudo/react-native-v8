@@ -18,6 +18,18 @@ public class V8ExecutorFactory implements JavaScriptExecutorFactory {
   }
 
   @Override
+  public void startSamplingProfiler() {
+    throw new UnsupportedOperationException(
+        "Starting sampling profiler not supported on " + toString());
+  }
+
+  @Override
+  public void stopSamplingProfiler(String filename) {
+    throw new UnsupportedOperationException(
+        "Stopping sampling profiler not supported on " + toString());
+  }
+
+  @Override
   public String toString() {
     return "JSIExecutor+V8Runtime";
   }
