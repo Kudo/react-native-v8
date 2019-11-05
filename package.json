@@ -1,6 +1,6 @@
 {
   "name": "react-native-v8",
-  "version": "0.59.10-patch.2",
+  "version": "0.59.10-patch.3",
   "description": "Opt-in V8 runtime for React Native Android",
   "repository": {
     "type": "git",
