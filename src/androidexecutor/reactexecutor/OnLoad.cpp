@@ -16,10 +16,6 @@ namespace facebook {
 namespace react {
 
 static void installBindings(jsi::Runtime &runtime) {
-  react::Logger androidLogger =
-      static_cast<void (*)(const std::string &, unsigned int)>(
-          &reactAndroidLoggingHook);
-  react::bindNativeLogger(runtime, androidLogger);
 }
 
 class V8ExecutorHolder

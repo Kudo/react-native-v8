@@ -12,6 +12,7 @@
 #include "cxxreact/MessageQueueThread.h"
 #include "cxxreact/SystraceSection.h"
 #include "jsi/v8runtime/V8RuntimeFactory.h"
+#include <react/jni/JSLogging.h>
 
 using namespace facebook::jsi;
 
@@ -53,7 +54,14 @@ V8Executor::V8Executor(
     std::shared_ptr<MessageQueueThread> jsQueue,
     const JSIScopedTimeoutInvoker &timeoutInvoker,
     RuntimeInstaller runtimeInstaller)
-    : JSIExecutor(runtime, delegate, timeoutInvoker, runtimeInstaller) {}
+    : JSIExecutor(
+          runtime,
+          delegate,
+          [](const std::string &message, unsigned int logLevel) {
+            reactAndroidLoggingHook(message, logLevel);
+          },
+          timeoutInvoker,
+          runtimeInstaller) {}
 
 } // namespace react
 } // namespace facebook
