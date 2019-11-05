@@ -1,6 +1,17 @@
 Change Log
 ==========
 
+Version 0.61.4-patch.0 / 0.60.6-patch.1 / 0.59.10-patch.3 *(2019-11-05)*
+-------------------------------------------------------
+
+ * Upgrade v8-android to 7.8.0 (V8 7.8.279.17)
+ * Add dedicate V8Executor instead of patching JSCExecutor to prevent annoying error like https://github.com/Kudo/react-native-v8/issues/29
+ 
+ Also backport for
+ * 0.61.2-patch.0
+ * 0.61.1-patch.2
+ * 0.61.3-patch.0
+ 
 Version 0.60.5-patch.0 *(2019-08-29)*
 -----------------------------
 
