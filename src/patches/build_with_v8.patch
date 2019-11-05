@@ -45,7 +45,7 @@ index 0859fcd..0fdff9f 100644
  
  task packageReactNdkLibsForBuck(dependsOn: packageReactNdkLibs, type: Copy) {
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
-index 3f089b9..080943a 100644
+index 3f089b9..8c5fb23 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
 +++ b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
 @@ -25,6 +25,7 @@ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
@@ -56,19 +56,21 @@ index 3f089b9..080943a 100644
  import java.util.ArrayList;
  import java.util.List;
  import java.util.Map;
-@@ -299,6 +300,12 @@ public class ReactInstanceManagerBuilder {
+@@ -299,13 +300,6 @@ public class ReactInstanceManagerBuilder {
    }
  
    private JavaScriptExecutorFactory getDefaultJSExecutorFactory(String appName, String deviceName) {
-+    try {
-+      // Try V8 first
-+      return new V8ExecutorFactory();
-+    } catch(UnsatisfiedLinkError e) {
-+    }
-+
-     try {
-       // If JSC is included, use it as normal
-       SoLoader.loadLibrary("jscexecutor");
+-    try {
+-      // If JSC is included, use it as normal
+-      SoLoader.loadLibrary("jscexecutor");
+-      return new JSCExecutorFactory(appName, deviceName);
+-    } catch(UnsatisfiedLinkError jscE) {
+-      // Otherwise use Hermes
+-      return new HermesExecutorFactory();
+-    }
++    return new V8ExecutorFactory();
+   }
+ }
 diff --git a/ReactAndroid/src/main/jni/react/jni/Android.mk b/ReactAndroid/src/main/jni/react/jni/Android.mk
 index 0e99e44..c73aa3a 100644
 --- a/ReactAndroid/src/main/jni/react/jni/Android.mk
