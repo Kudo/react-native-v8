@@ -40,7 +40,7 @@ index 0859fcd..0fdff9f 100644
      into("$buildDir/react-ndk/exported")
      exclude("**/libjsc.so")
      exclude("**/libhermes.so")
-+    exclude("**/libv8.so")
++    exclude("**/libv8android.so")
  }
  
  task packageReactNdkLibsForBuck(dependsOn: packageReactNdkLibs, type: Copy) {
