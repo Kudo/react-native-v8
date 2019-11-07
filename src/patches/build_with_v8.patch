@@ -1,8 +1,8 @@
 diff --git a/ReactAndroid/build.gradle b/ReactAndroid/build.gradle
-index 3a155af..587c95d 100644
+index 92796d2..813b149 100644
 --- a/ReactAndroid/build.gradle
 +++ b/ReactAndroid/build.gradle
-@@ -183,6 +183,24 @@ task prepareJSC {
+@@ -190,6 +190,24 @@ task prepareJSC {
          }
      }
  }
@@ -27,28 +27,19 @@ index 3a155af..587c95d 100644
  task downloadNdkBuildDependencies {
      if (!boostPath) {
          dependsOn(downloadBoost)
-@@ -253,7 +271,7 @@ def getNdkBuildFullPath() {
-     return ndkBuildFullPath
- }
- 
--task buildReactNdkLib(dependsOn: [prepareJSC, prepareHermes, prepareBoost, prepareDoubleConversion, prepareFolly, prepareGlog], type: Exec) {
-+task buildReactNdkLib(dependsOn: [prepareJSC, prepareHermes, prepareV8, prepareBoost, prepareDoubleConversion, prepareFolly, prepareGlog], type: Exec) {
-     inputs.dir("$projectDir/../ReactCommon")
-     inputs.dir("src/main/jni")
-     inputs.dir("src/main/java/com/facebook/react/modules/blob")
-@@ -292,6 +310,7 @@ task packageReactNdkLibs(dependsOn: buildReactNdkLib, type: Copy) {
+@@ -336,6 +354,7 @@ def packageReactNdkLibs = tasks.register("packageReactNdkLibs", Copy) {
      into("$buildDir/react-ndk/exported")
      exclude("**/libjsc.so")
      exclude("**/libhermes.so")
 +    exclude("**/libv8android.so")
  }
  
- task packageReactNdkLibsForBuck(dependsOn: packageReactNdkLibs, type: Copy) {
+ def packageReactNdkLibsForBuck = tasks.register("packageReactNdkLibsForBuck", Copy) {
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
-index e58b8cc..d3e480f 100644
+index adbfffd..63913d4 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
 +++ b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
-@@ -26,6 +26,7 @@ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
+@@ -31,6 +31,7 @@ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
  import com.facebook.react.packagerconnection.RequestHandler;
  import com.facebook.react.uimanager.UIImplementationProvider;
  import com.facebook.soloader.SoLoader;
@@ -56,28 +47,30 @@ index e58b8cc..d3e480f 100644
  import java.util.ArrayList;
  import java.util.List;
  import java.util.Map;
-@@ -285,13 +286,6 @@ public class ReactInstanceManagerBuilder {
+@@ -291,14 +292,7 @@ public class ReactInstanceManagerBuilder {
    }
  
-   private JavaScriptExecutorFactory getDefaultJSExecutorFactory(String appName, String deviceName) {
+   private JavaScriptExecutorFactory getDefaultJSExecutorFactory(String appName, String deviceName, Context applicationContext) {
 -    try {
 -      // If JSC is included, use it as normal
+-      initializeSoLoaderIfNecessary(applicationContext);
 -      SoLoader.loadLibrary("jscexecutor");
 -      return new JSCExecutorFactory(appName, deviceName);
 -    } catch (UnsatisfiedLinkError jscE) {
 -      // Otherwise use Hermes
 -      return new HermesExecutorFactory();
 -    }
++    initializeSoLoaderIfNecessary(applicationContext);
 +    return new V8ExecutorFactory();
    }
  }
 diff --git a/ReactAndroid/src/main/jni/react/jni/Android.mk b/ReactAndroid/src/main/jni/react/jni/Android.mk
-index cb88bb8..f657020 100644
+index 9b8823c..2c998d8 100644
 --- a/ReactAndroid/src/main/jni/react/jni/Android.mk
 +++ b/ReactAndroid/src/main/jni/react/jni/Android.mk
 @@ -69,6 +69,8 @@ $(call import-module,jsi)
  $(call import-module,jsiexecutor)
- $(call import-module,jscallinvoker)
+ $(call import-module,callinvoker)
  $(call import-module,hermes)
 +$(call import-add-path, $(REACT_COMMON_DIR)/jsi)
 +$(call import-module,v8runtime)
