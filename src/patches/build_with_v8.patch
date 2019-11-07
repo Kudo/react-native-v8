@@ -1,5 +1,5 @@
 diff --git a/ReactAndroid/build.gradle b/ReactAndroid/build.gradle
-index 3a155af..587c95d 100644
+index 1ef2f60..252f232 100644
 --- a/ReactAndroid/build.gradle
 +++ b/ReactAndroid/build.gradle
 @@ -183,6 +183,24 @@ task prepareJSC {
@@ -35,8 +35,8 @@ index 3a155af..587c95d 100644
 +task buildReactNdkLib(dependsOn: [prepareJSC, prepareHermes, prepareV8, prepareBoost, prepareDoubleConversion, prepareFolly, prepareGlog], type: Exec) {
      inputs.dir("$projectDir/../ReactCommon")
      inputs.dir("src/main/jni")
-     inputs.dir("src/main/java/com/facebook/react/modules/blob")
-@@ -292,6 +310,7 @@ task packageReactNdkLibs(dependsOn: buildReactNdkLib, type: Copy) {
+     outputs.dir("$buildDir/react-ndk/all")
+@@ -291,6 +309,7 @@ task packageReactNdkLibs(dependsOn: buildReactNdkLib, type: Copy) {
      into("$buildDir/react-ndk/exported")
      exclude("**/libjsc.so")
      exclude("**/libhermes.so")
@@ -72,7 +72,7 @@ index e58b8cc..d3e480f 100644
    }
  }
 diff --git a/ReactAndroid/src/main/jni/react/jni/Android.mk b/ReactAndroid/src/main/jni/react/jni/Android.mk
-index cb88bb8..f657020 100644
+index 20b2171..cd0ad24 100644
 --- a/ReactAndroid/src/main/jni/react/jni/Android.mk
 +++ b/ReactAndroid/src/main/jni/react/jni/Android.mk
 @@ -69,6 +69,8 @@ $(call import-module,jsi)
@@ -84,12 +84,11 @@ index cb88bb8..f657020 100644
  
  include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
  
-@@ -79,4 +81,5 @@ include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
+@@ -79,3 +81,4 @@ include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
  include $(REACT_SRC_DIR)/jscexecutor/Android.mk
  include $(REACT_SRC_DIR)/../hermes/reactexecutor/Android.mk
  include $(REACT_SRC_DIR)/../hermes/instrumentation/Android.mk
 +include $(REACT_SRC_DIR)/../v8/reactexecutor/Android.mk
- include $(REACT_SRC_DIR)/modules/blob/jni/Android.mk
 diff --git a/ReactCommon/cxxreact/Android.mk b/ReactCommon/cxxreact/Android.mk
 index 5ac26f4..c3afdae 100644
 --- a/ReactCommon/cxxreact/Android.mk
