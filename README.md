@@ -21,7 +21,7 @@ Following steps will take 0.60.0 as example.
 yarn add 'react-native-v8@>=0.60.0-patch.0 <0.60.1'
 
 # [OPTIONAL] If to use different V8 version
-# yarn add 'v8-android@7.5.0'
+# yarn add 'v8-android@7.8.1'
 ```
 
 2. Modify your React Native build.gradle
@@ -84,7 +84,7 @@ For remote debugging mode, the JavaScript actually runs on Chrome from your host
    
 ## V8 Features Flags
 V8 provides many feature flags and the most important one should be JIT.
-Currently JIT is disabled except on arm64-v8a.
+Currently JIT is disabled for [V8 lite mode](https://v8.dev/blog/v8-lite)
 
 react-native-v8 use the V8 shared libray from [v8-android-buildscripts](https://github.com/Kudo/v8-android-buildscripts).
 For detailed V8 features, please check [there](https://github.com/Kudo/v8-android-buildscripts/blob/master/README.md#v8-feature-flags).
