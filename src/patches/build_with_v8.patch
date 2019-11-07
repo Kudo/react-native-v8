@@ -33,7 +33,7 @@ index 92796d2..813b149 100644
      exclude("**/libhermes.so")
 +    exclude("**/libv8android.so")
  }
- 
+
  def packageReactNdkLibsForBuck = tasks.register("packageReactNdkLibsForBuck", Copy) {
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
 index adbfffd..63913d4 100644
@@ -49,7 +49,7 @@ index adbfffd..63913d4 100644
  import java.util.Map;
 @@ -291,14 +292,7 @@ public class ReactInstanceManagerBuilder {
    }
- 
+
    private JavaScriptExecutorFactory getDefaultJSExecutorFactory(String appName, String deviceName, Context applicationContext) {
 -    try {
 -      // If JSC is included, use it as normal
@@ -74,9 +74,9 @@ index 9b8823c..2c998d8 100644
  $(call import-module,hermes)
 +$(call import-add-path, $(REACT_COMMON_DIR)/jsi)
 +$(call import-module,v8runtime)
- 
+
  include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
- 
+
 @@ -79,4 +81,5 @@ include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
  include $(REACT_SRC_DIR)/jscexecutor/Android.mk
  include $(REACT_SRC_DIR)/../hermes/reactexecutor/Android.mk
@@ -91,4 +91,4 @@ index 5ac26f4..c3afdae 100644
  $(call import-module,jsi)
  $(call import-module,jsinspector)
  $(call import-module,hermes/inspector)
-+$(call import-module,v8)
++$(call import-module,v8android)
