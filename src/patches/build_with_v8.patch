@@ -41,7 +41,7 @@ index 4300a84..2f9461f 100644
      from("$thirdPartyNdkDir/jsc/jni")
      into("$buildDir/react-ndk/exported")
 +    exclude("**/libjsc.so")
-+    exclude("**/libv8.so")
++    exclude("**/libv8android.so")
  }
  
  task packageReactNdkLibsForBuck(dependsOn: packageReactNdkLibs, type: Copy) {

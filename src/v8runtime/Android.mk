@@ -15,6 +15,6 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH) $(LOCAL_PATH)/.. $(LOCAL_PATH)/../..
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
 
 LOCAL_CFLAGS := -fexceptions -frtti -O3
-LOCAL_SHARED_LIBRARIES := libfolly_json libv8 glog
+LOCAL_SHARED_LIBRARIES := libfolly_json libv8android glog
 
 include $(BUILD_STATIC_LIBRARY)
