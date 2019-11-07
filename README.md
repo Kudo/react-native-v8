@@ -43,7 +43,7 @@ yarn add 'react-native-v8@>=0.60.0-patch.0 <0.60.1'
  dependencies {
      implementation fileTree(dir: "libs", include: ["*.jar"])
      implementation "com.facebook.react:react-native:+"  // From node_modules
-+    // Add v8-android - prebuilt libv8.so into APK 
++    // Add v8-android - prebuilt libv8android.so into APK 
 +    implementation 'org.chromium:v8-android:+'
 
      // JSC from node_modules
@@ -60,7 +60,7 @@ yarn add 'react-native-v8@>=0.60.0-patch.0 <0.60.1'
 +            url("$rootDir/../node_modules/react-native-v8/dist")
 +        }
 +        maven {
-+            // prebuilt libv8.so
++            // prebuilt libv8android.so
 +            url("$rootDir/../node_modules/v8-android/dist")
          }
          maven {
@@ -109,7 +109,7 @@ $ yarn add v8-android-nointl
 @@ -29,7 +29,7 @@ allprojects {
          }
          maven {
-             // prebuilt libv8.so
+             // prebuilt libv8android.so
 -            url("$rootDir/../node_modules/v8-android/dist")
 +            url("$rootDir/../node_modules/v8-android-nointl/dist")
          }

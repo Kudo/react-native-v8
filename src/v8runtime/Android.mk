@@ -19,6 +19,6 @@ ifeq ($(APP_OPTIM),release)
   LOCAL_CFLAGS += -O3
 endif
 
-LOCAL_SHARED_LIBRARIES := libfolly_json libv8 glog
+LOCAL_SHARED_LIBRARIES := libfolly_json libv8android glog
 
 include $(BUILD_STATIC_LIBRARY)

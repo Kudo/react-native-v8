@@ -13,8 +13,6 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public class V8Executor extends JavaScriptExecutor {
   static {
-    // libv8 must be loaded explicitly to invoke its JNI_OnLoad.
-    SoLoader.loadLibrary("v8");
     SoLoader.loadLibrary("v8executor");
   }
 
