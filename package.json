@@ -28,7 +28,7 @@
     "RN_VERSION": "v0.60.6"
   },
   "dependencies": {
-    "v8-android": "7.8.x >= 7.8.1"
+    "v8-android": "~8.80.0"
   },
   "peerDependencies": {
     "react-native": "^0.60.0"
