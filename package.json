@@ -32,5 +32,8 @@
   },
   "peerDependencies": {
     "react-native": "*"
+  },
+  "devDependencies": {
+    "clang-format": "^1.4.0"
   }
 }
