@@ -2,7 +2,7 @@
 # yarn lockfile v1
 
 
-v8-android@~8.80.0:
-  version "8.80.0"
-  resolved "https://registry.yarnpkg.com/v8-android/-/v8-android-8.80.0.tgz#59a6bb67b745f19397bbdd5e5e8e084c6933ff52"
-  integrity sha512-Bkw48Bzgigm87WD4Yg9V/OGQmho5LngiwPKrMA0VmLQxWAUqW5axqaYFvxEuszdzSl9PIiceGhKTKEM2BM559Q==
+v8-android@~8.80.1:
+  version "8.80.1"
+  resolved "https://registry.yarnpkg.com/v8-android/-/v8-android-8.80.1.tgz#ec4c9be7656445377e6c080ebc39b1ab7e95fbce"
+  integrity sha512-YtJEYC4cEr/EJjCAllQN1T+PX+XtcrCCBXJv+dLdzxxRtVKkHlf8kAxyriXUOtGmiMtgzlz+d8hQugVPdq8ZfA==
