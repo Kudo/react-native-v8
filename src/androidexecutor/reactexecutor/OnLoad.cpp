@@ -28,11 +28,13 @@ class V8ExecutorHolder
   static constexpr auto kJavaDescriptor =
       "Lcom/facebook/v8/reactexecutor/V8Executor;";
 
-  static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jclass>) {
+  static jni::local_ref<jhybriddata> initHybrid(
+      jni::alias_ref<jclass>,
+      const std::string &timezoneId) {
     JReactMarker::setLogPerfMarkerIfNeeded();
 
-    return makeCxxInstance(
-        folly::make_unique<V8ExecutorFactory>(installBindings));
+    return makeCxxInstance(folly::make_unique<V8ExecutorFactory>(
+        installBindings, JSIExecutor::defaultTimeoutInvoker, timezoneId));
   }
 
   static void registerNatives() {

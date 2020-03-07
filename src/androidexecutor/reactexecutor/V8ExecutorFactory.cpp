@@ -20,9 +20,9 @@ namespace react {
 
 namespace {
 
-std::unique_ptr<Runtime> makeV8RuntimeSystraced() {
+std::unique_ptr<Runtime> makeV8RuntimeSystraced(const std::string &timezoneId) {
   SystraceSection s("V8ExecutorFactory::makeV8RuntimeSystraced");
-  return createV8Runtime();
+  return createV8Runtime(timezoneId);
 }
 
 } // namespace
@@ -30,7 +30,7 @@ std::unique_ptr<Runtime> makeV8RuntimeSystraced() {
 std::unique_ptr<JSExecutor> V8ExecutorFactory::createJSExecutor(
     std::shared_ptr<ExecutorDelegate> delegate,
     std::shared_ptr<MessageQueueThread> jsQueue) {
-  std::unique_ptr<Runtime> v8Runtime = makeV8RuntimeSystraced();
+  std::unique_ptr<Runtime> v8Runtime = makeV8RuntimeSystraced(timezoneId_);
 
   // Add js engine information to Error.prototype so in error reporting we
   // can send this information.

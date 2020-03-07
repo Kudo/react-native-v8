@@ -4,8 +4,8 @@
 
 namespace facebook {
 
-std::unique_ptr<jsi::Runtime> createV8Runtime() {
-  return std::make_unique<V8Runtime>();
+std::unique_ptr<jsi::Runtime> createV8Runtime(const std::string &timezoneId) {
+  return std::make_unique<V8Runtime>(timezoneId);
 }
 
 } // namespace facebook

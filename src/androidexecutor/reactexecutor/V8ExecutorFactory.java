@@ -6,15 +6,18 @@
  */
 package com.facebook.v8.reactexecutor;
 
+import android.os.Build;
+import android.os.StrictMode;
 import com.facebook.react.bridge.JavaScriptExecutor;
 import com.facebook.react.bridge.JavaScriptExecutorFactory;
+import java.util.TimeZone;
 
 public class V8ExecutorFactory implements JavaScriptExecutorFactory {
   private static final String TAG = "V8";
 
   @Override
   public JavaScriptExecutor create() {
-    return new V8Executor();
+    return new V8Executor(getTimezoneId());
   }
 
   @Override
@@ -32,5 +35,18 @@ public class V8ExecutorFactory implements JavaScriptExecutorFactory {
   @Override
   public String toString() {
     return "JSIExecutor+V8Runtime";
+  }
+
+  private String getTimezoneId() {
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.N) {
+      final StrictMode.ThreadPolicy oldPolicy =
+          StrictMode.allowThreadDiskReads();
+      final String timezoneId = TimeZone.getDefault().getID();
+      StrictMode.setThreadPolicy(oldPolicy);
+      return timezoneId;
+    } else {
+      final String timezoneId = TimeZone.getDefault().getID();
+      return timezoneId;
+    }
   }
 }
