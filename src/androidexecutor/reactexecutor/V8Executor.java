@@ -16,8 +16,8 @@ public class V8Executor extends JavaScriptExecutor {
     SoLoader.loadLibrary("v8executor");
   }
 
-  V8Executor() {
-    super(initHybrid());
+  V8Executor(final String timezoneId) {
+    super(initHybrid(timezoneId));
   }
 
   @Override
@@ -25,5 +25,5 @@ public class V8Executor extends JavaScriptExecutor {
     return "V8Executor";
   }
 
-  private static native HybridData initHybrid();
+  private static native HybridData initHybrid(String timezoneId);
 }

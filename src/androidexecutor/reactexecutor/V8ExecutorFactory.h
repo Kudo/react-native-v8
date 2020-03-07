@@ -16,9 +16,11 @@ class V8ExecutorFactory : public JSExecutorFactory {
  public:
   explicit V8ExecutorFactory(
       JSIExecutor::RuntimeInstaller runtimeInstaller,
-      const JSIScopedTimeoutInvoker &timeoutInvoker =
-          JSIExecutor::defaultTimeoutInvoker)
-      : runtimeInstaller_(runtimeInstaller), timeoutInvoker_(timeoutInvoker) {
+      const JSIScopedTimeoutInvoker &timeoutInvoker,
+      const std::string &timezoneId)
+      : runtimeInstaller_(runtimeInstaller),
+        timeoutInvoker_(timeoutInvoker),
+        timezoneId_(timezoneId) {
     assert(timeoutInvoker_ && "Should not have empty timeoutInvoker");
   }
 
@@ -29,6 +31,7 @@ class V8ExecutorFactory : public JSExecutorFactory {
  private:
   JSIExecutor::RuntimeInstaller runtimeInstaller_;
   JSIScopedTimeoutInvoker timeoutInvoker_;
+  std::string timezoneId_;
 };
 
 class V8Executor : public JSIExecutor {

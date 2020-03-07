@@ -11,7 +11,7 @@ class V8PointerValue;
 
 class V8Runtime : public jsi::Runtime {
  public:
-  V8Runtime();
+  V8Runtime(const std::string &timezoneId);
   ~V8Runtime();
 
  private:
