@@ -95,7 +95,7 @@ resolve@^1.1.6:
   dependencies:
     path-parse "^1.0.6"
 
-v8-android@^8.80.1:
+v8-android@~8.80.1:
   version "8.80.1"
   resolved "https://registry.yarnpkg.com/v8-android/-/v8-android-8.80.1.tgz#ec4c9be7656445377e6c080ebc39b1ab7e95fbce"
   integrity sha512-YtJEYC4cEr/EJjCAllQN1T+PX+XtcrCCBXJv+dLdzxxRtVKkHlf8kAxyriXUOtGmiMtgzlz+d8hQugVPdq8ZfA==
