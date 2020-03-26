@@ -4,6 +4,7 @@
 #include <sstream>
 #include "HostProxy.h"
 #include "JSIV8ValueConverter.h"
+#include "V8Inspector.h"
 #include "V8PointerValue.h"
 #include "jsi/jsilib.h"
 
@@ -19,7 +20,7 @@ const char kHostFunctionProxyProp[] = "__hostFunctionProxy";
 std::unique_ptr<v8::Platform> V8Runtime::s_platform = nullptr;
 std::mutex s_platform_mutex; // protects s_platform
 
-V8Runtime::V8Runtime(const std::string &timezoneId) {
+V8Runtime::V8Runtime(const V8RuntimeConfig &config) {
   {
     const std::lock_guard<std::mutex> lock(s_platform_mutex);
     if (!s_platform) {
@@ -38,16 +39,24 @@ V8Runtime::V8Runtime(const std::string &timezoneId) {
 #if defined(__ANDROID__)
   if (!timezoneId.empty()) {
     isolate_->DateTimeConfigurationChangeNotification(
-        v8::Isolate::TimeZoneDetection::kCustom, timezoneId.c_str());
+        v8::Isolate::TimeZoneDetection::kCustom, config.timezoneId.c_str());
   }
 #endif
   isolate_->Enter();
   v8::HandleScope scopedIsolate(isolate_);
   context_.Reset(isolate_, CreateGlobalContext(isolate_));
+  if (config.enableInspector) {
+    inspectorClient_ =
+        std::make_unique<InspectorClient>(context_.Get(isolate_));
+  }
   context_.Get(isolate_)->Enter();
 }
 
 V8Runtime::~V8Runtime() {
+  if (inspectorClient_) {
+    inspectorClient_.reset();
+  }
+
   {
     v8::HandleScope scopedIsolate(isolate_);
     v8::Local<v8::Context> context = context_.Get(isolate_);
@@ -207,7 +216,7 @@ std::string V8Runtime::description() {
 }
 
 bool V8Runtime::isInspectable() {
-  return false;
+  return true;
 }
 
 // These clone methods are shallow clone

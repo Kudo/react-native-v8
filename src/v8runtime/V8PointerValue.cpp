@@ -5,8 +5,7 @@ namespace facebook {
 V8PointerValue::V8PointerValue(
     v8::Isolate *isolate,
     const v8::Local<v8::Value> &value)
-    : value_(isolate, value) {
-}
+    : value_(isolate, value) {}
 
 V8PointerValue::~V8PointerValue() {
   value_.Reset();

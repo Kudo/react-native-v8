@@ -1,6 +1,7 @@
 #pragma once
 
 #include "jsi/jsi.h"
+#include "jsi/v8runtime/V8RuntimeConfig.h"
 #include "libplatform/libplatform.h"
 #include "v8.h"
 
@@ -8,10 +9,11 @@ namespace facebook {
 
 class V8Runtime;
 class V8PointerValue;
+class InspectorClient;
 
 class V8Runtime : public jsi::Runtime {
  public:
-  V8Runtime(const std::string &timezoneId);
+  V8Runtime(const V8RuntimeConfig &config);
   ~V8Runtime();
 
  private:
@@ -142,6 +144,7 @@ class V8Runtime : public jsi::Runtime {
   std::unique_ptr<v8::ArrayBuffer::Allocator> arrayBufferAllocator_;
   v8::Isolate *isolate_;
   v8::Global<v8::Context> context_;
+  std::unique_ptr<InspectorClient> inspectorClient_;
 };
 
 } // namespace facebook
