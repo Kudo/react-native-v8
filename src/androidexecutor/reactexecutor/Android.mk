@@ -17,6 +17,6 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH) $(REACT_NATIVE)/ReactCommon/jsi $(REACT_NATIVE
 LOCAL_CPP_FEATURES := exceptions
 
 LOCAL_STATIC_LIBRARIES := libjsireact libjsi v8runtime
-LOCAL_SHARED_LIBRARIES := libfolly_json libfb libreactnativejni libv8android
+LOCAL_SHARED_LIBRARIES := libfolly_json libfb libfbjni libreactnativejni libv8android
 
 include $(BUILD_SHARED_LIBRARY)

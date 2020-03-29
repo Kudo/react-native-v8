@@ -5,7 +5,7 @@
  * file in the root directory of this source tree.
  */
 #include <V8ExecutorFactory.h>
-#include <fb/fbjni.h>
+#include <fbjni/fbjni.h>
 #include <folly/Memory.h>
 #include <jni.h>
 #include <react/jni/JReactMarker.h>
