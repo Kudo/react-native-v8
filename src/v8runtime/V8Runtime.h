@@ -144,7 +144,7 @@ class V8Runtime : public jsi::Runtime {
   std::unique_ptr<v8::ArrayBuffer::Allocator> arrayBufferAllocator_;
   v8::Isolate *isolate_;
   v8::Global<v8::Context> context_;
-  std::unique_ptr<InspectorClient> inspectorClient_;
+  std::shared_ptr<InspectorClient> inspectorClient_;
 };
 
 } // namespace facebook

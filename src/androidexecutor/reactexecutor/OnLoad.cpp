@@ -33,12 +33,16 @@ class V8ExecutorHolder
   static jni::local_ref<jhybriddata> initHybrid(
       jni::alias_ref<jclass>,
       const std::string &timezoneId,
-      bool enableInspector) {
+      bool enableInspector,
+      const std::string &appName,
+      const std::string &deviceName) {
     JReactMarker::setLogPerfMarkerIfNeeded();
 
     facebook::V8RuntimeConfig config;
     config.timezoneId = timezoneId;
     config.enableInspector = enableInspector;
+    config.appName = appName;
+    config.deviceName = deviceName;
 
     return makeCxxInstance(folly::make_unique<V8ExecutorFactory>(
         installBindings, JSIExecutor::defaultTimeoutInvoker, config));

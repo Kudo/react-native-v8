@@ -1,17 +1,17 @@
 #include "V8Inspector.h"
 
+#include <sstream>
+
 namespace facebook {
 
 static const char kInspectorName[] = "React Native V8 Inspector";
-static const int kContextGroupId = 1;
 
 namespace {
 std::string ToSTLString(
     v8::Isolate *isolate,
     const v8_inspector::StringView &stringView) {
-  v8::HandleScope scopedIsolate(isolate);
   int length = static_cast<int>(stringView.length());
-  v8::Local<v8::String> v8String =
+  v8::MaybeLocal<v8::String> v8StringNullable =
       (stringView.is8Bit()
            ? v8::String::NewFromOneByte(
                  isolate,
@@ -22,13 +22,21 @@ std::string ToSTLString(
                  isolate,
                  reinterpret_cast<const uint16_t *>(stringView.characters16()),
                  v8::NewStringType::kNormal,
-                 length))
-          .ToLocalChecked();
+                 length));
+  if (v8StringNullable.IsEmpty()) {
+    return std::string();
+  }
+  v8::Local<v8::String> v8String = v8StringNullable.ToLocalChecked();
   v8::String::Utf8Value utf8V8String(isolate, v8String);
   if (*utf8V8String)
     return std::string(*utf8V8String, utf8V8String.length());
   else
     return std::string();
+}
+
+v8_inspector::StringView ToStringView(const std::string &string) {
+  return v8_inspector::StringView(
+      reinterpret_cast<const uint8_t *>(string.data()), string.size());
 }
 
 } // namespace
@@ -53,51 +61,65 @@ void InspectorFrontend::sendNotification(
 
 class LocalConnection : public react::ILocalConnection {
  public:
-  LocalConnection(InspectorClient &client) : client_(client) {}
+  LocalConnection(std::weak_ptr<InspectorClient> weakClient)
+      : weakClient_(weakClient) {}
   ~LocalConnection() override {}
 
   void sendMessage(std::string message) override {
-    v8::HandleScope scopedIsolate(client_.isolate_);
+    auto client = weakClient_.lock();
+    if (!client) {
+      return;
+    }
+
+    v8::HandleScope scopedIsolate(client->isolate_);
     v8_inspector::StringView messageView(
         reinterpret_cast<const uint8_t *>(message.data()), message.size());
     {
-      v8::SealHandleScope seal_scopedIsolate(client_.isolate_);
-      client_.session_->dispatchProtocolMessage(messageView);
+      // v8::SealHandleScope seal_scopedIsolate(client->isolate_);
+      client->session_->dispatchProtocolMessage(messageView);
     }
   }
 
-  void disconnect() override {}
+  void disconnect() override {
+    auto client = weakClient_.lock();
+    if (!client) {
+      return;
+    }
+
+    client->Disconnect();
+  }
 
  private:
-  InspectorClient &client_;
+  std::weak_ptr<InspectorClient> weakClient_;
 };
 
-InspectorClient::InspectorClient(v8::Local<v8::Context> context) {
+int InspectorClient::nextContextGroupId_ = 1;
+
+InspectorClient::InspectorClient(
+    v8::Local<v8::Context> context,
+    const std::string &appName,
+    const std::string &deviceName) {
   isolate_ = context->GetIsolate();
+  v8::HandleScope scopedIsolate(isolate_);
   channel_.reset(new InspectorFrontend(this, context));
   inspector_ = v8_inspector::V8Inspector::create(isolate_, this);
-  v8_inspector::StringView inspectorName(
-      reinterpret_cast<const uint8_t *>(kInspectorName),
-      sizeof(kInspectorName));
-
-  session_ =
-      inspector_->connect(kContextGroupId, channel_.get(), inspectorName);
-  // context->SetAlignedPointerInEmbedderData(kInspectorClientIndex, this);
-  inspector_->contextCreated(
-      v8_inspector::V8ContextInfo(context, kContextGroupId, inspectorName));
-
+  inspectorName_ = CreateInspectorName(appName, deviceName);
+  v8_inspector::StringView inspectorNameStringView =
+      ToStringView(inspectorName_);
+  int contextGroupId = nextContextGroupId_++;
+  session_ = inspector_->connect(
+      contextGroupId, channel_.get(), inspectorNameStringView);
   context_.Reset(isolate_, context);
 
-  react::getInspectorInstance().addPage(
-      kInspectorName,
-      "V8",
-      [this](std::unique_ptr<react::IRemoteConnection> remoteConn) {
-        this->remoteConn_ = std::move(remoteConn);
-        return std::make_unique<LocalConnection>(*this);
-      });
+  inspector_->contextCreated(v8_inspector::V8ContextInfo(
+      context, contextGroupId, inspectorNameStringView));
 }
 
-InspectorClient::~InspectorClient() {}
+InspectorClient::~InspectorClient() {
+  v8::HandleScope scopedIsolate(isolate_);
+  inspector_->contextDestroyed(context_.Get(isolate_));
+  Disconnect();
+}
 
 void InspectorClient::runMessageLoopOnPause(int contextGroupId) {
   paused_ = true;
@@ -116,12 +138,50 @@ v8::Local<v8::Context> InspectorClient::ensureDefaultContextInGroup(
   return context_.Get(isolate_);
 }
 
+void InspectorClient::ConnectToReactFrontend() {
+  std::lock_guard<std::mutex> lock(connectionMutex_);
+
+  auto weakClient = CreateWeakPtr();
+  pageId_ = react::getInspectorInstance().addPage(
+      inspectorName_,
+      "V8",
+      [weakClient = std::move(weakClient)](
+          std::unique_ptr<react::IRemoteConnection> remoteConn) {
+        auto client = weakClient.lock();
+        if (client) {
+          client->remoteConn_ = std::move(remoteConn);
+        }
+        return std::make_unique<LocalConnection>(weakClient);
+      });
+}
+
+void InspectorClient::Disconnect() {
+  std::lock_guard<std::mutex> lock(connectionMutex_);
+  if (remoteConn_) {
+    remoteConn_->onDisconnect();
+  }
+  react::getInspectorInstance().removePage(pageId_);
+}
+
 void InspectorClient::SendRemoteMessage(
     const v8_inspector::StringView &message) {
   if (remoteConn_) {
     std::string messageString = ToSTLString(isolate_, message);
     remoteConn_->onMessage(messageString);
   }
+}
+
+std::weak_ptr<InspectorClient> InspectorClient::CreateWeakPtr() {
+  return std::weak_ptr<InspectorClient>(shared_from_this());
+}
+
+// static
+std::string InspectorClient::CreateInspectorName(
+    const std::string &appName,
+    const std::string &deviceName) {
+  std::ostringstream ss;
+  ss << kInspectorName << " - " << appName;
+  return ss.str();
 }
 
 } // namespace facebook

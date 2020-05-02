@@ -13,11 +13,13 @@ import java.util.TimeZone;
 public final class V8RuntimeConfig {
   public String timezoneId;
   public boolean enableInspector;
+  public String appName;
+  public String deviceName;
 
   public static V8RuntimeConfig createDefault() {
     final V8RuntimeConfig config = new V8RuntimeConfig();
     config.timezoneId = getTimezoneId();
-    config.enableInspector = true;
+    config.enableInspector = false;
     return config;
   }
 

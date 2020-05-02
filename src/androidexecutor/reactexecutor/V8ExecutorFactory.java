@@ -18,6 +18,16 @@ public class V8ExecutorFactory implements JavaScriptExecutorFactory {
     this(V8RuntimeConfig.createDefault());
   }
 
+  public V8ExecutorFactory(
+      final String appName,
+      final String deviceName,
+      final boolean useDeveloperSupport) {
+    mConfig = V8RuntimeConfig.createDefault();
+    mConfig.appName = appName;
+    mConfig.deviceName = deviceName;
+    mConfig.enableInspector = useDeveloperSupport;
+  }
+
   public V8ExecutorFactory(final V8RuntimeConfig config) {
     mConfig = config;
   }

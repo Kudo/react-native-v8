@@ -45,11 +45,12 @@ V8Runtime::V8Runtime(const V8RuntimeConfig &config) {
   isolate_->Enter();
   v8::HandleScope scopedIsolate(isolate_);
   context_.Reset(isolate_, CreateGlobalContext(isolate_));
-  if (config.enableInspector) {
-    inspectorClient_ =
-        std::make_unique<InspectorClient>(context_.Get(isolate_));
-  }
   context_.Get(isolate_)->Enter();
+  if (config.enableInspector) {
+    inspectorClient_ = std::make_shared<InspectorClient>(
+        context_.Get(isolate_), config.appName, config.deviceName);
+    inspectorClient_->ConnectToReactFrontend();
+  }
 }
 
 V8Runtime::~V8Runtime() {
@@ -216,7 +217,7 @@ std::string V8Runtime::description() {
 }
 
 bool V8Runtime::isInspectable() {
-  return true;
+  return !!inspectorClient_;
 }
 
 // These clone methods are shallow clone
