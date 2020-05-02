@@ -48,7 +48,9 @@ class InspectorClient final
   void ConnectToReactFrontend();
   void Disconnect();
   void SendRemoteMessage(const v8_inspector::StringView &message);
-  void SendLocalMessage(const std::string &message);
+
+  v8::Isolate *GetIsolate();
+  v8_inspector::V8InspectorSession *GetInspectorSession();
 
  private:
   static std::string CreateInspectorName(
@@ -60,8 +62,6 @@ class InspectorClient final
  private:
   static int nextContextGroupId_;
 
-  // private:
- public:
   std::unique_ptr<v8_inspector::V8Inspector> inspector_;
   std::unique_ptr<v8_inspector::V8InspectorSession> session_;
   std::unique_ptr<v8_inspector::V8Inspector::Channel> channel_;

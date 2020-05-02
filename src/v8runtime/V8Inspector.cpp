@@ -71,12 +71,15 @@ class LocalConnection : public react::ILocalConnection {
       return;
     }
 
-    v8::HandleScope scopedIsolate(client->isolate_);
+    v8::HandleScope scopedIsolate(client->GetIsolate());
     v8_inspector::StringView messageView(
         reinterpret_cast<const uint8_t *>(message.data()), message.size());
     {
-      // v8::SealHandleScope seal_scopedIsolate(client->isolate_);
-      client->session_->dispatchProtocolMessage(messageView);
+      // v8::SealHandleScope seal_scopedIsolate(client->GetIsolate());
+      auto session = client->GetInspectorSession();
+      if (session) {
+        session->dispatchProtocolMessage(messageView);
+      }
     }
   }
 
@@ -169,6 +172,14 @@ void InspectorClient::SendRemoteMessage(
     std::string messageString = ToSTLString(isolate_, message);
     remoteConn_->onMessage(messageString);
   }
+}
+
+v8::Isolate *InspectorClient::GetIsolate() {
+  return isolate_;
+}
+
+v8_inspector::V8InspectorSession *InspectorClient::GetInspectorSession() {
+  return session_ ? session_.get() : nullptr;
 }
 
 std::weak_ptr<InspectorClient> InspectorClient::CreateWeakPtr() {
