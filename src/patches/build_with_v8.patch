@@ -2,7 +2,7 @@ diff --git a/ReactAndroid/build.gradle b/ReactAndroid/build.gradle
 index 595bfaf..8c13707 100644
 --- a/ReactAndroid/build.gradle
 +++ b/ReactAndroid/build.gradle
-@@ -190,6 +190,24 @@ task prepareJSC {
+@@ -190,6 +190,29 @@ task prepareJSC {
          }
      }
  }
@@ -10,6 +10,11 @@ index 595bfaf..8c13707 100644
 +task prepareV8 {
 +    doLast {
 +        def v8PackageRoot = file("$projectDir/../../node_modules/v8-android/dist")
++        if (!v8PackageRoot.exists()) {
++            // The `$projectDir` for prebuilding is located at `/path/to/react-native-v8/build/ReactAndroid`
++            // But for app build from forked RN source with this v8 patch, it may be `/path/to/app/node_modules/react-native/ReactAndroid`
++            v8PackageRoot = file("$projectDir/../../v8-android/dist")
++        }
 +        def v8AAR = fileTree(v8PackageRoot).matching({ it.include "**/v8-android/**/*.aar" }).singleFile
 +        def soFiles = zipTree(v8AAR).matching({ it.include "**/*.so" })
 +        def headerFiles = fileTree(v8PackageRoot).matching({ it.include "**/include/**" })
