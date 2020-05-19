@@ -2,22 +2,26 @@ diff --git a/ReactAndroid/build.gradle b/ReactAndroid/build.gradle
 index 595bfaf..8c13707 100644
 --- a/ReactAndroid/build.gradle
 +++ b/ReactAndroid/build.gradle
-@@ -190,6 +190,29 @@ task prepareJSC {
+@@ -190,6 +190,33 @@ task prepareJSC {
          }
      }
  }
 +
 +task prepareV8 {
 +    doLast {
-+        def v8PackageRoot = file("$projectDir/../../node_modules/v8-android/dist")
-+        if (!v8PackageRoot.exists()) {
-+            // The `$projectDir` for prebuilding is located at `/path/to/react-native-v8/build/ReactAndroid`
-+            // But for app build from forked RN source with this v8 patch, it may be `/path/to/app/node_modules/react-native/ReactAndroid`
-+            v8PackageRoot = file("$projectDir/../../v8-android/dist")
++        def v8PackagePath = findNodeModulePath(projectDir, "v8-android")
++        if (!v8PackagePath) {
++            throw new GradleScriptException("Could not find the v8-android npm package")
++        } 
++
++        def v8Dist = file("$v8PackagePath/dist")
++        if (!v8Dist.exists()) {
++            throw new GradleScriptException("The v8-android npm package is missing its \"dist\" directory")
 +        }
-+        def v8AAR = fileTree(v8PackageRoot).matching({ it.include "**/v8-android/**/*.aar" }).singleFile
++
++        def v8AAR = fileTree(v8Dist).matching({ it.include "**/v8-android/**/*.aar" }).singleFile
 +        def soFiles = zipTree(v8AAR).matching({ it.include "**/*.so" })
-+        def headerFiles = fileTree(v8PackageRoot).matching({ it.include "**/include/**" })
++        def headerFiles = fileTree(v8Dist).matching({ it.include "**/include/**" })
 +
 +        copy {
 +            from(soFiles)
