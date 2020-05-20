@@ -2,17 +2,26 @@ diff --git a/ReactAndroid/build.gradle b/ReactAndroid/build.gradle
 index c28a02d..973ccdd 100644
 --- a/ReactAndroid/build.gradle
 +++ b/ReactAndroid/build.gradle
-@@ -190,6 +190,24 @@ task prepareJSC {
+@@ -190,6 +190,33 @@ task prepareJSC {
          }
      }
  }
 +
 +task prepareV8 {
 +    doLast {
-+        def v8PackageRoot = file("$projectDir/../../node_modules/v8-android/dist")
-+        def v8AAR = fileTree(v8PackageRoot).matching({ it.include "**/v8-android/**/*.aar" }).singleFile
++        def v8PackagePath = findNodeModulePath(projectDir, "v8-android")
++        if (!v8PackagePath) {
++            throw new GradleScriptException("Could not find the v8-android npm package")
++        } 
++
++        def v8Dist = file("$v8PackagePath/dist")
++        if (!v8Dist.exists()) {
++            throw new GradleScriptException("The v8-android npm package is missing its \"dist\" directory")
++        }
++
++        def v8AAR = fileTree(v8Dist).matching({ it.include "**/v8-android/**/*.aar" }).singleFile
 +        def soFiles = zipTree(v8AAR).matching({ it.include "**/*.so" })
-+        def headerFiles = fileTree(v8PackageRoot).matching({ it.include "**/include/**" })
++        def headerFiles = fileTree(v8Dist).matching({ it.include "**/include/**" })
 +
 +        copy {
 +            from(soFiles)
