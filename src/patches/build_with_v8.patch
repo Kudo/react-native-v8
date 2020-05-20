@@ -1,5 +1,5 @@
 diff --git a/ReactAndroid/build.gradle b/ReactAndroid/build.gradle
-index 595bfaf..8c13707 100644
+index c28a02d..973ccdd 100644
 --- a/ReactAndroid/build.gradle
 +++ b/ReactAndroid/build.gradle
 @@ -190,6 +190,24 @@ task prepareJSC {
@@ -100,29 +100,29 @@ index e2809cd..1ae7cc6 100644
    }
  }
 diff --git a/ReactAndroid/src/main/jni/react/jni/Android.mk b/ReactAndroid/src/main/jni/react/jni/Android.mk
-index ed19e7f..4c54b83 100644
+index 38a5101..dbe4335 100644
 --- a/ReactAndroid/src/main/jni/react/jni/Android.mk
 +++ b/ReactAndroid/src/main/jni/react/jni/Android.mk
-@@ -70,6 +70,8 @@ $(call import-module,jsi)
- $(call import-module,jsiexecutor)
+@@ -71,6 +71,8 @@ $(call import-module,jsiexecutor)
  $(call import-module,callinvoker)
+ $(call import-module,reactperflogger)
  $(call import-module,hermes)
 +$(call import-add-path, $(REACT_COMMON_DIR)/jsi)
 +$(call import-module,v8runtime)
+ $(call import-module,runtimeexecutor)
  
  include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
- 
-@@ -80,4 +82,5 @@ include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
+@@ -82,4 +84,5 @@ include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
  include $(REACT_SRC_DIR)/jscexecutor/Android.mk
  include $(REACT_SRC_DIR)/../hermes/reactexecutor/Android.mk
  include $(REACT_SRC_DIR)/../hermes/instrumentation/Android.mk
 +include $(REACT_SRC_DIR)/../v8/reactexecutor/Android.mk
  include $(REACT_SRC_DIR)/modules/blob/jni/Android.mk
 diff --git a/ReactCommon/cxxreact/Android.mk b/ReactCommon/cxxreact/Android.mk
-index 5ac26f4..c3afdae 100644
+index d82b10b..a699f88 100644
 --- a/ReactCommon/cxxreact/Android.mk
 +++ b/ReactCommon/cxxreact/Android.mk
-@@ -31,3 +31,4 @@ $(call import-module,glog)
+@@ -33,3 +33,4 @@ $(call import-module,glog)
  $(call import-module,jsi)
  $(call import-module,jsinspector)
  $(call import-module,hermes/inspector)
