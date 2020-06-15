@@ -102,7 +102,7 @@ $ npm i v8-android-jit
 $ yarn add v8-android-jit
 ```
 
-2. Modify the gradle dependency to use `v8-android-jit`
+2. Modify the gradle dependency to use `v8-android-jit` or other variants
 
 ```diff
 --- a/android/build.gradle
@@ -118,7 +118,14 @@ $ yarn add v8-android-jit
              // Android JSC is installed from npm
 ```
 
-Note that this method can also be used to swap to the `Intl` variant of V8. The only requirement is to update the maven import to point to the correct package that was added in `node_modules`
+This method can also be used to swap to other variants of V8. All possible variants include:
+
+- v8-android
+- v8-android-nointl
+- v8-android-jit
+- v8-android-jit-nointl
+
+Simply switch out `v8-android-jit` in the steps provided with the variant that you would like to use.
 
 ## FAQ
 
