@@ -1,5 +1,5 @@
 diff --git a/ReactAndroid/build.gradle b/ReactAndroid/build.gradle
-index c28a02d..973ccdd 100644
+index 595bfaf..6cea953 100644
 --- a/ReactAndroid/build.gradle
 +++ b/ReactAndroid/build.gradle
 @@ -190,6 +190,33 @@ task prepareJSC {
@@ -36,7 +36,7 @@ index c28a02d..973ccdd 100644
  task downloadNdkBuildDependencies {
      if (!boostPath) {
          dependsOn(downloadBoost)
-@@ -296,7 +314,7 @@ def getNdkBuildFullPath() {
+@@ -296,7 +323,7 @@ def getNdkBuildFullPath() {
  }
  
  def buildReactNdkLib = tasks.register("buildReactNdkLib", Exec) {
@@ -45,7 +45,7 @@ index c28a02d..973ccdd 100644
  
      inputs.dir("$projectDir/../ReactCommon")
      inputs.dir("src/main/jni")
-@@ -337,6 +355,7 @@ def packageReactNdkLibs = tasks.register("packageReactNdkLibs", Copy) {
+@@ -337,6 +364,7 @@ def packageReactNdkLibs = tasks.register("packageReactNdkLibs", Copy) {
      into("$buildDir/react-ndk/exported")
      exclude("**/libjsc.so")
      exclude("**/libhermes.so")
@@ -109,29 +109,29 @@ index e2809cd..1ae7cc6 100644
    }
  }
 diff --git a/ReactAndroid/src/main/jni/react/jni/Android.mk b/ReactAndroid/src/main/jni/react/jni/Android.mk
-index 38a5101..dbe4335 100644
+index ed19e7f..4c54b83 100644
 --- a/ReactAndroid/src/main/jni/react/jni/Android.mk
 +++ b/ReactAndroid/src/main/jni/react/jni/Android.mk
-@@ -71,6 +71,8 @@ $(call import-module,jsiexecutor)
+@@ -70,6 +70,8 @@ $(call import-module,jsi)
+ $(call import-module,jsiexecutor)
  $(call import-module,callinvoker)
- $(call import-module,reactperflogger)
  $(call import-module,hermes)
 +$(call import-add-path, $(REACT_COMMON_DIR)/jsi)
 +$(call import-module,v8runtime)
- $(call import-module,runtimeexecutor)
  
  include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
-@@ -82,4 +84,5 @@ include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
+ 
+@@ -80,4 +82,5 @@ include $(REACT_SRC_DIR)/turbomodule/core/jni/Android.mk
  include $(REACT_SRC_DIR)/jscexecutor/Android.mk
  include $(REACT_SRC_DIR)/../hermes/reactexecutor/Android.mk
  include $(REACT_SRC_DIR)/../hermes/instrumentation/Android.mk
 +include $(REACT_SRC_DIR)/../v8/reactexecutor/Android.mk
  include $(REACT_SRC_DIR)/modules/blob/jni/Android.mk
 diff --git a/ReactCommon/cxxreact/Android.mk b/ReactCommon/cxxreact/Android.mk
-index d82b10b..a699f88 100644
+index 553e0a9..7ab7ade 100644
 --- a/ReactCommon/cxxreact/Android.mk
 +++ b/ReactCommon/cxxreact/Android.mk
-@@ -33,3 +33,4 @@ $(call import-module,glog)
+@@ -32,3 +32,4 @@ $(call import-module,glog)
  $(call import-module,jsi)
  $(call import-module,jsinspector)
  $(call import-module,hermes/inspector)
