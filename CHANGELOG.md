@@ -1,6 +1,31 @@
 Change Log
 ==========
 
+Version 0.63.1-patch.0 / 0.63.0-patch.0 / 0.59.10-patch.3 *(2020-07-18)*
+-------------------------------------------------------
+
+ * Upgrade v8-android-* to 8.84.0 (V8 8.4.371.19)
+ 
+ Please use one of these variants
+ - v8-android@~8.84.0
+ - v8-android-jit@~8.84.0
+ - v8-android-nointl@~8.84.0
+ - v8-android-jit-nointl@~8.84.0
+
+
+Version 0.62.2-patch.1 / 0.62.1-patch.0 / 0.61.5-patch.3 *(2020-04)*
+-------------------------------------------------------
+
+ * Fix incorrect timezone issue (#37)[https://github.com/Kudo/react-native-v8/issues/37]
+ 
+ * Upgrade v8-android-* to 8.80.1 (V8 8.0.426.16)
+ 
+ Please use one of these variants
+ - v8-android@~8.80.1
+ - v8-android-jit@~8.80.1
+ - v8-android-nointl@~8.80.1
+ - v8-android-jit-nointl@~8.80.1
+
 Version 0.61.4-patch.0 / 0.60.6-patch.1 / 0.59.10-patch.3 *(2019-11-05)*
 -------------------------------------------------------
 
