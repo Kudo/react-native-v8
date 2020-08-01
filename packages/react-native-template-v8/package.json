@@ -1,39 +1,26 @@
 {
   "name": "react-native-template-v8",
-  "version": "0.0.0",
-  "description": "Opt-in V8 runtime for React Native Android",
+  "version": "0.1.0",
+  "description": "React Native template to adopt V8",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Kudo/react-native-v8.git"
+    "url": "git+https://github.com/Kudo/react-native-v8.git",
+    "directory": "packages/react-native-template-v8"
   },
   "keywords": [
     "react-native",
-    "android",
-    "v8"
+    "template",
+    "v8",
+    "ios"
   ],
+  "author": "Kudo Chien <ckchien@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Kudo/react-native-v8/issues"
   },
   "homepage": "https://github.com/Kudo/react-native-v8#readme",
   "files": [
-    "/dist"
-  ],
-  "scripts": {
-    "clean": "rm -rf dist; rm -rf build",
-    "export_npm_env": "./scripts/export_npm_env.sh",
-    "build": "bash -c '. ./scripts/export_npm_env.sh && ./scripts/build.sh'"
-  },
-  "config": {
-    "RN_VERSION": "master"
-  },
-  "dependencies": {
-    "v8-android": "~8.84.0"
-  },
-  "peerDependencies": {
-    "react-native": "*"
-  },
-  "devDependencies": {
-    "clang-format": "^1.4.0"
-  }
+    "template",
+    "template.config.js"
+  ]
 }
