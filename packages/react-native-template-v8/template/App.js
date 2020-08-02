@@ -38,6 +38,14 @@ const App: () => React$Node = () => {
               <Text style={styles.footer}>Engine: Hermes</Text>
             </View>
           )}
+          {global._v8runtime == null ? null : (
+            <View style={styles.engine}>
+              <Text style={styles.footer}>
+                Engine: V8 {global._v8runtime().version} Intl{' '}
+                {global.Intl != null ? 'true' : 'false'}
+              </Text>
+            </View>
+          )}
           <View style={styles.body}>
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>Step One</Text>

@@ -37,6 +37,20 @@ target 'HelloWorld' do
       end
     end
 
+    # Reorder code sign script
+    installer.aggregate_targets.each do |target|
+      if target.name == "Pods-V8Executor"
+        project = target.user_project
+        phase = project.targets.first.new_shell_script_build_phase("Code sign libv83")
+        phase.shell_script = '
+lipo "$TARGET_BUILD_DIR/V8Executor.framework/libv8.dylib" -thin "$PLATFORM_PREFERRED_ARCH" -output "$TARGET_BUILD_DIR/V8Executor.framework/libv8.dylib"
+codesign -f -s "$EXPANDED_CODE_SIGN_IDENTITY_NAME" "$TARGET_BUILD_DIR/V8Executor.framework/libv8.dylib"
+install_name_tool -change "./libv8.dylib" "@rpath/V8Executor.framework/libv8.dylib" "$TARGET_BUILD_DIR/$EXECUTABLE_PATH"'
+        phase.input_paths = [ '$(SRCROOT)/../lib/universal/libv8.dylib' ]
+        project.save()
+      end
+    end
+
   end
 end
 
