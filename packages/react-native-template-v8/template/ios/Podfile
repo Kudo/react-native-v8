@@ -41,7 +41,7 @@ target 'HelloWorld' do
     installer.aggregate_targets.each do |target|
       if target.name == "Pods-V8Executor"
         project = target.user_project
-        phase = project.targets.first.new_shell_script_build_phase("Code sign libv83")
+        phase = project.targets.first.new_shell_script_build_phase("Codesign libv8.dylib")
         phase.shell_script = '
 lipo "$TARGET_BUILD_DIR/V8Executor.framework/libv8.dylib" -thin "$PLATFORM_PREFERRED_ARCH" -output "$TARGET_BUILD_DIR/V8Executor.framework/libv8.dylib"
 codesign -f -s "$EXPANDED_CODE_SIGN_IDENTITY_NAME" "$TARGET_BUILD_DIR/V8Executor.framework/libv8.dylib"
