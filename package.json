@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/Kudo/react-native-v8#readme",
   "files": [
-    "/dist"
+    "/dist",
+    "/src"
   ],
   "scripts": {
     "clean": "rm -rf dist; rm -rf build",

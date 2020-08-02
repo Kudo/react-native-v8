@@ -24,8 +24,12 @@ V8Runtime::V8Runtime(const std::string &timezoneId) {
   v8::Isolate::CreateParams createParams;
   createParams.array_buffer_allocator = arrayBufferAllocator_.get();
   isolate_ = v8::Isolate::New(createParams);
-  isolate_->DateTimeConfigurationChangeNotification(
-      v8::Isolate::TimeZoneDetection::kCustom, timezoneId.c_str());
+#if defined(__ANDROID__)
+  if (!timezoneId.empty()) {
+    isolate_->DateTimeConfigurationChangeNotification(
+        v8::Isolate::TimeZoneDetection::kCustom, timezoneId.c_str());
+  }
+#endif
   isolate_->Enter();
   v8::HandleScope scopedIsolate(isolate_);
   context_.Reset(isolate_, CreateGlobalContext(isolate_));
