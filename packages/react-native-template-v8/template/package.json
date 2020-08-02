@@ -12,7 +12,7 @@
   "dependencies": {
     "react": "16.13.1",
     "react-native": "0.63.2",
-    "react-native-v8": "0.63.2-patch.0",
+    "react-native-v8": "0.63.2-patch.1",
     "v8-ios": "~8.84.0"
   },
   "devDependencies": {
