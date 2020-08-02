@@ -1,0 +1,26 @@
+{
+  "name": "react-native-template-v8",
+  "version": "0.1.0",
+  "description": "React Native template to adopt V8",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kudo/react-native-v8.git",
+    "directory": "packages/react-native-template-v8"
+  },
+  "keywords": [
+    "react-native",
+    "template",
+    "v8",
+    "ios"
+  ],
+  "author": "Kudo Chien <ckchien@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Kudo/react-native-v8/issues"
+  },
+  "homepage": "https://github.com/Kudo/react-native-v8#readme",
+  "files": [
+    "template",
+    "template.config.js"
+  ]
+}

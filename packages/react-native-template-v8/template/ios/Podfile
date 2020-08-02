@@ -1,0 +1,75 @@
+require_relative '../node_modules/react-native/scripts/react_native_pods'
+require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+
+platform :ios, '10.0'
+
+workspace 'HelloWorld'
+
+target 'HelloWorld' do
+  project 'HelloWorld.xcodeproj'
+
+  config = use_native_modules!
+
+  use_react_native!(:path => config["reactNativePath"])
+
+  target 'HelloWorldTests' do
+    inherit! :complete
+    # Pods for testing
+  end
+
+  # Enables Flipper.
+  #
+  # Note that if you have use_frameworks! enabled, Flipper will not work and
+  # you should disable these next few lines.
+  use_flipper!
+  post_install do |installer|
+    flipper_post_install(installer)
+
+    # Workaround for target project cannot access folly or boost headers
+    installer.pods_project.targets.each do |target|
+      if target.name == "Pods-HelloWorld"
+        target.build_configurations.each do |config|
+          xcconfig_path = config.base_configuration_reference.real_path
+          xcconfig = File.read(xcconfig_path)
+          xcconfig_mod = xcconfig.gsub(/^(HEADER_SEARCH_PATHS = .*)$/, "\\1 \"$(PODS_ROOT)/Folly\" \"$(PODS_ROOT)/boost-for-react-native\"")
+          File.open(xcconfig_path, "w") { |file| file << xcconfig_mod }
+        end
+      end
+    end
+
+    # Reorder code sign script
+    installer.aggregate_targets.each do |target|
+      if target.name == "Pods-V8Executor"
+        project = target.user_project
+        phase = project.targets.first.new_shell_script_build_phase("Code sign libv83")
+        phase.shell_script = '
+lipo "$TARGET_BUILD_DIR/V8Executor.framework/libv8.dylib" -thin "$PLATFORM_PREFERRED_ARCH" -output "$TARGET_BUILD_DIR/V8Executor.framework/libv8.dylib"
+codesign -f -s "$EXPANDED_CODE_SIGN_IDENTITY_NAME" "$TARGET_BUILD_DIR/V8Executor.framework/libv8.dylib"
+install_name_tool -change "./libv8.dylib" "@rpath/V8Executor.framework/libv8.dylib" "$TARGET_BUILD_DIR/$EXECUTABLE_PATH"'
+        phase.input_paths = [ '$(SRCROOT)/../lib/universal/libv8.dylib' ]
+        project.save()
+      end
+    end
+
+  end
+end
+
+target 'V8Executor' do
+  project 'V8Executor.xcodeproj'
+
+  config = use_native_modules!
+  use_react_native!(:path => config["reactNativePath"])
+
+  pod 'v8-ios', :podspec => "#{config[:reactNativePath]}/../v8-ios"
+end
+
+target 'HelloWorld-tvOS' do
+  project 'HelloWorld.xcodeproj'
+
+  # Pods for HelloWorld-tvOS
+
+  target 'HelloWorld-tvOSTests' do
+    inherit! :search_paths
+    # Pods for testing
+  end
+end
