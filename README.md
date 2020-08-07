@@ -127,6 +127,10 @@ This method can also be used to swap to other variants of V8. All possible varia
 
 Simply switch out `v8-android-jit` in the steps provided with the variant that you would like to use.
 
+## iOS Support (Experimented)
+We did have experimented iOS support. To adopt V8 for Xcodeproj gets a little complicated, so we have a pre-shaped template.
+Please check [react-native-template-v8](packages/react-native-template-v8/README.md) for more information.
+
 ## FAQ
 
 ### How to reduce APK size ?
