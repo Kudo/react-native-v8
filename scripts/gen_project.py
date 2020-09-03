@@ -93,7 +93,7 @@ def main():
     patcher = ProjectConfigPatcher(rnv8_maven_repo, v8_maven_repo)
     patcher.add_v8_support()
     patcher.add_vm_hint()
-    subprocess.run(['react-native', 'run-android'])
+    subprocess.run(['npx', 'react-native', 'run-android'])
 
 
 if __name__ == '__main__':
