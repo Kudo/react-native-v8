@@ -1,6 +1,6 @@
 {
   "name": "react-native-v8",
-  "version": "v0.61.5-patch.3",
+  "version": "v0.61.5-patch.4",
   "description": "Opt-in V8 runtime for React Native Android",
   "repository": {
     "type": "git",
@@ -28,7 +28,7 @@
     "RN_VERSION": "v0.61.5"
   },
   "dependencies": {
-    "v8-android": "~8.80.1"
+    "v8-android": "~8.84.0"
   },
   "peerDependencies": {
     "react-native": "^0.61.0"
