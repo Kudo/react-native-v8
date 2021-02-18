@@ -29,7 +29,7 @@
     "RN_VERSION": "master"
   },
   "dependencies": {
-    "v8-android": "~8.84.0"
+    "v8-android": "~9.88.0"
   },
   "peerDependencies": {
     "react-native": "*"
