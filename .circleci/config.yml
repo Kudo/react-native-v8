@@ -3,10 +3,16 @@ version: 2
 jobs:
   build:
     docker:
-      - image: reactnativecommunity/react-native-android:2019-6-4
+      - image: reactnativecommunity/react-native-android:3.1
 
     steps:
       - checkout
+
+      - run:
+          name: Install packages
+          command: |
+            apt-get update
+            apt-get install patch -y
 
       - run:
           name: Add V8
