@@ -117,6 +117,16 @@ class ProjectConfigPatcher:
             '\\1' + v8_block,
             re_flags=(re.DOTALL | re.MULTILINE))
 
+        # Support new App.js
+        v8log_block = '''
+          if (global._v8runtime) {
+            console.log(`=== V8 version[${global._v8runtime().version}] ===`);
+          }'''
+        self._replace_file_content(appjs_path,
+                                   r'(^export default App;$)',
+                                   '\\1' + v8log_block,
+                                   re_flags=re.MULTILINE)
+
     def add_v8_support(self):
         self._patch_root_gradle()
         self._patch_app_gradle()
