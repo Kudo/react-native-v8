@@ -95,10 +95,10 @@ resolve@^1.1.6:
   dependencies:
     path-parse "^1.0.6"
 
-v8-android@~8.80.1:
-  version "8.80.1"
-  resolved "https://registry.yarnpkg.com/v8-android/-/v8-android-8.80.1.tgz#ec4c9be7656445377e6c080ebc39b1ab7e95fbce"
-  integrity sha512-YtJEYC4cEr/EJjCAllQN1T+PX+XtcrCCBXJv+dLdzxxRtVKkHlf8kAxyriXUOtGmiMtgzlz+d8hQugVPdq8ZfA==
+v8-android@~9.88.0:
+  version "9.88.0"
+  resolved "https://registry.yarnpkg.com/v8-android/-/v8-android-9.88.0.tgz#ecb8e4426d6e68837d70eb71f209626bb0d3c575"
+  integrity sha512-KUnCspxD/7h2Gl7a8OhVd+8UWGPqmCDXwT3PORa32HXk+BK2KBKS+jnd0Eyccv4sSawfQM62iZGghb+8KOuJbw==
 
 wrappy@1:
   version "1.0.2"
