@@ -30,6 +30,9 @@ done
 cd $BUILD_DIR
 yarn
 ./gradlew :ReactAndroid:installArchives
+# NOTE(kudo): Sometimes gradle will not pack *.so (maybe from parallel issues),
+# workaround to execute twice
+./gradlew :ReactAndroid:installArchives
 
 mkdir -p $DIST_DIR
 cp -Rf $BUILD_DIR/android/* $DIST_DIR
