@@ -172,6 +172,11 @@ jsi::Value V8Runtime::evaluatePreparedJavaScript(
   return evaluateJavaScript(sourceJs, sourceJs->sourceURL());
 }
 
+bool V8Runtime::drainMicrotasks(int maxMicrotasksHint) {
+  isolate_->PerformMicrotaskCheckpoint();
+  return true;
+}
+
 jsi::Object V8Runtime::global() {
   v8::HandleScope scopedIsolate(isolate_);
   return make<jsi::Object>(
