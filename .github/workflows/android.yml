@@ -63,4 +63,6 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
-          script: python scripts/gen_project.py --version $RN_VERSION --from dist --v8_maven_repo node_modules/$V8_VARIANT/dist
+          script: |
+            echo "python scripts/gen_project.py --version $RN_VERSION --from dist --v8_maven_repo node_modules/$V8_VARIANT/dist"
+            python scripts/gen_project.py --version $RN_VERSION --from dist --v8_maven_repo node_modules/$V8_VARIANT/dist
