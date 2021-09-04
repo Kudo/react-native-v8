@@ -47,7 +47,7 @@ jobs:
 
       - name: Install v8 package
         run: |
-          V8_VERSION=$(cat package.json |jq '.dependencies."v8-android-jit"')
+          V8_VERSION=$(cat package.json | jq '.dependencies."v8-android-jit"' | tr -d '"')
           V8_VARIANT=$(echo v8-android-${{ matrix.variant }} | sed 's/^v8-android-intl$/v8-android/')
           echo "V8_VARIANT=$V8_VARIANT" >> $GITHUB_ENV
           yarn add "$V8_VARIANT@$V8_VERSION"
