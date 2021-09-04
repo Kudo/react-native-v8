@@ -18,6 +18,7 @@ jobs:
 
       - name: Install packages
         run: |
+          echo 'foo' | grep 'bar' > /dev/null
           apt-get update
           apt-get install patch -y
 
