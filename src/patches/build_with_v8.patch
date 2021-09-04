@@ -19,7 +19,7 @@ index e73b2b4..81dee96 100644
 +            throw new GradleScriptException("The v8-android-jit npm package is missing its \"dist\" directory")
 +        }
 +
-+        def v8AAR = fileTree(v8Dist).matching({ it.include "**/v8-android-jit/**/*.aar" }).singleFile
++        def v8AAR = fileTree(v8Dist).matching({ it.include "**/v8-android/**/*.aar" }).singleFile
 +        def soFiles = zipTree(v8AAR).matching({ it.include "**/*.so" })
 +        def headerFiles = fileTree(v8Dist).matching({ it.include "**/include/**" })
 +
