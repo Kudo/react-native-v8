@@ -2,11 +2,13 @@
 echo "ooxx0"
 source $(dirname $0)/env.sh
 
-echo "ooxx1"
+echo "ooxx1 dirname $(dirname $0)"
 ######################################################################################
 # [0] Patch React Native source
 ######################################################################################
 
+echo "CURR_DIR $CURR_DIR"
+echo "ROOT_DIR $ROOT_DIR"
 echo "ooxx2"
 rm -rf $BUILD_DIR
 echo "ooxx3"
