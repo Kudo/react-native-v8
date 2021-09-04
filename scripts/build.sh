@@ -6,7 +6,6 @@ source $(dirname $0)/env.sh
 ######################################################################################
 
 rm -rf $BUILD_DIR
-echo "git clone --depth=1 --branch ${RN_VERSION} https://github.com/facebook/react-native.git $BUILD_DIR"
 git clone --depth=1 --branch ${RN_VERSION} https://github.com/facebook/react-native.git $BUILD_DIR
 
 PATCHSET=(
