@@ -1,17 +1,15 @@
 #!/bin/bash -e
-echo "ooxx0"
+echo "pwd $(pwd)"
 source $(dirname $0)/env.sh
 
-echo "ooxx1 dirname $(dirname $0)"
 ######################################################################################
 # [0] Patch React Native source
 ######################################################################################
 
-echo "CURR_DIR $CURR_DIR"
-echo "ROOT_DIR $ROOT_DIR"
-echo "ooxx2"
 rm -rf $BUILD_DIR
-echo "ooxx3"
+ls -al /__w/react-native-v8
+echo "ooxx2"
+ls -al /__w/react-native-v8/react-native-v8
 git clone --depth=1 --branch ${RN_VERSION} https://github.com/facebook/react-native.git $BUILD_DIR
 
 echo "ooxx4"
