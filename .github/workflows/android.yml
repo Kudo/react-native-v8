@@ -1,0 +1,70 @@
+name: Build for Android
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: reactnativecommunity/react-native-android:3.2
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install packages
+        run: |
+          apt-get update
+          apt-get install patch -y
+
+      - name: Install node modules
+        run: yarn install
+
+      - name: Export settings from npm package
+        run: npm run export_npm_env
+
+      - name: Build React Native V8
+        run: scripts/build.sh
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+  e2e-test:
+    needs: build
+    if: ${{ github.ref != 'refs/heads/main' && github.base_ref != 'main' }}
+    runs-on: macos-10.15
+    strategy:
+      matrix:
+        variant: [intl, nointl, jit-intl, jit-nointl]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install v8 package
+        run: |
+          RN_VERSION=$(cat package.json | jq '.config.RN_VERSION' | tr -d '"' | sed 's/^v//')
+          echo "RN_VERSION=$RN_VERSION" >> $GITHUB_ENV
+          V8_VERSION=$(cat package.json | jq '.dependencies."v8-android-jit"' | tr -d '"')
+          V8_VARIANT=$(echo v8-android-${{ matrix.variant }} | sed 's/-intl$//')
+          echo "V8_VARIANT=$V8_VARIANT" >> $GITHUB_ENV
+          yarn add "$V8_VARIANT@$V8_VERSION"
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+      - name: Run tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          script: |
+            adb logcat -c
+            python3 scripts/gen_project.py --version $RN_VERSION --from dist --v8_maven_repo node_modules/$V8_VARIANT/dist TestApp
+            adb logcat -d | grep -E "=== V8 version\[.+\] ===" > /dev/null
