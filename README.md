@@ -1,5 +1,5 @@
 [![npm version](https://badge.fury.io/js/react-native-v8.svg)](https://badge.fury.io/js/react-native-v8)
-[![CircleCI](https://circleci.com/gh/Kudo/react-native-v8.svg?style=svg)](https://circleci.com/gh/Kudo/react-native-v8)
+[![Build for Android](https://github.com/Kudo/react-native-v8/actions/workflows/android.yml/badge.svg)](https://github.com/Kudo/react-native-v8/actions/workflows/android.yml)
 
 # React Native with V8 Runtime
 
@@ -9,19 +9,14 @@ The aim of this project is to support V8 runtime for React Native. Designed as o
 
 To make RN integration easier, we publish prebuilt AAR into [npm](https://www.npmjs.com/package/react-native-v8).
 
-The versioning is aligned with React Native but suffixed with a `-patch.N` in version
-E.g.
-If your React Native version is `0.60.0`, you should use react-native-v8 `>=0.60.0-patch.0 <0.60.1`.
+The versioning is aligned with React Native with a suffix `-patch.N` in version. E.g., if your React Native version is `0.60.0`, you should use react-native-v8 `>=0.60.0-patch.0 <0.60.1`.
 
-Following steps will take 0.60.0 as example.
+Following steps will take 0.60.0 as an example.
 
 1. Install react-native-v8
 
 ```sh
 yarn add 'react-native-v8@>=0.60.0-patch.0 <0.60.1'
-
-# [OPTIONAL] If to use different V8 version
-# yarn add 'v8-android@7.8.1'
 ```
 
 2. Modify your React Native build.gradle
@@ -61,7 +56,7 @@ yarn add 'react-native-v8@>=0.60.0-patch.0 <0.60.1'
 +        }
 +        maven {
 +            // prebuilt libv8android.so
-+            url("$rootDir/../node_modules/v8-android/dist")
++            url("$rootDir/../node_modules/v8-android-jit/dist")
          }
          maven {
              // Android JSC is installed from npm
@@ -82,27 +77,29 @@ console.log(`V8 version is ${global._v8runtime().version}`);
 Please note that `global._v8runtime()` existed only for V8 enabled environment but not React Native remote debugging mode.
 For remote debugging mode, the JavaScript actually runs on Chrome from your host and there is no V8Runtime.
 
-## V8 Features Flags
+## V8 Variants
 
-V8 provides many feature flags and the most important one should be JIT.
-Currently JIT is disabled for [V8 lite mode](https://v8.dev/blog/v8-lite)
-
-react-native-v8 use the V8 shared libray from [v8-android-buildscripts](https://github.com/Kudo/v8-android-buildscripts).
+`react-native-v8` uses V8 shared libray from [v8-android-buildscripts](https://github.com/Kudo/v8-android-buildscripts).
 For detailed V8 features, please check [there](https://github.com/Kudo/v8-android-buildscripts/blob/master/README.md#v8-feature-flags).
 
-You can do the following to use one of these features in place of [V8 lite mode](https://v8.dev/blog/v8-lite) which is packaged as the default for this repository:
+`v8-android-jit` is the default V8 variant we include in `react-native-v8`. This is a full featured V8 with both [JIT](https://en.wikipedia.org/wiki/Just-in-time_compilation) and [Intl](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl). We provide other V8 variants to fulfill your needs.
 
-1. Add `v8-android-jit` via yarn or npm
+| Package name          | JIT | Intl | maven path                                                   |
+| --------------------- | --- | ---- | ------------------------------------------------------------ |
+| v8-android-jit        | Yes | Yes  | `url("$rootDir/../node_modules/v8-android-jit/dist")`        |
+| v8-android-jit-nointl | Yes | No   | `url("$rootDir/../node_modules/v8-android-jit-nointl/dist")` |
+| v8-android            | No  | Yes  | `url("$rootDir/../node_modules/v8-android/dist")`            |
+| v8-android-nointl     | No  | No   | `url("$rootDir/../node_modules/v8-android-nointl/dist")`     |
 
-```
-$ npm i v8-android-jit
+For instance, if you want to reduce memory usage, the non JIT variant, aka [V8 lite mode](https://v8.dev/blog/v8-lite). The following are further steps:
+
+1. Add `v8-android`
+
+```sh
+$ yarn add v8-android
 ```
 
-```
-$ yarn add v8-android-jit
-```
-
-2. Modify the gradle dependency to use `v8-android-jit` or other variants
+2. Modify the gradle dependency to use `v8-android` or other variants
 
 ```diff
 --- a/android/build.gradle
@@ -111,21 +108,12 @@ $ yarn add v8-android-jit
          }
          maven {
              // prebuilt libv8android.so
--            url("$rootDir/../node_modules/v8-android/dist")
-+            url("$rootDir/../node_modules/v8-android-jit/dist")
+-            url("$rootDir/../node_modules/v8-android-jit/dist")
++            url("$rootDir/../node_modules/v8-android/dist")
          }
          maven {
              // Android JSC is installed from npm
 ```
-
-This method can also be used to swap to other variants of V8. All possible variants include:
-
-- v8-android
-- v8-android-nointl
-- v8-android-jit
-- v8-android-jit-nointl
-
-Simply switch out `v8-android-jit` in the steps provided with the variant that you would like to use.
 
 ## iOS Support (Experimented)
 We did have experimented iOS support. To adopt V8 for Xcodeproj gets a little complicated, so we have a pre-shaped template.
@@ -135,7 +123,7 @@ Please check [react-native-template-v8](packages/react-native-template-v8/README
 
 ### How to reduce APK size ?
 
-The V8 currently bundled by default supports [Intl](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl) and the ICU data costs about 7MiB per ABI. If you are not going to use `Intl`, you could use no-Intl version to reduce APK size. (jsc-android and Hermes have no Intl by default)
+The V8 currently bundled by default supports [Intl](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl) and the ICU data costs about 7MiB per ABI. If you are not going to use `Intl`, you could use no-Intl version to reduce APK size. (jsc-android have no Intl by default)
 
 ## TODO
 
