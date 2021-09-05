@@ -1,7 +1,33 @@
 Change Log
 ==========
 
-Version 0.63.1-patch.0 / 0.63.0-patch.0 *(2020-07-18)*
+Version 0.65.1-patch.0
+-------------------------------------------------------
+
+ * Ship v8-android-jit by default
+
+ * Upgrade v8-android-* to 9.93.0 (V8 	9.3.345.16)
+ 
+ Please use one of these variants
+ - v8-android@~9.93.0
+ - v8-android-jit@~9.93.0
+ - v8-android-nointl@~9.93.0
+ - v8-android-jit-nointl@~9.93.0
+
+Version 0.64.2-patch.0 / 0.64.1-patch.0 / 0.64.0-patch.0
+-------------------------------------------------------
+Version 0.63.4-patch.1
+-------------------------------------------------------
+
+ * Upgrade v8-android-* to 9.88.0 (V8 8.8.278.15)
+ 
+ Please use one of these variants
+ - v8-android@~9.88.0
+ - v8-android-jit@~9.88.0
+ - v8-android-nointl@~9.88.0
+ - v8-android-jit-nointl@~9.88.0
+
+Version 0.63.4-patch.0 / 0.63.4-patch.0 / 0.63.2-patch.0 / 0.63.1-patch.0 / 0.63.0-patch.1
 -------------------------------------------------------
 
  * Upgrade v8-android-* to 8.84.0 (V8 8.4.371.19)
