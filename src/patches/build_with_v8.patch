@@ -9,14 +9,14 @@ index edadad2..984e2c9 100644
 +
 +task prepareV8 {
 +    doLast {
-+        def v8PackagePath = findNodeModulePath(projectDir, "v8-android")
++        def v8PackagePath = findNodeModulePath(projectDir, "v8-android-jit")
 +        if (!v8PackagePath) {
-+            throw new GradleScriptException("Could not find the v8-android npm package")
++            throw new GradleScriptException("Could not find the v8-android-jit npm package")
 +        }
 +
 +        def v8Dist = file("$v8PackagePath/dist")
 +        if (!v8Dist.exists()) {
-+            throw new GradleScriptException("The v8-android npm package is missing its \"dist\" directory")
++            throw new GradleScriptException("The v8-android-jit npm package is missing its \"dist\" directory")
 +        }
 +
 +        def v8AAR = fileTree(v8Dist).matching({ it.include "**/v8-android/**/*.aar" }).singleFile
