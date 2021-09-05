@@ -9,14 +9,14 @@ The aim of this project is to support V8 runtime for React Native. Designed as o
 
 To make RN integration easier, we publish prebuilt AAR into [npm](https://www.npmjs.com/package/react-native-v8).
 
-The versioning is aligned with React Native with a suffix `-patch.N` in version. E.g., if your React Native version is `0.60.0`, you should use react-native-v8 `>=0.60.0-patch.0 <0.60.1`.
+The versioning is aligned with React Native with a suffix `-patch.N` in version. E.g., if your React Native version is `0.65.1`, you should use react-native-v8 `>=0.65.1-patch.0 <0.65.1`.
 
-Following steps will take 0.60.0 as an example.
+Following steps will take 0.65.1 as an example.
 
 1. Install react-native-v8
 
 ```sh
-yarn add 'react-native-v8@>=0.60.0-patch.0 <0.60.1'
+yarn add 'react-native-v8@>=0.65.0-patch.0 <0.65.1'
 ```
 
 2. Modify your React Native build.gradle
@@ -39,7 +39,7 @@ yarn add 'react-native-v8@>=0.60.0-patch.0 <0.60.1'
      implementation fileTree(dir: "libs", include: ["*.jar"])
      implementation "com.facebook.react:react-native:+"  // From node_modules
 +    // Add v8-android - prebuilt libv8android.so into APK
-+    implementation 'org.chromium:v8-android:+'
++    implementation 'org.chromium:v8-android:9.93.+'
 
      // JSC from node_modules
      if (useIntlJsc) {
@@ -62,9 +62,37 @@ yarn add 'react-native-v8@>=0.60.0-patch.0 <0.60.1'
              // Android JSC is installed from npm
 ```
 
+Since V8 shared library is not ABI safe, the `implementation 'org.chromium:v8-android:9.93.+'` change above requires to pair with `react-native-v8` release version. Please reference [the mappings for the actual gradle dependency you need](#TODO).
+
 3. Gradle rebuild or `react-native run-android`
 
 4. Start application and could verify by JS `global._v8runtime().version` which expected to return V8 version.
+
+## `react-native-v8` and `v8-android-*` mappings
+
+| `react-native-v8` version | `v8-android*` version | gradle dependency                                 | Chromium V8 version |
+| ------------------------- | --------------------- | ------------------------------------------------- | ------------------- |
+| -- 0.65                   |                       |                                                   |                     |
+| 0.65.1-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
+| -- 0.64                   |                       |                                                   |                     |
+| 0.64.2-patch.0            | 9.88.0                | implementation 'org.chromium:v8-android:`9.88.+`' | 8.8.278.15          |
+| 0.64.1-patch.0            | 9.88.0                | implementation 'org.chromium:v8-android:`9.88.+`' | 8.8.278.15          |
+| 0.64.0-patch.0            | 9.88.0                | implementation 'org.chromium:v8-android:`9.88.+`' | 8.8.278.15          |
+| -- 0.63                   |                       |                                                   |                     |
+| 0.63.4-patch.1            | 9.88.0                | implementation 'org.chromium:v8-android:`9.88.+`' | 8.8.278.15          |
+| 0.63.4-patch.0            | 8.84.0                | implementation 'org.chromium:v8-android:`8.84.+`' | 8.4.371.19          |
+| 0.63.3-patch.0            | 8.84.0                | implementation 'org.chromium:v8-android:`8.84.+`' | 8.4.371.19          |
+| 0.63.2-patch.1            | 8.84.0                | implementation 'org.chromium:v8-android:`8.84.+`' | 8.4.371.19          |
+| 0.63.1-patch.0            | 8.84.0                | implementation 'org.chromium:v8-android:`8.84.+`' | 8.4.371.19          |
+| 0.63.0-patch.0            | 8.80.1                | implementation 'org.chromium:v8-android:`8.80.+`' | 8.0.426.16          |
+| -- 0.62                   |                       |                                                   |                     |
+| 0.62.2-patch.2            | 8.84.0                | implementation 'org.chromium:v8-android:`8.84.+`' | 8.4.371.19          |
+| 0.62.2-patch.1            | 8.80.1                | implementation 'org.chromium:v8-android:`8.80.+`' | 8.0.426.16          |
+| 0.62.1-patch.0            | 8.80.1                | implementation 'org.chromium:v8-android:`8.80.+`' | 8.0.426.16          |
+| 0.62.0-patch.0            | 8.80.1                | implementation 'org.chromium:v8-android:`8.80.+`' | 8.0.426.16          |
+| -- 0.59                   |                       |                                                   |                     |
+| 0.59.10-patch.6           | 7.8.2                 | implementation 'org.chromium:v8-android:`7.8.+`'  | 7.8.279.23          |
+
 
 ## Builtin JavaScript object
 
@@ -115,7 +143,10 @@ $ yarn add v8-android
              // Android JSC is installed from npm
 ```
 
+## `react-native-v8` version should be
+
 ## iOS Support (Experimented)
+
 We did have experimented iOS support. To adopt V8 for Xcodeproj gets a little complicated, so we have a pre-shaped template.
 Please check [react-native-template-v8](packages/react-native-template-v8/README.md) for more information.
 
