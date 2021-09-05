@@ -1,8 +1,8 @@
 diff --git a/ReactAndroid/build.gradle b/ReactAndroid/build.gradle
-index 70c245c..fc7840e 100644
+index edadad2..984e2c9 100644
 --- a/ReactAndroid/build.gradle
 +++ b/ReactAndroid/build.gradle
-@@ -194,6 +194,33 @@ task prepareJSC {
+@@ -236,6 +236,33 @@ task prepareJSC {
          }
      }
  }
@@ -36,16 +36,16 @@ index 70c245c..fc7840e 100644
  task downloadNdkBuildDependencies {
      if (!boostPath) {
          dependsOn(downloadBoost)
-@@ -300,7 +327,7 @@ def getNdkBuildFullPath() {
+@@ -354,7 +381,7 @@ def getNdkBuildFullPath() {
  }
  
  def buildReactNdkLib = tasks.register("buildReactNdkLib", Exec) {
--    dependsOn(prepareJSC, prepareHermes, prepareBoost, prepareDoubleConversion, prepareFolly, prepareGlog, extractAARHeaders, extractJNIFiles)
-+    dependsOn(prepareJSC, prepareHermes, prepareV8, prepareBoost, prepareDoubleConversion, prepareFolly, prepareGlog, extractAARHeaders, extractJNIFiles)
+-    dependsOn(prepareJSC, prepareHermes, prepareBoost, prepareDoubleConversion, prepareFmt, prepareFolly, prepareGlog, prepareLibevent, extractAARHeaders, extractJNIFiles)
++    dependsOn(prepareJSC, prepareHermes, prepareV8, prepareBoost, prepareDoubleConversion, prepareFmt, prepareFolly, prepareGlog, prepareLibevent, extractAARHeaders, extractJNIFiles)
      dependsOn("generateCodegenArtifactsFromSchema");
  
      inputs.dir("$projectDir/../ReactCommon")
-@@ -344,6 +371,7 @@ def packageReactNdkLibs = tasks.register("packageReactNdkLibs", Copy) {
+@@ -399,6 +426,7 @@ def packageReactNdkLibs = tasks.register("packageReactNdkLibs", Copy) {
      into("$buildDir/react-ndk/exported")
      exclude("**/libjsc.so")
      exclude("**/libhermes.so")
@@ -54,7 +54,7 @@ index 70c245c..fc7840e 100644
  
  def packageReactNdkLibsForBuck = tasks.register("packageReactNdkLibsForBuck", Copy) {
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
-index a3b33f6..0fd33a9 100644
+index 36f700e..ac74bdd 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
 +++ b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
 @@ -30,6 +30,7 @@ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
@@ -65,7 +65,7 @@ index a3b33f6..0fd33a9 100644
  import java.util.ArrayList;
  import java.util.List;
  import java.util.Map;
-@@ -291,40 +292,7 @@ public class ReactInstanceManagerBuilder {
+@@ -311,40 +312,7 @@ public class ReactInstanceManagerBuilder {
  
    private JavaScriptExecutorFactory getDefaultJSExecutorFactory(
        String appName, String deviceName, Context applicationContext) {
@@ -109,10 +109,10 @@ index a3b33f6..0fd33a9 100644
    }
  }
 diff --git a/ReactAndroid/src/main/jni/react/jni/Android.mk b/ReactAndroid/src/main/jni/react/jni/Android.mk
-index 76c613b..56d6e2b 100644
+index 82445d0..5ac153a 100644
 --- a/ReactAndroid/src/main/jni/react/jni/Android.mk
 +++ b/ReactAndroid/src/main/jni/react/jni/Android.mk
-@@ -127,6 +127,8 @@ $(call import-module,jsiexecutor)
+@@ -128,6 +128,8 @@ $(call import-module,logger)
  $(call import-module,callinvoker)
  $(call import-module,reactperflogger)
  $(call import-module,hermes)
@@ -121,7 +121,7 @@ index 76c613b..56d6e2b 100644
  $(call import-module,runtimeexecutor)
  $(call import-module,react/nativemodule/core)
  
-@@ -147,6 +149,7 @@ endif
+@@ -145,6 +147,7 @@ include $(REACT_SRC_DIR)/common/mapbuffer/jni/Android.mk
  include $(REACT_SRC_DIR)/jscexecutor/Android.mk
  include $(REACT_SRC_DIR)/../hermes/reactexecutor/Android.mk
  include $(REACT_SRC_DIR)/../hermes/instrumentation/Android.mk
@@ -130,11 +130,12 @@ index 76c613b..56d6e2b 100644
  
  include $(REACT_GENERATED_SRC_DIR)/codegen/jni/Android.mk
 diff --git a/ReactCommon/cxxreact/Android.mk b/ReactCommon/cxxreact/Android.mk
-index a502436..168813e 100644
+index 392c33b..e792380 100644
 --- a/ReactCommon/cxxreact/Android.mk
 +++ b/ReactCommon/cxxreact/Android.mk
-@@ -34,3 +34,4 @@ $(call import-module,jsi)
+@@ -34,4 +34,5 @@ $(call import-module,jsi)
  $(call import-module,jsinspector)
  $(call import-module,hermes/inspector)
  $(call import-module,hermes/executor)
 +$(call import-module,v8)
+ $(call import-module,logger)
