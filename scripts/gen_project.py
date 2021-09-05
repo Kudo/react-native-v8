@@ -6,7 +6,7 @@ import sys
 from lib.patcher import ProjectConfigPatcher
 
 DEFAULT_NPM_RNV8_MAVEN_REPO = '$rootDir/../node_modules/react-native-v8/dist'
-DEFAULT_NPM_V8_MAVEN_REPO = '$rootDir/../node_modules/v8-android/dist'
+DEFAULT_NPM_V8_MAVEN_REPO = '$rootDir/../node_modules/v8-android-jit/dist'
 
 
 def parse_args():
