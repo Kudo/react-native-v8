@@ -36,6 +36,8 @@ class V8Runtime : public jsi::Runtime {
   jsi::Value evaluatePreparedJavaScript(
       const std::shared_ptr<const jsi::PreparedJavaScript> &js) override;
 
+  bool drainMicrotasks(int maxMicrotasksHint = -1) override;
+
   jsi::Object global() override;
   std::string description() override;
   bool isInspectable() override;
