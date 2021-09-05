@@ -16,7 +16,7 @@ Following steps will take 0.65.1 as an example.
 1. Install react-native-v8
 
 ```sh
-yarn add 'react-native-v8@>=0.65.0-patch.0 <0.65.1'
+yarn add 'react-native-v8@>=0.65.1-patch.0 <0.65.2'
 ```
 
 2. Modify your React Native build.gradle
