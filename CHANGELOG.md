@@ -4,7 +4,17 @@ Change Log
 Version 0.65.1-patch.0
 -------------------------------------------------------
 
- * Ship v8-android-jit by default
+ * [*Breaking Change*] Ship `v8-android-jit` by default.
+
+If you use the default v8 variant included in `react-native-v8`, after this version, please change your `android/app/build.gradle`.
+
+```diff
+       maven {
+           // prebuilt libv8android.so
+-           url("$rootDir/../node_modules/v8-android/dist")
++           url("$rootDir/../node_modules/v8-android-jit/dist")
+       }
+```
 
  * Upgrade v8-android-* to 9.93.0 (V8 	9.3.345.16)
  
