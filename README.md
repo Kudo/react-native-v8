@@ -62,7 +62,7 @@ yarn add 'react-native-v8@>=0.65.0-patch.0 <0.65.1'
              // Android JSC is installed from npm
 ```
 
-Since V8 shared library is not ABI safe, the `implementation 'org.chromium:v8-android:9.93.+'` change above requires to pair with `react-native-v8` release version. Please reference [the mappings for the actual gradle dependency you need](#TODO).
+Since V8 shared library is not ABI safe, the `implementation 'org.chromium:v8-android:9.93.+'` change above requires to pair with `react-native-v8` release version. Please reference [the mappings for the actual gradle dependency you need](#react-native-v8-and-v8-android--mappings).
 
 3. Gradle rebuild or `react-native run-android`
 
