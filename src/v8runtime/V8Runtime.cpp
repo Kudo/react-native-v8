@@ -5,18 +5,23 @@
 #include "JSIV8ValueConverter.h"
 #include "V8PointerValue.h"
 #include "jsi/jsilib.h"
+#include <mutex>
 
 namespace facebook {
 
 // static
 std::unique_ptr<v8::Platform> V8Runtime::s_platform = nullptr;
+std::mutex s_platform_mutex; // protects s_platform
 
 V8Runtime::V8Runtime(const std::string &timezoneId) {
-  if (!s_platform) {
-    s_platform = v8::platform::NewDefaultPlatform();
-    v8::V8::InitializeICU();
-    v8::V8::InitializePlatform(s_platform.get());
-    v8::V8::Initialize();
+  {
+    const std::lock_guard<std::mutex> lock(s_platform_mutex);
+    if (!s_platform) {
+      s_platform = v8::platform::NewDefaultPlatform();
+      v8::V8::InitializeICU();
+      v8::V8::InitializePlatform(s_platform.get());
+      v8::V8::Initialize();
+    }
   }
 
   arrayBufferAllocator_.reset(
