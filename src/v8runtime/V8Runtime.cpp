@@ -5,6 +5,7 @@
 #include "JSIV8ValueConverter.h"
 #include "V8PointerValue.h"
 #include "jsi/jsilib.h"
+#include <mutex>
 
 namespace facebook {
 
