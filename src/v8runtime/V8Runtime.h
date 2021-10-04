@@ -128,7 +128,12 @@ class V8Runtime : public jsi::Runtime {
   // JS function/object handler callbacks
   //
  private:
+  // For `global._v8runtime()`
   static void GetRuntimeInfo(const v8::FunctionCallbackInfo<v8::Value> &args);
+
+  // For `HostFunctionContainer()`, will call underlying HostFunction
+  static void OnHostFuncionContainerCallback(
+      const v8::FunctionCallbackInfo<v8::Value> &args);
 
  private:
   static std::unique_ptr<v8::Platform> s_platform;
