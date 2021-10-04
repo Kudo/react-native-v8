@@ -1,13 +1,19 @@
 #include "V8Runtime.h"
 
+#include <mutex>
 #include <sstream>
 #include "HostProxy.h"
 #include "JSIV8ValueConverter.h"
 #include "V8PointerValue.h"
 #include "jsi/jsilib.h"
-#include <mutex>
 
 namespace facebook {
+
+namespace {
+
+const char kHostFunctionProxyProp[] = "__hostFunctionProxy";
+
+} // namespace
 
 // static
 std::unique_ptr<v8::Platform> V8Runtime::s_platform = nullptr;
@@ -417,13 +423,19 @@ jsi::HostFunctionType &V8Runtime::getHostFunction(
   const V8PointerValue *v8PointerValue =
       static_cast<const V8PointerValue *>(getPointerValue(function));
   assert(v8PointerValue->Get(isolate_)->IsFunction());
-  v8::Local<v8::Object> v8Object =
-      v8::Local<v8::Object>::Cast(v8PointerValue->Get(isolate_));
+  v8::Local<v8::Function> v8Function =
+      v8::Local<v8::Function>::Cast(v8PointerValue->Get(isolate_));
 
-  v8::Local<v8::External> internalField =
-      v8::Local<v8::External>::Cast(v8Object->GetInternalField(0));
+  v8::Local<v8::String> prop =
+      v8::String::NewFromUtf8(
+          isolate_, kHostFunctionProxyProp, v8::NewStringType::kNormal)
+          .ToLocalChecked();
+  v8::Local<v8::External> wrappedHostFunctionProxy =
+      v8::Local<v8::External>::Cast(
+          v8Function->Get(isolate_->GetCurrentContext(), prop)
+              .ToLocalChecked());
   HostFunctionProxy *hostFunctionProxy =
-      reinterpret_cast<HostFunctionProxy *>(internalField->Value());
+      reinterpret_cast<HostFunctionProxy *>(wrappedHostFunctionProxy->Value());
   assert(hostFunctionProxy);
   return hostFunctionProxy->GetHostFunction();
 }
@@ -580,9 +592,14 @@ bool V8Runtime::isHostObject(const jsi::Object &object) const {
 
 bool V8Runtime::isHostFunction(const jsi::Function &function) const {
   v8::HandleScope scopedIsolate(isolate_);
-  v8::Local<v8::Object> v8Object =
-      JSIV8ValueConverter::ToV8Object(*this, function);
-  return v8Object->InternalFieldCount() == 1 && v8Object->IsCallable();
+  v8::Local<v8::Function> v8Function =
+      JSIV8ValueConverter::ToV8Function(*this, function);
+
+  v8::Local<v8::String> prop =
+      v8::String::NewFromUtf8(
+          isolate_, kHostFunctionProxyProp, v8::NewStringType::kNormal)
+          .ToLocalChecked();
+  return v8Function->Has(isolate_->GetCurrentContext(), prop).ToChecked();
 }
 
 jsi::Array V8Runtime::getPropertyNames(const jsi::Object &object) {
@@ -666,28 +683,40 @@ jsi::Function V8Runtime::createFunctionFromHostFunction(
     unsigned int paramCount,
     jsi::HostFunctionType func) {
   v8::HandleScope scopedIsolate(isolate_);
+
   HostFunctionProxy *hostFunctionProxy =
       new HostFunctionProxy(*this, isolate_, std::move(func));
-
   v8::Local<v8::External> wrappedHostFunctionProxy =
       v8::External::New(isolate_, hostFunctionProxy);
+  v8::Local<v8::Function> v8HostFunction =
+      v8::Function::New(
+          isolate_->GetCurrentContext(),
+          HostFunctionProxy::FunctionCallback,
+          wrappedHostFunctionProxy)
+          .ToLocalChecked();
+  hostFunctionProxy->BindFinalizer(v8HostFunction);
 
-  v8::Local<v8::FunctionTemplate> functionTemplate =
-      v8::FunctionTemplate::New(isolate_);
-  v8::Local<v8::ObjectTemplate> instanceTemplate =
-      functionTemplate->InstanceTemplate();
-  instanceTemplate->SetCallAsFunctionHandler(
-      HostFunctionProxy::FunctionCallback, wrappedHostFunctionProxy);
-  instanceTemplate->SetInternalFieldCount(1);
-
-  v8::Local<v8::Object> v8Object =
-      instanceTemplate->NewInstance(isolate_->GetCurrentContext())
+  v8::Local<v8::Function> v8FunctionContainer =
+      v8::Function::New(
+          isolate_->GetCurrentContext(),
+          V8Runtime::OnHostFuncionContainerCallback,
+          v8HostFunction)
           .ToLocalChecked();
 
-  v8Object->SetInternalField(0, wrappedHostFunctionProxy);
-  hostFunctionProxy->BindFinalizer(v8Object);
+  v8::Local<v8::String> prop =
+      v8::String::NewFromUtf8(
+          isolate_, kHostFunctionProxyProp, v8::NewStringType::kNormal)
+          .ToLocalChecked();
+  v8FunctionContainer
+      ->Set(isolate_->GetCurrentContext(), prop, wrappedHostFunctionProxy)
+      .Check();
+  // wrappedHostFunctionProxy is mainly owned by v8HostFunction and not bind
+  // finalizer to v8FunctionContainer
 
-  return make<jsi::Object>(new V8PointerValue(isolate_, v8Object))
+  v8::Local<v8::String> v8Name = JSIV8ValueConverter::ToV8String(*this, name);
+  v8FunctionContainer->SetName(v8Name);
+
+  return make<jsi::Object>(new V8PointerValue(isolate_, v8FunctionContainer))
       .getFunction(*this);
 }
 
@@ -709,7 +738,7 @@ jsi::Value V8Runtime::call(
   }
 
   std::vector<v8::Local<v8::Value>> argv;
-  for (size_t i = 0; i < count; i++) {
+  for (size_t i = 0; i < count; ++i) {
     v8::Local<v8::Value> v8ArgValue =
         JSIV8ValueConverter::ToV8Value(*this, args[i]);
     argv.push_back(v8ArgValue);
@@ -871,6 +900,28 @@ void V8Runtime::GetRuntimeInfo(
   runtimeInfo->Set(context, memoryKey, memoryInfo).Check();
 
   args.GetReturnValue().Set(runtimeInfo);
+}
+
+// static
+void V8Runtime::OnHostFuncionContainerCallback(
+    const v8::FunctionCallbackInfo<v8::Value> &args) {
+  v8::HandleScope scopedIsolate(args.GetIsolate());
+
+  v8::Local<v8::Function> v8HostFunction =
+      v8::Local<v8::Function>::Cast(args.Data());
+  std::vector<v8::Local<v8::Value>> argv;
+  for (size_t i = 0; i < args.Length(); ++i) {
+    argv.push_back(args[i]);
+  }
+  v8::MaybeLocal<v8::Value> result = v8HostFunction->Call(
+      args.GetIsolate()->GetCurrentContext(),
+      args.This(),
+      args.Length(),
+      argv.data());
+
+  if (!result.IsEmpty()) {
+    args.GetReturnValue().Set(result.ToLocalChecked());
+  }
 }
 
 } // namespace facebook
