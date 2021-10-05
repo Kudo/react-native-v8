@@ -18,6 +18,12 @@ jobs:
 
       - name: Install packages
         run: |
+          # Workaround for: https://github.com/nodesource/distributions/issues/1266
+          mv /etc/apt/sources.list.d/nodesource.list /etc/apt/sources.list.d/nodesource.list.disabled
+          apt-get update
+          apt-get -y upgrade
+          apt-get install -y ca-certificates libgnutls30
+          mv /etc/apt/sources.list.d/nodesource.list.disabled /etc/apt/sources.list.d/nodesource.list
           apt-get update
           apt-get install patch -y
 
