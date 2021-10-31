@@ -184,6 +184,12 @@ jsi::Value V8Runtime::evaluatePreparedJavaScript(
 }
 
 bool V8Runtime::drainMicrotasks(int maxMicrotasksHint) {
+  while (v8::platform::PumpMessageLoop(
+      s_platform.get(),
+      isolate_,
+      v8::platform::MessageLoopBehavior::kDoNotWait)) {
+    continue;
+  }
   isolate_->PerformMicrotaskCheckpoint();
   return true;
 }
