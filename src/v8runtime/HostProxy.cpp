@@ -11,7 +11,7 @@ HostObjectProxy::HostObjectProxy(
     : runtime_(runtime), isolate_(isolate), hostObject_(hostObject) {}
 
 void HostObjectProxy::BindFinalizer(const v8::Local<v8::Object> &object) {
-  v8::HandleScope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
   weakHandle_.Reset(isolate_, object);
   weakHandle_.SetWeak(this, Finalizer, v8::WeakCallbackType::kParameter);
 }
@@ -24,7 +24,7 @@ std::shared_ptr<jsi::HostObject> HostObjectProxy::GetHostObject() {
 void HostObjectProxy::Getter(
     v8::Local<v8::Name> property,
     const v8::PropertyCallbackInfo<v8::Value> &info) {
-  v8::HandleScope scopedIsolate(info.GetIsolate());
+  v8::HandleScope scopedHandle(info.GetIsolate());
   v8::Local<v8::External> data =
       v8::Local<v8::External>::Cast(info.This()->GetInternalField(0));
   HostObjectProxy *hostObjectProxy =
@@ -76,7 +76,7 @@ void HostObjectProxy::Setter(
     v8::Local<v8::Name> property,
     v8::Local<v8::Value> value,
     const v8::PropertyCallbackInfo<v8::Value> &info) {
-  v8::HandleScope scopedIsolate(info.GetIsolate());
+  v8::HandleScope scopedHandle(info.GetIsolate());
   v8::Local<v8::External> data =
       v8::Local<v8::External>::Cast(info.This()->GetInternalField(0));
   HostObjectProxy *hostObjectProxy =
@@ -127,7 +127,7 @@ void HostObjectProxy::Setter(
 // static
 void HostObjectProxy::Enumerator(
     const v8::PropertyCallbackInfo<v8::Array> &info) {
-  v8::HandleScope scopedIsolate(info.GetIsolate());
+  v8::HandleScope scopedHandle(info.GetIsolate());
   v8::Local<v8::External> data =
       v8::Local<v8::External>::Cast(info.This()->GetInternalField(0));
   HostObjectProxy *hostObjectProxy =
@@ -173,7 +173,7 @@ HostFunctionProxy::HostFunctionProxy(
       hostFunction_(std::move(hostFunction)) {}
 
 void HostFunctionProxy::BindFinalizer(const v8::Local<v8::Object> &object) {
-  v8::HandleScope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
   weakHandle_.Reset(isolate_, object);
   weakHandle_.SetWeak(this, Finalizer, v8::WeakCallbackType::kParameter);
 }
@@ -193,7 +193,7 @@ void HostFunctionProxy::Finalizer(
 // static
 void HostFunctionProxy::FunctionCallback(
     const v8::FunctionCallbackInfo<v8::Value> &info) {
-  v8::HandleScope scopedIsolate(info.GetIsolate());
+  v8::HandleScope scopedHandle(info.GetIsolate());
   v8::Local<v8::External> data = v8::Local<v8::External>::Cast(info.Data());
   auto *hostFunctionProxy =
       reinterpret_cast<HostFunctionProxy *>(data->Value());

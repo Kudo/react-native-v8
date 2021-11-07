@@ -47,9 +47,15 @@ class InspectorClient final
 
   void ConnectToReactFrontend();
   void Disconnect();
+  void DisconnectFromReactFrontend();
   void SendRemoteMessage(const v8_inspector::StringView &message);
+  bool IsPaused();
+  void AwakePauseLockWithMessage(const std::string& message);
+  void DispatchProtocolMessage(const std::string& message);
+  void DispatchProtocolMessages(const std::vector<std::string>& messages);
 
   v8::Isolate *GetIsolate();
+  v8::Global<v8::Context>& GetContext();
   v8_inspector::V8InspectorSession *GetInspectorSession();
 
  private:
@@ -75,6 +81,7 @@ class InspectorClient final
   std::mutex pauseMutex_;
   std::condition_variable pauseWaitable_;
   bool paused_ = false;
+  std::vector<std::string> protocolMessageQueue_;
 
   int pageId_;
   std::shared_ptr<ClientConnectionWrapper> clientConnectionWrapper_;
