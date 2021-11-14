@@ -4,7 +4,6 @@
 #include <sstream>
 #include <thread>
 
-#include <glog/logging.h>
 #include "folly/dynamic.h"
 #include "folly/json.h"
 
@@ -243,7 +242,6 @@ void InspectorClient::DispatchProtocolMessage(const std::string &message) {
   v8_inspector::StringView messageView(
       reinterpret_cast<const uint8_t *>(normalizedString.data()),
       normalizedString.size());
-  LOG(ERROR) << "DispatchProtocolMessage message - " << normalizedString;
   session->dispatchProtocolMessage(messageView);
 }
 
@@ -264,7 +262,6 @@ void InspectorClient::DispatchProtocolMessages(
     v8_inspector::StringView messageView(
         reinterpret_cast<const uint8_t *>(normalizedString.data()),
         normalizedString.size());
-    LOG(ERROR) << "DispatchProtocolMessage message - " << normalizedString;
     session->dispatchProtocolMessage(messageView);
   }
 }
