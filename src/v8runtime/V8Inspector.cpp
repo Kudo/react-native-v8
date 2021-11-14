@@ -4,9 +4,9 @@
 #include <sstream>
 #include <thread>
 
+#include <glog/logging.h>
 #include "folly/dynamic.h"
 #include "folly/json.h"
-#include <glog/logging.h>
 
 namespace facebook {
 
@@ -45,7 +45,7 @@ v8_inspector::StringView ToStringView(const std::string &string) {
       reinterpret_cast<const uint8_t *>(string.data()), string.size());
 }
 
-std::string stripMetroCachePrevention(const std::string& message) {
+std::string stripMetroCachePrevention(const std::string &message) {
   std::string result;
   try {
     auto messageObj = folly::parseJson(message);
@@ -55,11 +55,13 @@ std::string stripMetroCachePrevention(const std::string& message) {
       auto params = messageObj["params"];
       auto urlPtr = params.get_ptr("url");
       if (urlPtr) {
-        messageObj["params"]["url"] = std::regex_replace(urlPtr->asString(), regex, "");
+        messageObj["params"]["url"] =
+            std::regex_replace(urlPtr->asString(), regex, "");
       }
       auto urlRegexPtr = params.get_ptr("urlRegex");
       if (urlRegexPtr) {
-        messageObj["params"]["urlRegex"] = std::regex_replace(urlRegexPtr->asString(), regex, "");
+        messageObj["params"]["urlRegex"] =
+            std::regex_replace(urlRegexPtr->asString(), regex, "");
       }
     }
     result = folly::toJson(messageObj);
@@ -196,10 +198,11 @@ void InspectorClient::Disconnect() {
 }
 
 void InspectorClient::DisconnectFromReactFrontend() {
-  DispatchProtocolMessages({
-    folly::toJson(folly::dynamic::object("method", "Debugger.disable")("id", 1e9)),
-    folly::toJson(folly::dynamic::object("method", "Runtime.disable")("id", 1e9))
-  });
+  DispatchProtocolMessages(
+      {folly::toJson(
+           folly::dynamic::object("method", "Debugger.disable")("id", 1e9)),
+       folly::toJson(
+           folly::dynamic::object("method", "Runtime.disable")("id", 1e9))});
 }
 
 void InspectorClient::SendRemoteMessage(
@@ -220,14 +223,13 @@ bool InspectorClient::IsPaused() {
   return paused_;
 }
 
-
-void InspectorClient::AwakePauseLockWithMessage(const std::string& message) {
+void InspectorClient::AwakePauseLockWithMessage(const std::string &message) {
   std::lock_guard<std::mutex> lock(pauseMutex_);
   protocolMessageQueue_.push_back(message);
   pauseWaitable_.notify_all();
 }
 
-void InspectorClient::DispatchProtocolMessage(const std::string& message) {
+void InspectorClient::DispatchProtocolMessage(const std::string &message) {
   auto session = GetInspectorSession();
   if (!session) {
     return;
@@ -239,12 +241,14 @@ void InspectorClient::DispatchProtocolMessage(const std::string& message) {
   v8::Context::Scope scopedContext(GetContext().Get(isolate));
   std::string normalizedString = stripMetroCachePrevention(message);
   v8_inspector::StringView messageView(
-      reinterpret_cast<const uint8_t *>(normalizedString.data()), normalizedString.size());
+      reinterpret_cast<const uint8_t *>(normalizedString.data()),
+      normalizedString.size());
   LOG(ERROR) << "DispatchProtocolMessage message - " << normalizedString;
   session->dispatchProtocolMessage(messageView);
 }
 
-void InspectorClient::DispatchProtocolMessages(const std::vector<std::string>& messages) {
+void InspectorClient::DispatchProtocolMessages(
+    const std::vector<std::string> &messages) {
   auto session = GetInspectorSession();
   if (!session) {
     return;
@@ -255,10 +259,11 @@ void InspectorClient::DispatchProtocolMessages(const std::vector<std::string>& m
   v8::HandleScope scopedHandle(isolate);
   v8::Context::Scope scopedContext(GetContext().Get(isolate));
 
-  for (auto& message : messages) {
+  for (auto &message : messages) {
     std::string normalizedString = stripMetroCachePrevention(message);
     v8_inspector::StringView messageView(
-        reinterpret_cast<const uint8_t *>(normalizedString.data()), normalizedString.size());
+        reinterpret_cast<const uint8_t *>(normalizedString.data()),
+        normalizedString.size());
     LOG(ERROR) << "DispatchProtocolMessage message - " << normalizedString;
     session->dispatchProtocolMessage(messageView);
   }
@@ -268,7 +273,7 @@ v8::Isolate *InspectorClient::GetIsolate() {
   return isolate_;
 }
 
-v8::Global<v8::Context>& InspectorClient::GetContext() {
+v8::Global<v8::Context> &InspectorClient::GetContext() {
   return context_;
 }
 

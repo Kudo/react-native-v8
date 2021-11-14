@@ -50,12 +50,12 @@ class InspectorClient final
   void DisconnectFromReactFrontend();
   void SendRemoteMessage(const v8_inspector::StringView &message);
   bool IsPaused();
-  void AwakePauseLockWithMessage(const std::string& message);
-  void DispatchProtocolMessage(const std::string& message);
-  void DispatchProtocolMessages(const std::vector<std::string>& messages);
+  void AwakePauseLockWithMessage(const std::string &message);
+  void DispatchProtocolMessage(const std::string &message);
+  void DispatchProtocolMessages(const std::vector<std::string> &messages);
 
   v8::Isolate *GetIsolate();
-  v8::Global<v8::Context>& GetContext();
+  v8::Global<v8::Context> &GetContext();
   v8_inspector::V8InspectorSession *GetInspectorSession();
 
  private:
