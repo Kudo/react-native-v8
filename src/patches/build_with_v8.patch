@@ -1,78 +1,81 @@
 diff --git a/ReactAndroid/build.gradle b/ReactAndroid/build.gradle
-index edadad2..984e2c9 100644
+index 47ca5df..d682b41 100644
 --- a/ReactAndroid/build.gradle
 +++ b/ReactAndroid/build.gradle
-@@ -236,6 +236,33 @@ task prepareJSC {
-         }
-     }
+@@ -166,6 +166,28 @@ tasks.register('prepareJSC', PrepareJSCTask) {
+     it.outputDir = project.layout.buildDirectory.dir("third-party-ndk/jsc")
  }
-+
-+task prepareV8 {
-+    doLast {
-+        def v8PackagePath = findNodeModulePath(projectDir, "v8-android-jit")
-+        if (!v8PackagePath) {
-+            throw new GradleScriptException("Could not find the v8-android-jit npm package")
-+        }
-+
-+        def v8Dist = file("$v8PackagePath/dist")
-+        if (!v8Dist.exists()) {
-+            throw new GradleScriptException("The v8-android-jit npm package is missing its \"dist\" directory")
-+        }
-+
-+        def v8AAR = fileTree(v8Dist).matching({ it.include "**/v8-android/**/*.aar" }).singleFile
-+        def soFiles = zipTree(v8AAR).matching({ it.include "**/*.so" })
-+        def headerFiles = fileTree(v8Dist).matching({ it.include "**/include/**" })
-+
-+        copy {
-+            from(soFiles)
-+            from(headerFiles)
-+            from("src/main/jni/third-party/v8/Android.mk")
-+            includeEmptyDirs(false)
-+            into("$thirdPartyNdkDir/v8")
-+        }
+ 
++task prepareV8(dependsOn: createNativeDepsDirectories, type: Copy) {
++    def v8PackagePath = findNodeModulePath(projectDir, "v8-android-jit")
++    if (!v8PackagePath) {
++        throw new GradleScriptException("Could not find the v8-android-jit npm package")
 +    }
++
++    def v8Dist = file("$v8PackagePath/dist")
++    if (!v8Dist.exists()) {
++        throw new GradleScriptException("The v8-android-jit npm package is missing its \"dist\" directory")
++    }
++
++    def v8AAR = fileTree(v8Dist).matching({ it.include "**/v8-android/**/*.aar" }).singleFile
++    def soFiles = zipTree(v8AAR).matching({ it.include "**/*.so" })
++    def headerFiles = fileTree(v8Dist).matching({ it.include "**/include/**" })
++
++    from(soFiles)
++    from(headerFiles)
++    from("src/main/jni/third-party/v8/Android.mk")
++    includeEmptyDirs(false)
++    into("$thirdPartyNdkDir/v8")
 +}
 +
  task downloadNdkBuildDependencies {
      if (!boostPath) {
          dependsOn(downloadBoost)
-@@ -354,7 +381,7 @@ def getNdkBuildFullPath() {
- }
- 
- def buildReactNdkLib = tasks.register("buildReactNdkLib", Exec) {
--    dependsOn(prepareJSC, prepareHermes, prepareBoost, prepareDoubleConversion, prepareFmt, prepareFolly, prepareGlog, prepareLibevent, extractAARHeaders, extractJNIFiles)
-+    dependsOn(prepareJSC, prepareHermes, prepareV8, prepareBoost, prepareDoubleConversion, prepareFmt, prepareFolly, prepareGlog, prepareLibevent, extractAARHeaders, extractJNIFiles)
-     dependsOn("generateCodegenArtifactsFromSchema");
- 
-     inputs.dir("$projectDir/../ReactCommon")
-@@ -399,6 +426,7 @@ def packageReactNdkLibs = tasks.register("packageReactNdkLibs", Copy) {
-     into("$buildDir/react-ndk/exported")
+@@ -241,6 +263,7 @@ tasks.register("packageReactNdkDebugLibsForBuck", Copy) {
+     from("$buildDir/intermediates/merged_native_libs/debug/out/lib/")
      exclude("**/libjsc.so")
      exclude("**/libhermes.so")
 +    exclude("**/libv8android.so")
+     into("src/main/jni/prebuilt/lib")
  }
  
- def packageReactNdkLibsForBuck = tasks.register("packageReactNdkLibsForBuck", Copy) {
+@@ -249,6 +272,7 @@ tasks.register("packageReactNdkReleaseLibsForBuck", Copy) {
+     from("$buildDir/intermediates/merged_native_libs/release/out/lib/")
+     exclude("**/libjsc.so")
+     exclude("**/libhermes.so")
++    exclude("**/libv8android.so")
+     into("src/main/jni/prebuilt/lib")
+ }
+ 
+@@ -323,7 +347,7 @@ android {
+         }
+     }
+ 
+-    preBuild.dependsOn(prepareJSC, prepareHermes, prepareBoost, prepareDoubleConversion, prepareFmt, prepareFolly, prepareGlog, prepareLibevent, extractNativeDependencies)
++    preBuild.dependsOn(prepareJSC, prepareHermes, prepareV8, prepareBoost, prepareDoubleConversion, prepareFmt, prepareFolly, prepareGlog, prepareLibevent, extractNativeDependencies)
+     preBuild.dependsOn("generateCodegenArtifactsFromSchema")
+ 
+     sourceSets.main {
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
-index 36f700e..ac74bdd 100644
+index 55af8c4..9375c07 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
 +++ b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
-@@ -30,6 +30,7 @@ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
+@@ -34,6 +34,7 @@ import com.facebook.react.jscexecutor.JSCExecutorFactory;
+ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
  import com.facebook.react.packagerconnection.RequestHandler;
  import com.facebook.react.uimanager.UIImplementationProvider;
- import com.facebook.soloader.SoLoader;
 +import com.facebook.v8.reactexecutor.V8ExecutorFactory;
  import java.util.ArrayList;
  import java.util.List;
  import java.util.Map;
-@@ -311,40 +312,7 @@ public class ReactInstanceManagerBuilder {
+@@ -345,41 +346,7 @@ public class ReactInstanceManagerBuilder {
  
    private JavaScriptExecutorFactory getDefaultJSExecutorFactory(
        String appName, String deviceName, Context applicationContext) {
 -    try {
 -      // If JSC is included, use it as normal
 -      initializeSoLoaderIfNecessary(applicationContext);
--      SoLoader.loadLibrary("jscexecutor");
+-      JSCExecutor.loadLibrary();
 -      return new JSCExecutorFactory(appName, deviceName);
 -    } catch (UnsatisfiedLinkError jscE) {
 -      // https://github.com/facebook/hermes/issues/78 shows that
@@ -90,6 +93,7 @@ index 36f700e..ac74bdd 100644
 -
 -      // Otherwise use Hermes
 -      try {
+-        HermesExecutor.loadLibrary();
 -        return new HermesExecutorFactory();
 -      } catch (UnsatisfiedLinkError hermesE) {
 -        // If we get here, either this is a JSC build, and of course
@@ -109,7 +113,7 @@ index 36f700e..ac74bdd 100644
    }
  }
 diff --git a/ReactAndroid/src/main/jni/react/jni/Android.mk b/ReactAndroid/src/main/jni/react/jni/Android.mk
-index 82445d0..5ac153a 100644
+index 46548e2..520f46a 100644
 --- a/ReactAndroid/src/main/jni/react/jni/Android.mk
 +++ b/ReactAndroid/src/main/jni/react/jni/Android.mk
 @@ -128,6 +128,8 @@ $(call import-module,logger)
@@ -119,9 +123,9 @@ index 82445d0..5ac153a 100644
 +$(call import-add-path, $(REACT_COMMON_DIR)/jsi)
 +$(call import-module,v8runtime)
  $(call import-module,runtimeexecutor)
+ $(call import-module,react/renderer/runtimescheduler)
  $(call import-module,react/nativemodule/core)
- 
-@@ -145,6 +147,7 @@ include $(REACT_SRC_DIR)/common/mapbuffer/jni/Android.mk
+@@ -146,6 +148,7 @@ include $(REACT_SRC_DIR)/common/mapbuffer/jni/Android.mk
  include $(REACT_SRC_DIR)/jscexecutor/Android.mk
  include $(REACT_SRC_DIR)/../hermes/reactexecutor/Android.mk
  include $(REACT_SRC_DIR)/../hermes/instrumentation/Android.mk
