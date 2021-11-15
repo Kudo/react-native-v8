@@ -1,5 +1,5 @@
 diff --git a/ReactAndroid/build.gradle b/ReactAndroid/build.gradle
-index e73b2b4..81dee96 100644
+index e73b2b4..a3c1319 100644
 --- a/ReactAndroid/build.gradle
 +++ b/ReactAndroid/build.gradle
 @@ -190,6 +190,33 @@ task prepareJSC {
@@ -54,21 +54,32 @@ index e73b2b4..81dee96 100644
  
  def packageReactNdkLibsForBuck = tasks.register("packageReactNdkLibsForBuck", Copy) {
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
-index c06f71b..3f8a61d 100644
+index c06f71b..4018041 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
 +++ b/ReactAndroid/src/main/java/com/facebook/react/ReactInstanceManagerBuilder.java
-@@ -30,6 +30,7 @@ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
+@@ -30,6 +30,8 @@ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
  import com.facebook.react.packagerconnection.RequestHandler;
  import com.facebook.react.uimanager.UIImplementationProvider;
  import com.facebook.soloader.SoLoader;
 +import com.facebook.v8.reactexecutor.V8ExecutorFactory;
++import com.facebook.v8.reactexecutor.V8RuntimeConfig;
  import java.util.ArrayList;
  import java.util.List;
  import java.util.Map;
-@@ -299,40 +300,7 @@ public class ReactInstanceManagerBuilder {
+@@ -274,7 +276,7 @@ public class ReactInstanceManagerBuilder {
+         mCurrentActivity,
+         mDefaultHardwareBackBtnHandler,
+         mJavaScriptExecutorFactory == null
+-            ? getDefaultJSExecutorFactory(appName, deviceName, mApplication.getApplicationContext())
++            ? getDefaultJSExecutorFactory(appName, deviceName, mApplication.getApplicationContext(), mUseDeveloperSupport)
+             : mJavaScriptExecutorFactory,
+         (mJSBundleLoader == null && mJSBundleAssetUrl != null)
+             ? JSBundleLoader.createAssetLoader(
+@@ -298,41 +300,8 @@ public class ReactInstanceManagerBuilder {
+   }
  
    private JavaScriptExecutorFactory getDefaultJSExecutorFactory(
-       String appName, String deviceName, Context applicationContext) {
+-      String appName, String deviceName, Context applicationContext) {
 -    try {
 -      // If JSC is included, use it as normal
 -      initializeSoLoaderIfNecessary(applicationContext);
@@ -104,8 +115,9 @@ index c06f71b..3f8a61d 100644
 -        throw jscE;
 -      }
 -    }
++      String appName, String deviceName, Context applicationContext, boolean useDeveloperSupport) {
 +    // initializeSoLoaderIfNecessary(applicationContext);
-+    return new V8ExecutorFactory();
++    return new V8ExecutorFactory(appName, deviceName, useDeveloperSupport);
    }
  }
 diff --git a/ReactAndroid/src/main/jni/react/jni/Android.mk b/ReactAndroid/src/main/jni/react/jni/Android.mk

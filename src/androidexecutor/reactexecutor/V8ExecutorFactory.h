@@ -8,6 +8,7 @@
 #pragma once
 
 #include <jsireact/JSIExecutor.h>
+#include "jsi/v8runtime/V8RuntimeConfig.h"
 
 namespace facebook {
 namespace react {
@@ -17,10 +18,10 @@ class V8ExecutorFactory : public JSExecutorFactory {
   explicit V8ExecutorFactory(
       JSIExecutor::RuntimeInstaller runtimeInstaller,
       const JSIScopedTimeoutInvoker &timeoutInvoker,
-      const std::string &timezoneId)
+      const V8RuntimeConfig &config)
       : runtimeInstaller_(runtimeInstaller),
         timeoutInvoker_(timeoutInvoker),
-        timezoneId_(timezoneId) {
+        config_(config) {
     assert(timeoutInvoker_ && "Should not have empty timeoutInvoker");
   }
 
@@ -31,7 +32,7 @@ class V8ExecutorFactory : public JSExecutorFactory {
  private:
   JSIExecutor::RuntimeInstaller runtimeInstaller_;
   JSIScopedTimeoutInvoker timeoutInvoker_;
-  std::string timezoneId_;
+  V8RuntimeConfig config_;
 };
 
 class V8Executor : public JSIExecutor {

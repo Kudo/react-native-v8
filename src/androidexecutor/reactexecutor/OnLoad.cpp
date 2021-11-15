@@ -12,6 +12,8 @@
 #include <react/jni/JSLogging.h>
 #include <react/jni/JavaScriptExecutorHolder.h>
 
+#include "jsi/v8runtime/V8RuntimeConfig.h"
+
 namespace facebook {
 namespace react {
 
@@ -30,11 +32,20 @@ class V8ExecutorHolder
 
   static jni::local_ref<jhybriddata> initHybrid(
       jni::alias_ref<jclass>,
-      const std::string &timezoneId) {
+      const std::string &timezoneId,
+      bool enableInspector,
+      const std::string &appName,
+      const std::string &deviceName) {
     JReactMarker::setLogPerfMarkerIfNeeded();
 
+    facebook::V8RuntimeConfig config;
+    config.timezoneId = timezoneId;
+    config.enableInspector = enableInspector;
+    config.appName = appName;
+    config.deviceName = deviceName;
+
     return makeCxxInstance(folly::make_unique<V8ExecutorFactory>(
-        installBindings, JSIExecutor::defaultTimeoutInvoker, timezoneId));
+        installBindings, JSIExecutor::defaultTimeoutInvoker, config));
   }
 
   static void registerNatives() {
