@@ -1,6 +1,22 @@
 Change Log
 ==========
 
+Version 0.66.3-patch.1 / 0.65.2-patch.1
+-------------------------------------------------------
+
+- Fix WebAssembly not work [#90](https://github.com/Kudo/react-native-v8/pull/90)
+- Add JavaScript inspector support [#91](https://github.com/Kudo/react-native-v8/pull/91)
+
+Version 0.66.3-patch.0 / 0.66.2-patch.0 / 0.66.1-patch.0 / 0.65.2-patch.0
+-------------------------------------------------------
+
+React Native version bump
+
+Version 0.66.0-patch.0 / 0.65.1-patch.1 / 0.64.2-patch.1
+-------------------------------------------------------
+
+Fix JSI `callWithThis` error for reanimated2 support [#85](https://github.com/Kudo/react-native-v8/pull/85)
+
 Version 0.65.1-patch.0
 -------------------------------------------------------
 
