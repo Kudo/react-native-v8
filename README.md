@@ -72,9 +72,18 @@ Since V8 shared library is not ABI safe, the `implementation 'org.chromium:v8-an
 
 | `react-native-v8` version | `v8-android*` version | gradle dependency                                 | Chromium V8 version |
 | ------------------------- | --------------------- | ------------------------------------------------- | ------------------- |
+| -- 0.66                   |                       |                                                   |                     |
+| 0.66.3-patch.1            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
+| 0.66.2-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
+| 0.66.1-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
+| 0.66.0-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
 | -- 0.65                   |                       |                                                   |                     |
+| 0.65.2-patch.1            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
+| 0.65.2-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
+| 0.65.1-patch.1            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
 | 0.65.1-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
 | -- 0.64                   |                       |                                                   |                     |
+| 0.64.2-patch.1            | 9.88.0                | implementation 'org.chromium:v8-android:`9.88.+`' | 8.8.278.15          |
 | 0.64.2-patch.0            | 9.88.0                | implementation 'org.chromium:v8-android:`9.88.+`' | 8.8.278.15          |
 | 0.64.1-patch.0            | 9.88.0                | implementation 'org.chromium:v8-android:`9.88.+`' | 8.8.278.15          |
 | 0.64.0-patch.0            | 9.88.0                | implementation 'org.chromium:v8-android:`9.88.+`' | 8.8.278.15          |
@@ -162,6 +171,6 @@ The V8 currently bundled by default supports [Intl](https://developer.mozilla.or
 
   Please check https://github.com/Kudo/react-native-js-benchmark for the benchmark and result
 
-- [ ] V8 inspector integration
+- [x] V8 inspector integration
 - [ ] V8 snapshot integration
 - [ ] V8 code cache experiment
