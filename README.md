@@ -106,7 +106,7 @@ Since V8 shared library is not ABI safe, the `implementation 'org.chromium:v8-an
 | 0.62.1-patch.0            | 8.80.1                | implementation 'org.chromium:v8-android:`8.80.+`' | 8.0.426.16          |
 | 0.62.0-patch.0            | 8.80.1                | implementation 'org.chromium:v8-android:`8.80.+`' | 8.0.426.16          |
 | -- 0.59                   |                       |                                                   |                     |
-| 0.59.10-patch.6           | 7.8.2                 | implementation 'org.chromium:v8-android:`7.8.+`'  | 7.8.279.23          |
+| 0.59.10-patch.6           | 8.80.0                | implementation 'org.chromium:v8-android:`7.8.+`'  | 8.0.426.16          |
 
 
 ## Builtin JavaScript object
