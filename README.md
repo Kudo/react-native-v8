@@ -72,7 +72,13 @@ Since V8 shared library is not ABI safe, the `implementation 'org.chromium:v8-an
 
 | `react-native-v8` version | `v8-android*` version | gradle dependency                                 | Chromium V8 version |
 | ------------------------- | --------------------- | ------------------------------------------------- | ------------------- |
+| -- 0.67                   |                       |                                                   |                     |
+| 0.67.3-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
+| 0.67.2-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
+| 0.67.1-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
+| 0.67.0-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
 | -- 0.66                   |                       |                                                   |                     |
+| 0.66.4-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
 | 0.66.3-patch.1            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
 | 0.66.2-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
 | 0.66.1-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
