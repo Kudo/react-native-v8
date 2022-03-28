@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory.h>
+#include "V8RuntimeConfig.h"
 #include "jsi/jsi.h"
-#include "jsi/v8runtime/V8RuntimeConfig.h"
 
 namespace facebook {
 

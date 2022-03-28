@@ -8,7 +8,7 @@
 #pragma once
 
 #include <jsireact/JSIExecutor.h>
-#include "jsi/v8runtime/V8RuntimeConfig.h"
+#include "V8RuntimeConfig.h"
 
 namespace facebook {
 namespace react {

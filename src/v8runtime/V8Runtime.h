@@ -1,7 +1,7 @@
 #pragma once
 
+#include "V8RuntimeConfig.h"
 #include "jsi/jsi.h"
-#include "jsi/v8runtime/V8RuntimeConfig.h"
 #include "libplatform/libplatform.h"
 #include "v8.h"
 

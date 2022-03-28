@@ -4,7 +4,6 @@
  * This source code is licensed under the MIT license found in the LICENSE
  * file in the root directory of this source tree.
  */
-#include <V8ExecutorFactory.h>
 #include <fbjni/fbjni.h>
 #include <folly/Memory.h>
 #include <jni.h>
@@ -12,7 +11,8 @@
 #include <react/jni/JSLogging.h>
 #include <react/jni/JavaScriptExecutorHolder.h>
 
-#include "jsi/v8runtime/V8RuntimeConfig.h"
+#include "V8ExecutorFactory.h"
+#include "V8RuntimeConfig.h"
 
 namespace facebook {
 namespace react {
@@ -28,7 +28,7 @@ class V8ExecutorHolder
     : public jni::HybridClass<V8ExecutorHolder, JavaScriptExecutorHolder> {
  public:
   static constexpr auto kJavaDescriptor =
-      "Lcom/facebook/v8/reactexecutor/V8Executor;";
+      "Lio/csie/kudo/reactnative/v8/executor/V8Executor;";
 
   static jni::local_ref<jhybriddata> initHybrid(
       jni::alias_ref<jclass>,

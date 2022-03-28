@@ -9,9 +9,9 @@
 
 #include <thread>
 
+#include "V8RuntimeFactory.h"
 #include "cxxreact/MessageQueueThread.h"
 #include "cxxreact/SystraceSection.h"
-#include "jsi/v8runtime/V8RuntimeFactory.h"
 
 using namespace facebook::jsi;
 
