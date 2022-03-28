@@ -7,6 +7,11 @@ V8PointerValue::V8PointerValue(
     const v8::Local<v8::Value> &value)
     : value_(isolate, value) {}
 
+V8PointerValue::V8PointerValue(
+    v8::Isolate *isolate,
+    v8::Global<v8::Value> &&value)
+    : value_(std::move(value)) {}
+
 V8PointerValue::~V8PointerValue() {
   value_.Reset();
 }

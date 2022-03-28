@@ -752,11 +752,33 @@ jsi::Array V8Runtime::getPropertyNames(const jsi::Object &object) {
 }
 
 jsi::WeakObject V8Runtime::createWeakObject(const jsi::Object &weakObject) {
-  throw std::logic_error("Not implemented");
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  const V8PointerValue *v8PointerValue =
+      static_cast<const V8PointerValue *>(getPointerValue(weakObject));
+  assert(v8PointerValue->Get(isolate_)->IsObject());
+
+  v8::Global<v8::Value> weakRef =
+      v8::Global<v8::Value>(isolate_, v8PointerValue->Get(isolate_));
+  weakRef.SetWeak();
+  return make<jsi::WeakObject>(
+      new V8PointerValue(isolate_, std::move(weakRef)));
 }
 
 jsi::Value V8Runtime::lockWeakObject(jsi::WeakObject &weakObject) {
-  throw std::logic_error("Not implemented");
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  const V8PointerValue *v8PointerValue =
+      static_cast<const V8PointerValue *>(getPointerValue(weakObject));
+  assert(v8PointerValue->Get(isolate_)->IsObject());
+  return JSIV8ValueConverter::ToJSIValue(
+      isolate_, v8PointerValue->Get(isolate_));
 }
 
 jsi::Array V8Runtime::createArray(size_t length) {
