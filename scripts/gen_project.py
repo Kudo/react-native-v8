@@ -70,7 +70,7 @@ def main():
             ]
         )
     else:
-        subprocess.run(["yarn", "add", "react-native-v8@npm:{}".format(args.source)])
+        subprocess.run(["yarn", "add", "react-native-v8@{}".format(args.npm_source)])
 
     patcher = ProjectConfigPatcher()
     patcher.add_v8_support()
