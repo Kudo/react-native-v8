@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - '*-stable'
+      - "*-stable"
   pull_request:
 
 jobs:
@@ -47,7 +47,9 @@ jobs:
     runs-on: macos-10.15
     strategy:
       matrix:
-        variant: [intl, nointl, jit-intl, jit-nointl]
+        rn-version: [0.67, 0.66]
+        v8-android-variant:
+          [v8-android-jit, v8-android-jit-nointl, v8-android, v8-android-nointl]
 
     steps:
       - uses: actions/checkout@v2
@@ -72,5 +74,5 @@ jobs:
           api-level: 29
           script: |
             adb logcat -c
-            python3 scripts/gen_project.py --version $RN_VERSION --from dist --v8_maven_repo node_modules/$V8_VARIANT/dist TestApp
+            python3 scripts/gen_project.py --rn-version ${{ matrix.rn-version }} --v8-android-variant ${{ matrix.v8-android-variant }} TestApp
             adb logcat -d | grep -E "=== V8 version\[.+\] ===" > /dev/null
