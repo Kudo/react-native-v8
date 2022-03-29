@@ -1,4 +1,4 @@
-name: Build for Android
+name: E2E tests for Android
 
 on:
   push:
@@ -8,42 +8,7 @@ on:
   pull_request:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    container:
-      image: reactnativecommunity/react-native-android:5.0
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install packages
-        run: |
-          # Workaround for: https://github.com/nodesource/distributions/issues/1266
-          mv /etc/apt/sources.list.d/nodesource.list /etc/apt/sources.list.d/nodesource.list.disabled
-          apt-get update
-          apt-get -y upgrade
-          apt-get install -y ca-certificates libgnutls30
-          mv /etc/apt/sources.list.d/nodesource.list.disabled /etc/apt/sources.list.d/nodesource.list
-          apt-get update
-          apt-get install patch -y
-
-      - name: Install node modules
-        run: yarn install
-
-      - name: Export settings from npm package
-        run: npm run export_npm_env
-
-      - name: Build React Native V8
-        run: scripts/build.sh
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          path: dist
-
   e2e-test:
-    needs: build
-    if: ${{ github.ref != 'refs/heads/main' && github.base_ref != 'main' }}
     runs-on: macos-10.15
     strategy:
       matrix:
