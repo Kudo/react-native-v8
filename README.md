@@ -3,23 +3,17 @@
 
 # React Native with V8 Runtime
 
-The aim of this project is to support V8 runtime for React Native. Designed as opt-in package, it should easy to integrate with existing React Native projects.
+This project aims to support V8 replacement runtime for React Native. Designed as opt-in package, it is easy to integrate with existing React Native projects.
 
-## Integration with React Native
+## Installation for React Native >= 0.66
 
-To make RN integration easier, we publish prebuilt AAR into [npm](https://www.npmjs.com/package/react-native-v8).
-
-The versioning is aligned with React Native with a suffix `-patch.N` in version. E.g., if your React Native version is `0.65.1`, you should use react-native-v8 `>=0.65.1-patch.0 <0.65.1`.
-
-Following steps will take 0.65.1 as an example.
-
-1. Install react-native-v8
+1. Install `react-native-v8` and a [v8-android variant](#v8-variants). For example, the `v8-android-jit`:
 
 ```sh
-yarn add 'react-native-v8@>=0.65.1-patch.0 <0.65.2'
+$ yarn add react-native-v8 v8-android-jit
 ```
 
-2. Modify your React Native build.gradle
+2. Exclude unused libraries to reduce APK size
 
 ```diff
 --- a/android/app/build.gradle
@@ -35,79 +29,71 @@ yarn add 'react-native-v8@>=0.65.1-patch.0 <0.65.2'
 +    }
  }
 
- dependencies {
-     implementation fileTree(dir: "libs", include: ["*.jar"])
-     implementation "com.facebook.react:react-native:+"  // From node_modules
-+    // Add v8-android - prebuilt libv8android.so into APK
-+    implementation 'org.chromium:v8-android:9.93.+'
+3. Setup V8 in the `MainApplication.java`.
 
-     // JSC from node_modules
-     if (useIntlJsc) {
---- a/android/build.gradle
-+++ b/android/build.gradle
-@@ -24,8 +24,12 @@ allprojects {
-     repositories {
-         mavenLocal()
-         maven {
--            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
--            url("$rootDir/../node_modules/react-native/android")
-+            // Replace AAR from original RN with AAR from react-native-v8
-+            url("$rootDir/../node_modules/react-native-v8/dist")
-+        }
-+        maven {
-+            // prebuilt libv8android.so
-+            url("$rootDir/../node_modules/v8-android-jit/dist")
+```diff
+--- a/android/app/src/main/java/com/rn067/MainApplication.java
++++ b/android/app/src/main/java/com/rn067/MainApplication.java
+@@ -2,15 +2,20 @@ package com.rn067;
+
+ import android.app.Application;
+ import android.content.Context;
++
+ import com.facebook.react.PackageList;
+ import com.facebook.react.ReactApplication;
+ import com.facebook.react.ReactInstanceManager;
+ import com.facebook.react.ReactNativeHost;
+ import com.facebook.react.ReactPackage;
++import com.facebook.react.bridge.JavaScriptExecutorFactory;
++import com.facebook.react.modules.systeminfo.AndroidInfoHelpers;
+ import com.facebook.soloader.SoLoader;
+ import java.lang.reflect.InvocationTargetException;
+ import java.util.List;
+
++import io.csie.kudo.reactnative.v8.executor.V8ExecutorFactory;
++
+ public class MainApplication extends Application implements ReactApplication {
+
+   private final ReactNativeHost mReactNativeHost =
+@@ -33,6 +38,14 @@ public class MainApplication extends Application implements ReactApplication {
+         protected String getJSMainModuleName() {
+           return "index";
          }
-         maven {
-             // Android JSC is installed from npm
++
++        @Override
++        protected JavaScriptExecutorFactory getJavaScriptExecutorFactory() {
++          return new V8ExecutorFactory(
++              getPackageName(),
++              AndroidInfoHelpers.getFriendlyDeviceName(),
++              getUseDeveloperSupport());
++        }
+       };
+
+   @Override
 ```
 
-Since V8 shared library is not ABI safe, the `implementation 'org.chromium:v8-android:9.93.+'` change above requires to pair with `react-native-v8` release version. Please reference [the mappings for the actual gradle dependency you need](#react-native-v8-and-v8-android--mappings).
+4. [OPTIONAL] If you encounter gradle errors from JVM Out-of-memory, please increase the JVM memory size
 
-3. Gradle rebuild or `react-native run-android`
+```diff
+--- a/android/gradle.properties
++++ b/android/gradle.properties
+@@ -11,6 +11,7 @@
+ # The setting is particularly useful for tweaking memory settings.
+ # Default value: -Xmx1024m -XX:MaxPermSize=256m
+ # org.gradle.jvmargs=-Xmx2048m -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
++org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m
 
-4. Start application and could verify by JS `global._v8runtime().version` which expected to return V8 version.
+ # When configured, Gradle will run in incubating parallel mode.
+ # This option should only be used with decoupled projects. More details, visit
+```
 
-## `react-native-v8` and `v8-android-*` mappings
+5. `yarn android`
 
-| `react-native-v8` version | `v8-android*` version | gradle dependency                                 | Chromium V8 version |
-| ------------------------- | --------------------- | ------------------------------------------------- | ------------------- |
-| -- 0.67                   |                       |                                                   |                     |
-| 0.67.3-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
-| 0.67.2-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
-| 0.67.1-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
-| 0.67.0-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
-| -- 0.66                   |                       |                                                   |                     |
-| 0.66.4-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
-| 0.66.3-patch.1            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
-| 0.66.2-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
-| 0.66.1-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
-| 0.66.0-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
-| -- 0.65                   |                       |                                                   |                     |
-| 0.65.2-patch.1            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
-| 0.65.2-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
-| 0.65.1-patch.1            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
-| 0.65.1-patch.0            | 9.93.0                | implementation 'org.chromium:v8-android:`9.93.+`' | 9.3.345.16          |
-| -- 0.64                   |                       |                                                   |                     |
-| 0.64.2-patch.1            | 9.88.0                | implementation 'org.chromium:v8-android:`9.88.+`' | 8.8.278.15          |
-| 0.64.2-patch.0            | 9.88.0                | implementation 'org.chromium:v8-android:`9.88.+`' | 8.8.278.15          |
-| 0.64.1-patch.0            | 9.88.0                | implementation 'org.chromium:v8-android:`9.88.+`' | 8.8.278.15          |
-| 0.64.0-patch.0            | 9.88.0                | implementation 'org.chromium:v8-android:`9.88.+`' | 8.8.278.15          |
-| -- 0.63                   |                       |                                                   |                     |
-| 0.63.4-patch.1            | 9.88.0                | implementation 'org.chromium:v8-android:`9.88.+`' | 8.8.278.15          |
-| 0.63.4-patch.0            | 8.84.0                | implementation 'org.chromium:v8-android:`8.84.+`' | 8.4.371.19          |
-| 0.63.3-patch.0            | 8.84.0                | implementation 'org.chromium:v8-android:`8.84.+`' | 8.4.371.19          |
-| 0.63.2-patch.1            | 8.84.0                | implementation 'org.chromium:v8-android:`8.84.+`' | 8.4.371.19          |
-| 0.63.1-patch.0            | 8.84.0                | implementation 'org.chromium:v8-android:`8.84.+`' | 8.4.371.19          |
-| 0.63.0-patch.0            | 8.80.1                | implementation 'org.chromium:v8-android:`8.80.+`' | 8.0.426.16          |
-| -- 0.62                   |                       |                                                   |                     |
-| 0.62.2-patch.2            | 8.84.0                | implementation 'org.chromium:v8-android:`8.84.+`' | 8.4.371.19          |
-| 0.62.2-patch.1            | 8.80.1                | implementation 'org.chromium:v8-android:`8.80.+`' | 8.0.426.16          |
-| 0.62.1-patch.0            | 8.80.1                | implementation 'org.chromium:v8-android:`8.80.+`' | 8.0.426.16          |
-| 0.62.0-patch.0            | 8.80.1                | implementation 'org.chromium:v8-android:`8.80.+`' | 8.0.426.16          |
-| -- 0.59                   |                       |                                                   |                     |
-| 0.59.10-patch.6           | 8.80.0                | implementation 'org.chromium:v8-android:`7.8.+`'  | 8.0.426.16          |
+6. You can verify whether it works by evaluating the `global._v8runtime().version` JavaScript statement.
 
+## Installation for React Native < 0.66
+
+`react-native-v8` v1 does not support previous react-native versions. Please check [the installation guide from the previous version](https://github.com/Kudo/react-native-v8/blob/0.67-stable/README.md).
 
 ## Builtin JavaScript object
 
@@ -122,43 +108,18 @@ For remote debugging mode, the JavaScript actually runs on Chrome from your host
 
 ## V8 Variants
 
-`react-native-v8` uses V8 shared libray from [v8-android-buildscripts](https://github.com/Kudo/v8-android-buildscripts).
-For detailed V8 features, please check [there](https://github.com/Kudo/v8-android-buildscripts/blob/master/README.md#v8-feature-flags).
+`react-native-v8` depends on a V8 shared library built from [v8-android-buildscripts](https://github.com/Kudo/v8-android-buildscripts). `v8-android-jit` is the recommended V8 variant. This is a full featured V8 with both [JIT](https://en.wikipedia.org/wiki/Just-in-time_compilation) and [Intl](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl). We provide other V8 variants to fulfill your needs.
+For instance, if you want to reduce memory usage, the non JIT variant, aka [V8 lite mode](https://v8.dev/blog/v8-lite).
+For detailed V8 features, please check [the v8-android-buildscripts feature flags](https://github.com/Kudo/v8-android-buildscripts/blob/master/README.md#v8-feature-flags).
 
-`v8-android-jit` is the default V8 variant we include in `react-native-v8`. This is a full featured V8 with both [JIT](https://en.wikipedia.org/wiki/Just-in-time_compilation) and [Intl](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl). We provide other V8 variants to fulfill your needs.
+| Package name            | JIT | Intl |
+| ----------------------- | --- | ---- |
+| `v8-android-jit`        | Yes | Yes  |
+| `v8-android-jit-nointl` | Yes | No   |
+| `v8-android`            | No  | Yes  |
+| `v8-android-nointl`     | No  | No   |
 
-| Package name          | JIT | Intl | maven path                                                   |
-| --------------------- | --- | ---- | ------------------------------------------------------------ |
-| v8-android-jit        | Yes | Yes  | `url("$rootDir/../node_modules/v8-android-jit/dist")`        |
-| v8-android-jit-nointl | Yes | No   | `url("$rootDir/../node_modules/v8-android-jit-nointl/dist")` |
-| v8-android            | No  | Yes  | `url("$rootDir/../node_modules/v8-android/dist")`            |
-| v8-android-nointl     | No  | No   | `url("$rootDir/../node_modules/v8-android-nointl/dist")`     |
 
-For instance, if you want to reduce memory usage, the non JIT variant, aka [V8 lite mode](https://v8.dev/blog/v8-lite). The following are further steps:
-
-1. Add `v8-android`
-
-```sh
-$ yarn add v8-android
-```
-
-2. Modify the gradle dependency to use `v8-android` or other variants
-
-```diff
---- a/android/build.gradle
-+++ b/android/build.gradle
-@@ -29,7 +29,7 @@ allprojects {
-         }
-         maven {
-             // prebuilt libv8android.so
--            url("$rootDir/../node_modules/v8-android-jit/dist")
-+            url("$rootDir/../node_modules/v8-android/dist")
-         }
-         maven {
-             // Android JSC is installed from npm
-```
-
-## `react-native-v8` version should be
 
 ## iOS Support (Experimented)
 
