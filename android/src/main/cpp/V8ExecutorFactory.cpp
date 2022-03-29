@@ -1,17 +1,18 @@
-/**
- * Copyright (c) Facebook, Inc. and its affiliates.
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * Copyright (c) Kudo Chien.
  *
- * This source code is licensed under the MIT license found in the LICENSE
- * file in the root directory of this source tree.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "V8ExecutorFactory.h"
 
 #include <thread>
 
+#include "V8RuntimeFactory.h"
 #include "cxxreact/MessageQueueThread.h"
 #include "cxxreact/SystraceSection.h"
-#include "jsi/v8runtime/V8RuntimeFactory.h"
 
 using namespace facebook::jsi;
 

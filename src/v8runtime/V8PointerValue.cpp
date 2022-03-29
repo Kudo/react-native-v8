@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) Kudo Chien.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 #include "V8PointerValue.h"
 
 namespace facebook {
@@ -6,6 +13,11 @@ V8PointerValue::V8PointerValue(
     v8::Isolate *isolate,
     const v8::Local<v8::Value> &value)
     : value_(isolate, value) {}
+
+V8PointerValue::V8PointerValue(
+    v8::Isolate *isolate,
+    v8::Global<v8::Value> &&value)
+    : value_(std::move(value)) {}
 
 V8PointerValue::~V8PointerValue() {
   value_.Reset();

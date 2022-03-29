@@ -3,7 +3,8 @@ package-lock.json
 /dist
 
 scripts/depot_tools
-v8
+v8/
+!android/src/main/java/io/csie/kudo/reactnative/v8/
 
 # Created by https://www.gitignore.io/api/node,android,reactnative,intellij+all,androidstudio,visualstudiocode
 
@@ -103,6 +104,7 @@ gen-external-apklibs
 
 # NDK
 obj/
+.cxx/
 
 # IntelliJ IDEA
 *.iws

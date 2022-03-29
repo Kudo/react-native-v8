@@ -1,10 +1,11 @@
-/**
- * Copyright (c) Facebook, Inc. and its affiliates.
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * Copyright (c) Kudo Chien.
  *
- * This source code is licensed under the MIT license found in the LICENSE
- * file in the root directory of this source tree.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
-package com.facebook.v8.reactexecutor;
+package io.csie.kudo.reactnative.v8.executor;
 
 import com.facebook.jni.HybridData;
 import com.facebook.react.bridge.JavaScriptExecutor;

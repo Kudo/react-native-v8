@@ -1,70 +1,23 @@
-name: Build for Android
+name: E2E tests for Android
 
 on:
   push:
     branches:
       - main
-      - '*-stable'
+      - "*-stable"
   pull_request:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    container:
-      image: reactnativecommunity/react-native-android:5.0
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install packages
-        run: |
-          # Workaround for: https://github.com/nodesource/distributions/issues/1266
-          mv /etc/apt/sources.list.d/nodesource.list /etc/apt/sources.list.d/nodesource.list.disabled
-          apt-get update
-          apt-get -y upgrade
-          apt-get install -y ca-certificates libgnutls30
-          mv /etc/apt/sources.list.d/nodesource.list.disabled /etc/apt/sources.list.d/nodesource.list
-          apt-get update
-          apt-get install patch -y
-
-      - name: Install node modules
-        run: yarn install
-
-      - name: Export settings from npm package
-        run: npm run export_npm_env
-
-      - name: Build React Native V8
-        run: scripts/build.sh
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          path: dist
-
   e2e-test:
-    needs: build
-    if: ${{ github.ref != 'refs/heads/main' && github.base_ref != 'main' }}
     runs-on: macos-10.15
     strategy:
       matrix:
-        variant: [intl, nointl, jit-intl, jit-nointl]
+        rn-version: [0.67, 0.66]
+        v8-android-variant:
+          [v8-android-jit, v8-android-jit-nointl, v8-android, v8-android-nointl]
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Install v8 package
-        run: |
-          RN_VERSION=$(cat package.json | jq '.config.RN_VERSION' | tr -d '"' | sed 's/^v//')
-          echo "RN_VERSION=$RN_VERSION" >> $GITHUB_ENV
-          V8_VERSION=$(cat package.json | jq '.dependencies."v8-android-jit"' | tr -d '"')
-          V8_VARIANT=$(echo v8-android-${{ matrix.variant }} | sed 's/-intl$//')
-          echo "V8_VARIANT=$V8_VARIANT" >> $GITHUB_ENV
-          yarn add "$V8_VARIANT@$V8_VERSION"
-
-      - uses: actions/download-artifact@v2
-        with:
-          name: dist
-          path: dist
 
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
@@ -72,5 +25,5 @@ jobs:
           api-level: 29
           script: |
             adb logcat -c
-            python3 scripts/gen_project.py --version $RN_VERSION --from dist --v8_maven_repo node_modules/$V8_VARIANT/dist TestApp
+            python3 scripts/gen_project.py --rn-version ${{ matrix.rn-version }} --v8-android-variant ${{ matrix.v8-android-variant }} TestApp
             adb logcat -d | grep -E "=== V8 version\[.+\] ===" > /dev/null
