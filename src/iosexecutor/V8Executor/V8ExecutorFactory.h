@@ -29,16 +29,15 @@ namespace facebook {
 namespace react {
 
 class V8ExecutorFactory : public JSExecutorFactory {
-public:
-  explicit V8ExecutorFactory(
-      JSIExecutor::RuntimeInstaller runtimeInstaller)
+ public:
+  explicit V8ExecutorFactory(JSIExecutor::RuntimeInstaller runtimeInstaller)
       : runtimeInstaller_(std::move(runtimeInstaller)) {}
 
   std::unique_ptr<JSExecutor> createJSExecutor(
       std::shared_ptr<ExecutorDelegate> delegate,
       std::shared_ptr<MessageQueueThread> jsQueue) override;
 
-private:
+ private:
   JSIExecutor::RuntimeInstaller runtimeInstaller_;
 };
 

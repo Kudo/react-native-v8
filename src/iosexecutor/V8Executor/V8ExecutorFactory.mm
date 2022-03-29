@@ -16,12 +16,11 @@ namespace react {
 
 std::unique_ptr<JSExecutor> V8ExecutorFactory::createJSExecutor(
     std::shared_ptr<ExecutorDelegate> delegate,
-    std::shared_ptr<MessageQueueThread> __unused jsQueue) {
-  auto installBindings = [runtimeInstaller=runtimeInstaller_](jsi::Runtime &runtime) {
+    std::shared_ptr<MessageQueueThread> __unused jsQueue)
+{
+  auto installBindings = [runtimeInstaller = runtimeInstaller_](jsi::Runtime &runtime) {
     react::Logger iosLoggingBinder = [](const std::string &message, unsigned int logLevel) {
-      _RCTLogJavaScriptInternal(
-        static_cast<RCTLogLevel>(logLevel),
-        [NSString stringWithUTF8String:message.c_str()]);
+      _RCTLogJavaScriptInternal(static_cast<RCTLogLevel>(logLevel), [NSString stringWithUTF8String:message.c_str()]);
     };
     react::bindNativeLogger(runtime, iosLoggingBinder);
     // Wrap over the original runtimeInstaller
@@ -30,10 +29,7 @@ std::unique_ptr<JSExecutor> V8ExecutorFactory::createJSExecutor(
     }
   };
   return folly::make_unique<JSIExecutor>(
-      std::make_shared<V8Runtime>(""),
-      delegate,
-      JSIExecutor::defaultTimeoutInvoker,
-      std::move(installBindings));
+      std::make_shared<V8Runtime>(""), delegate, JSIExecutor::defaultTimeoutInvoker, std::move(installBindings));
 }
 
 } // namespace react
