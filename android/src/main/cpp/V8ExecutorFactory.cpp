@@ -14,24 +14,25 @@
 #include "cxxreact/MessageQueueThread.h"
 #include "cxxreact/SystraceSection.h"
 
-using namespace facebook::jsi;
+namespace jsi = facebook::jsi;
+namespace react = facebook::react;
 
-namespace facebook {
-namespace react {
+namespace rnv8 {
 
 namespace {
 
-std::unique_ptr<Runtime> makeV8RuntimeSystraced(const V8RuntimeConfig &config) {
-  SystraceSection s("V8ExecutorFactory::makeV8RuntimeSystraced");
+std::unique_ptr<jsi::Runtime> makeV8RuntimeSystraced(
+    const V8RuntimeConfig &config) {
+  react::SystraceSection s("V8ExecutorFactory::makeV8RuntimeSystraced");
   return createV8Runtime(config);
 }
 
 } // namespace
 
-std::unique_ptr<JSExecutor> V8ExecutorFactory::createJSExecutor(
-    std::shared_ptr<ExecutorDelegate> delegate,
-    std::shared_ptr<MessageQueueThread> jsQueue) {
-  std::unique_ptr<Runtime> v8Runtime = makeV8RuntimeSystraced(config_);
+std::unique_ptr<react::JSExecutor> V8ExecutorFactory::createJSExecutor(
+    std::shared_ptr<react::ExecutorDelegate> delegate,
+    std::shared_ptr<react::MessageQueueThread> jsQueue) {
+  std::unique_ptr<jsi::Runtime> v8Runtime = makeV8RuntimeSystraced(config_);
 
   // Add js engine information to Error.prototype so in error reporting we
   // can send this information.
@@ -50,11 +51,10 @@ std::unique_ptr<JSExecutor> V8ExecutorFactory::createJSExecutor(
 
 V8Executor::V8Executor(
     std::shared_ptr<jsi::Runtime> runtime,
-    std::shared_ptr<ExecutorDelegate> delegate,
-    std::shared_ptr<MessageQueueThread> jsQueue,
-    const JSIScopedTimeoutInvoker &timeoutInvoker,
+    std::shared_ptr<react::ExecutorDelegate> delegate,
+    std::shared_ptr<react::MessageQueueThread> jsQueue,
+    const react::JSIScopedTimeoutInvoker &timeoutInvoker,
     RuntimeInstaller runtimeInstaller)
     : JSIExecutor(runtime, delegate, timeoutInvoker, runtimeInstaller) {}
 
-} // namespace react
-} // namespace facebook
+} // namespace rnv8

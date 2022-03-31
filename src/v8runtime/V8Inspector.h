@@ -12,7 +12,7 @@
 #include "jsinspector/InspectorInterfaces.h"
 #include "v8-inspector.h"
 
-namespace facebook {
+namespace rnv8 {
 
 class InspectorClient;
 class ClientConnectionWrapper;
@@ -81,7 +81,7 @@ class InspectorClient final
   v8::Isolate *isolate_;
   v8::Global<v8::Context> context_;
 
-  std::unique_ptr<react::IRemoteConnection> remoteConn_;
+  std::unique_ptr<facebook::react::IRemoteConnection> remoteConn_;
   std::string inspectorName_;
 
   std::mutex connectionMutex_;
@@ -94,4 +94,4 @@ class InspectorClient final
   std::shared_ptr<ClientConnectionWrapper> clientConnectionWrapper_;
 };
 
-} // namespace facebook
+} // namespace rnv8

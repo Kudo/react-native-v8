@@ -11,18 +11,18 @@
 #include "jsi/jsi.h"
 #include "v8.h"
 
-namespace facebook {
+namespace rnv8 {
 
 class HostObjectProxy {
  public:
   HostObjectProxy(
       V8Runtime &runtime,
       v8::Isolate *isolate,
-      std::shared_ptr<jsi::HostObject> hostObject);
+      std::shared_ptr<facebook::jsi::HostObject> hostObject);
 
   void BindFinalizer(const v8::Local<v8::Object> &object);
 
-  std::shared_ptr<jsi::HostObject> GetHostObject();
+  std::shared_ptr<facebook::jsi::HostObject> GetHostObject();
 
  public:
   static void Getter(
@@ -41,7 +41,7 @@ class HostObjectProxy {
  private:
   V8Runtime &runtime_;
   v8::Isolate *isolate_;
-  std::shared_ptr<jsi::HostObject> hostObject_;
+  std::shared_ptr<facebook::jsi::HostObject> hostObject_;
   v8::Global<v8::Object> weakHandle_;
 };
 
@@ -50,11 +50,11 @@ class HostFunctionProxy {
   HostFunctionProxy(
       V8Runtime &runtime,
       v8::Isolate *isolate,
-      jsi::HostFunctionType &&hostFunction);
+      facebook::jsi::HostFunctionType &&hostFunction);
 
   void BindFinalizer(const v8::Local<v8::Object> &object);
 
-  jsi::HostFunctionType &GetHostFunction();
+  facebook::jsi::HostFunctionType &GetHostFunction();
 
  public:
   static void Finalizer(const v8::WeakCallbackInfo<HostFunctionProxy> &data);
@@ -64,8 +64,8 @@ class HostFunctionProxy {
  private:
   V8Runtime &runtime_;
   v8::Isolate *isolate_;
-  jsi::HostFunctionType hostFunction_;
+  facebook::jsi::HostFunctionType hostFunction_;
   v8::Global<v8::Object> weakHandle_;
 };
 
-} // namespace facebook
+} // namespace rnv8

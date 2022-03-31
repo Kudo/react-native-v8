@@ -25,21 +25,20 @@
 
 #include <jsireact/JSIExecutor.h>
 
-namespace facebook {
-namespace react {
+namespace rnv8 {
 
-class V8ExecutorFactory : public JSExecutorFactory {
+class V8ExecutorFactory : public facebook::react::JSExecutorFactory {
  public:
-  explicit V8ExecutorFactory(JSIExecutor::RuntimeInstaller runtimeInstaller)
+  explicit V8ExecutorFactory(
+      facebook::react::JSIExecutor::RuntimeInstaller runtimeInstaller)
       : runtimeInstaller_(std::move(runtimeInstaller)) {}
 
-  std::unique_ptr<JSExecutor> createJSExecutor(
-      std::shared_ptr<ExecutorDelegate> delegate,
-      std::shared_ptr<MessageQueueThread> jsQueue) override;
+  std::unique_ptr<facebook::react::JSExecutor> createJSExecutor(
+      std::shared_ptr<facebook::react::ExecutorDelegate> delegate,
+      std::shared_ptr<facebook::react::MessageQueueThread> jsQueue) override;
 
  private:
-  JSIExecutor::RuntimeInstaller runtimeInstaller_;
+  facebook::react::JSIExecutor::RuntimeInstaller runtimeInstaller_;
 };
 
-} // namespace react
-} // namespace facebook
+} // namespace rnv8
