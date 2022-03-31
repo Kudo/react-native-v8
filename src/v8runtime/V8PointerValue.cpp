@@ -7,7 +7,7 @@
 
 #include "V8PointerValue.h"
 
-namespace facebook {
+namespace rnv8 {
 
 V8PointerValue::V8PointerValue(
     v8::Isolate *isolate,
@@ -68,4 +68,4 @@ void V8PointerValue::invalidate() {
   delete this;
 }
 
-} // namespace facebook
+} // namespace rnv8

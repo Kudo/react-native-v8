@@ -9,7 +9,9 @@
 
 #include "JSIV8ValueConverter.h"
 
-namespace facebook {
+namespace jsi = facebook::jsi;
+
+namespace rnv8 {
 
 HostObjectProxy::HostObjectProxy(
     V8Runtime &runtime,
@@ -261,4 +263,4 @@ void HostFunctionProxy::FunctionCallback(
   info.GetReturnValue().Set(result);
 }
 
-} // namespace facebook
+} // namespace rnv8

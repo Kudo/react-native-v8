@@ -14,7 +14,9 @@
 #include "folly/dynamic.h"
 #include "folly/json.h"
 
-namespace facebook {
+namespace react = facebook::react;
+
+namespace rnv8 {
 
 static const char kInspectorName[] = "React Native V8 Inspector";
 
@@ -298,4 +300,4 @@ std::string InspectorClient::CreateInspectorName(
   return ss.str();
 }
 
-} // namespace facebook
+} // namespace rnv8

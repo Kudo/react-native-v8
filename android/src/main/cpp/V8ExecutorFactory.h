@@ -11,14 +11,13 @@
 #include <jsireact/JSIExecutor.h>
 #include "V8RuntimeConfig.h"
 
-namespace facebook {
-namespace react {
+namespace rnv8 {
 
-class V8ExecutorFactory : public JSExecutorFactory {
+class V8ExecutorFactory : public facebook::react::JSExecutorFactory {
  public:
   explicit V8ExecutorFactory(
-      JSIExecutor::RuntimeInstaller runtimeInstaller,
-      const JSIScopedTimeoutInvoker &timeoutInvoker,
+      facebook::react::JSIExecutor::RuntimeInstaller runtimeInstaller,
+      const facebook::react::JSIScopedTimeoutInvoker &timeoutInvoker,
       const V8RuntimeConfig &config)
       : runtimeInstaller_(runtimeInstaller),
         timeoutInvoker_(timeoutInvoker),
@@ -26,28 +25,27 @@ class V8ExecutorFactory : public JSExecutorFactory {
     assert(timeoutInvoker_ && "Should not have empty timeoutInvoker");
   }
 
-  std::unique_ptr<JSExecutor> createJSExecutor(
-      std::shared_ptr<ExecutorDelegate> delegate,
-      std::shared_ptr<MessageQueueThread> jsQueue) override;
+  std::unique_ptr<facebook::react::JSExecutor> createJSExecutor(
+      std::shared_ptr<facebook::react::ExecutorDelegate> delegate,
+      std::shared_ptr<facebook::react::MessageQueueThread> jsQueue) override;
 
  private:
-  JSIExecutor::RuntimeInstaller runtimeInstaller_;
-  JSIScopedTimeoutInvoker timeoutInvoker_;
+  facebook::react::JSIExecutor::RuntimeInstaller runtimeInstaller_;
+  facebook::react::JSIScopedTimeoutInvoker timeoutInvoker_;
   V8RuntimeConfig config_;
 };
 
-class V8Executor : public JSIExecutor {
+class V8Executor : public facebook::react::JSIExecutor {
  public:
   V8Executor(
-      std::shared_ptr<jsi::Runtime> runtime,
-      std::shared_ptr<ExecutorDelegate> delegate,
-      std::shared_ptr<MessageQueueThread> jsQueue,
-      const JSIScopedTimeoutInvoker &timeoutInvoker,
+      std::shared_ptr<facebook::jsi::Runtime> runtime,
+      std::shared_ptr<facebook::react::ExecutorDelegate> delegate,
+      std::shared_ptr<facebook::react::MessageQueueThread> jsQueue,
+      const facebook::react::JSIScopedTimeoutInvoker &timeoutInvoker,
       RuntimeInstaller runtimeInstaller);
 
  private:
-  JSIScopedTimeoutInvoker timeoutInvoker_;
+  facebook::react::JSIScopedTimeoutInvoker timeoutInvoker_;
 };
 
-} // namespace react
-} // namespace facebook
+} // namespace rnv8
