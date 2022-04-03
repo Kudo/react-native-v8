@@ -165,8 +165,9 @@ void HostObjectProxy::Enumerator(
 void HostObjectProxy::Finalizer(
     const v8::WeakCallbackInfo<HostObjectProxy> &data) {
   auto *pThis = data.GetParameter();
-  assert(pThis->hostObject_.use_count() == 1);
-  pThis->hostObject_.reset();
+  if (pThis->hostObject_.use_count() == 1) {
+    pThis->hostObject_.reset();
+  }
   pThis->weakHandle_.Reset();
   delete pThis;
 }
