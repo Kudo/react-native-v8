@@ -55,6 +55,8 @@ def findV8AndroidDir() {
 def v8AndroidDir = findV8AndroidDir()
 def v8AndroidVersion = new JsonSlurper().parseText(file("${v8AndroidDir}/package.json").text).version as String
 logger.info("v8AndroidVersion[${v8AndroidVersion}]")
+def v8AndroidVersionMajor = Integer.parseInt(v8AndroidVersion.tokenize('.')[0])
+def v8UseSnapshot = v8AndroidVersionMajor >= 10
 
 def localProps = new Properties()
 def localPropertiesFile = file("local.properties")
@@ -166,6 +168,10 @@ android {
   sourceSets {
     main {
       jniLibs.srcDirs = ["${reactNativeDir}/ReactAndroid/src/main/jni/first-party/v8/jni"]
+
+      if (v8UseSnapshot) {
+        assets.srcDirs += [ "${v8AndroidDir}/dist/snapshot_blob" ]
+      }
     }
   }
 }

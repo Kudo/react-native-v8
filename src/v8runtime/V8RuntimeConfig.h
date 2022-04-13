@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace rnv8 {
 
@@ -27,6 +28,9 @@ struct V8RuntimeConfig {
 
   // Device name
   std::string deviceName;
+
+  // Startup snapshot blob
+  std::vector<char> snapshotBlob;
 };
 
 } // namespace rnv8

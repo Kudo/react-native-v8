@@ -9,18 +9,30 @@ package io.csie.kudo.reactnative.v8.executor;
 
 import android.os.Build;
 import android.os.StrictMode;
+import androidx.annotation.Nullable;
 import java.util.TimeZone;
 
 public final class V8RuntimeConfig {
+  // Olson timezone ID
   public String timezoneId;
+
+  // true to enable V8 inspector for Chrome DevTools
   public boolean enableInspector;
+
+  // Application name
   public String appName;
+
+  // Device nam
   public String deviceName;
+
+  // Startup snapshot blob
+  @Nullable public String snapshotBlobPath;
 
   public static V8RuntimeConfig createDefault() {
     final V8RuntimeConfig config = new V8RuntimeConfig();
     config.timezoneId = getTimezoneId();
     config.enableInspector = false;
+    config.snapshotBlobPath = null;
     return config;
   }
 

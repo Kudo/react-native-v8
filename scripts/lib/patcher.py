@@ -90,6 +90,7 @@ class ProjectConfigPatcher:
         @Override
         protected com.facebook.react.bridge.JavaScriptExecutorFactory getJavaScriptExecutorFactory() {
           return new io.csie.kudo.reactnative.v8.executor.V8ExecutorFactory(
+              getApplicationContext(),
               getPackageName(),
               com.facebook.react.modules.systeminfo.AndroidInfoHelpers.getFriendlyDeviceName(),
               getUseDeveloperSupport());

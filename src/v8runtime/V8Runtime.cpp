@@ -14,6 +14,7 @@
 #include "V8Inspector.h"
 #include "V8PointerValue.h"
 #include "jsi/jsilib.h"
+#include "v8-persistent-handle.h"
 
 namespace jsi = facebook::jsi;
 
@@ -44,6 +45,13 @@ V8Runtime::V8Runtime(const V8RuntimeConfig &config) {
       v8::ArrayBuffer::Allocator::NewDefaultAllocator());
   v8::Isolate::CreateParams createParams;
   createParams.array_buffer_allocator = arrayBufferAllocator_.get();
+  if (!config.snapshotBlob.empty()) {
+    snapshotBlob_ = std::make_unique<v8::StartupData>();
+    snapshotBlob_->data = config.snapshotBlob.data();
+    snapshotBlob_->raw_size = static_cast<int>(config.snapshotBlob.size());
+    createParams.snapshot_blob = snapshotBlob_.get();
+  }
+
   isolate_ = v8::Isolate::New(createParams);
 #if defined(__ANDROID__)
   if (!config.timezoneId.empty()) {
@@ -101,7 +109,7 @@ jsi::Value V8Runtime::ExecuteScript(
       sourceURL.c_str(),
       v8::NewStringType::kNormal,
       sourceURL.length());
-  v8::ScriptOrigin origin(sourceURLValue.ToLocalChecked());
+  v8::ScriptOrigin origin(isolate, sourceURLValue.ToLocalChecked());
 
   v8::Local<v8::Script> compiledScript;
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
