@@ -7,8 +7,6 @@
 
 #include "V8PointerValue.h"
 
-#include "v8-persistent-handle.h"
-
 namespace rnv8 {
 
 V8PointerValue::V8PointerValue(

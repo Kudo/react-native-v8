@@ -13,7 +13,7 @@
 
 #include "folly/dynamic.h"
 #include "folly/json.h"
-#include "v8-locker.h"
+#include "v8.h"
 
 namespace react = facebook::react;
 
