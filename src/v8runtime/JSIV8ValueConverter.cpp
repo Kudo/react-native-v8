@@ -8,7 +8,6 @@
 #include "JSIV8ValueConverter.h"
 
 #include "V8PointerValue.h"
-#include "v8-maybe.h"
 
 namespace jsi = facebook::jsi;
 

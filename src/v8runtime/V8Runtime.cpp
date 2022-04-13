@@ -14,7 +14,6 @@
 #include "V8Inspector.h"
 #include "V8PointerValue.h"
 #include "jsi/jsilib.h"
-#include "v8-persistent-handle.h"
 
 namespace jsi = facebook::jsi;
 

@@ -10,7 +10,6 @@
 #include <condition_variable>
 
 #include "jsinspector/InspectorInterfaces.h"
-#include "v8-context.h"
 #include "v8-inspector.h"
 
 namespace rnv8 {
