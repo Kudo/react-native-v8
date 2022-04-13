@@ -7,6 +7,8 @@
  */
 package io.csie.kudo.reactnative.v8.executor;
 
+import android.content.res.AssetManager;
+import android.os.Build;
 import com.facebook.jni.HybridData;
 import com.facebook.react.bridge.JavaScriptExecutor;
 import com.facebook.soloader.SoLoader;
@@ -17,12 +19,15 @@ public class V8Executor extends JavaScriptExecutor {
     SoLoader.loadLibrary("v8executor");
   }
 
-  V8Executor(final V8RuntimeConfig config) {
+  V8Executor(final AssetManager assetManager, final V8RuntimeConfig config) {
     super(initHybrid(
+        assetManager,
         config.timezoneId,
         config.enableInspector,
         config.appName,
-        config.deviceName));
+        config.deviceName,
+        config.snapshotBlobPath != null ? config.snapshotBlobPath
+                                        : loadDefaultSnapshotBlobPath()));
   }
 
   @Override
@@ -30,9 +35,15 @@ public class V8Executor extends JavaScriptExecutor {
     return "V8Executor";
   }
 
+  private static String loadDefaultSnapshotBlobPath() {
+    return "assets://" + Build.SUPPORTED_ABIS[0] + "/snapshot_blob.bin";
+  }
+
   private static native HybridData initHybrid(
+      AssetManager assetManager,
       String timezoneId,
       boolean enableInspector,
       String appName,
-      String deviceName);
+      String deviceName,
+      String snapshotBlobPath);
 }

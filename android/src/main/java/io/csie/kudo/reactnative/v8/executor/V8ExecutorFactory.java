@@ -7,6 +7,8 @@
  */
 package io.csie.kudo.reactnative.v8.executor;
 
+import android.content.Context;
+import android.content.res.AssetManager;
 import com.facebook.react.bridge.JavaScriptExecutor;
 import com.facebook.react.bridge.JavaScriptExecutorFactory;
 
@@ -14,12 +16,14 @@ public class V8ExecutorFactory implements JavaScriptExecutorFactory {
   private static final String TAG = "V8";
 
   private final V8RuntimeConfig mConfig;
+  private final AssetManager mAssetManager;
 
-  public V8ExecutorFactory() {
-    this(V8RuntimeConfig.createDefault());
+  public V8ExecutorFactory(final Context context) {
+    this(context, V8RuntimeConfig.createDefault());
   }
 
   public V8ExecutorFactory(
+      final Context context,
       final String appName,
       final String deviceName,
       final boolean useDeveloperSupport) {
@@ -27,15 +31,19 @@ public class V8ExecutorFactory implements JavaScriptExecutorFactory {
     mConfig.appName = appName;
     mConfig.deviceName = deviceName;
     mConfig.enableInspector = useDeveloperSupport;
+    mAssetManager = context.getAssets();
   }
 
-  public V8ExecutorFactory(final V8RuntimeConfig config) {
+  public V8ExecutorFactory(
+      final Context context,
+      final V8RuntimeConfig config) {
     mConfig = config;
+    mAssetManager = context.getAssets();
   }
 
   @Override
   public JavaScriptExecutor create() {
-    return new V8Executor(mConfig);
+    return new V8Executor(mAssetManager, mConfig);
   }
 
   @Override

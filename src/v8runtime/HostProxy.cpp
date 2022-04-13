@@ -8,6 +8,7 @@
 #include "HostProxy.h"
 
 #include "JSIV8ValueConverter.h"
+#include "v8-persistent-handle.h"
 
 namespace jsi = facebook::jsi;
 

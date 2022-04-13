@@ -6,10 +6,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#include <cxxreact/JSBigString.h>
 #include <fbjni/fbjni.h>
 #include <folly/Memory.h>
+#include <glog/logging.h>
 #include <jni.h>
 #include <react/jni/JReactMarker.h>
+#include <react/jni/JSLoader.h>
 #include <react/jni/JSLogging.h>
 #include <react/jni/JavaScriptExecutorHolder.h>
 
@@ -29,6 +32,31 @@ static void installBindings(jsi::Runtime &runtime) {
   react::bindNativeLogger(runtime, androidLogger);
 }
 
+static std::vector<char> loadBlob(
+    jni::alias_ref<react::JAssetManager::javaobject> assetManager,
+    const std::string &blobPath) {
+  std::vector<char> result;
+  std::string assetScheme = "assets://";
+  if (blobPath.substr(0, assetScheme.size()) == assetScheme) {
+    std::string assetName = blobPath.substr(assetScheme.size());
+    auto manager = react::extractAssetManager(assetManager);
+    try {
+      auto script = react::loadScriptFromAssets(manager, assetName);
+      result.resize(script->size());
+      std::memcpy(result.data(), script->c_str(), script->size());
+    } catch (...) {
+      LOG(ERROR) << "Unable to loadBlob from AssetManager - name[" << assetName
+                 << "]";
+    }
+  } else {
+    auto script = react::JSBigFileString::fromPath(blobPath);
+    result.resize(script->size());
+    std::memcpy(result.data(), script->c_str(), script->size());
+  }
+
+  return result;
+}
+
 class V8ExecutorHolder
     : public jni::
           HybridClass<V8ExecutorHolder, react::JavaScriptExecutorHolder> {
@@ -38,10 +66,12 @@ class V8ExecutorHolder
 
   static jni::local_ref<jhybriddata> initHybrid(
       jni::alias_ref<jclass>,
+      jni::alias_ref<react::JAssetManager::javaobject> assetManager,
       const std::string &timezoneId,
       bool enableInspector,
       const std::string &appName,
-      const std::string &deviceName) {
+      const std::string &deviceName,
+      const std::string &snapshotBlobPath) {
     react::JReactMarker::setLogPerfMarkerIfNeeded();
 
     V8RuntimeConfig config;
@@ -49,6 +79,9 @@ class V8ExecutorHolder
     config.enableInspector = enableInspector;
     config.appName = appName;
     config.deviceName = deviceName;
+    if (!snapshotBlobPath.empty()) {
+      config.snapshotBlob = loadBlob(assetManager, snapshotBlobPath);
+    }
 
     return makeCxxInstance(folly::make_unique<V8ExecutorFactory>(
         installBindings, react::JSIExecutor::defaultTimeoutInvoker, config));
