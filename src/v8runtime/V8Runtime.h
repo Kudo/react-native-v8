@@ -20,7 +20,7 @@ class InspectorClient;
 
 class V8Runtime : public facebook::jsi::Runtime {
  public:
-  V8Runtime(const V8RuntimeConfig &config);
+  V8Runtime(std::unique_ptr<V8RuntimeConfig> config);
   ~V8Runtime();
 
  private:
@@ -177,6 +177,7 @@ class V8Runtime : public facebook::jsi::Runtime {
   static std::unique_ptr<v8::Platform> s_platform;
 
  private:
+  std::unique_ptr<V8RuntimeConfig> config_;
   std::unique_ptr<v8::ArrayBuffer::Allocator> arrayBufferAllocator_;
   std::unique_ptr<v8::StartupData> snapshotBlob_;
   v8::Isolate *isolate_;

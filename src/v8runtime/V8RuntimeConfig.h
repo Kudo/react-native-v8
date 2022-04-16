@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <cxxreact/JSBigString.h>
 #include <string>
 #include <vector>
 
@@ -14,8 +15,13 @@ namespace rnv8 {
 
 struct V8RuntimeConfig {
   V8RuntimeConfig() {}
-  V8RuntimeConfig(const V8RuntimeConfig &rhs) = default;
   ~V8RuntimeConfig() = default;
+
+  V8RuntimeConfig(const V8RuntimeConfig &rhs) = delete;
+  V8RuntimeConfig &operator=(const V8RuntimeConfig &rhs) = delete;
+
+  V8RuntimeConfig(V8RuntimeConfig &&rhs) = default;
+  V8RuntimeConfig &operator=(V8RuntimeConfig &&rhs) = default;
 
   // Olson timezone ID
   std::string timezoneId;
@@ -30,7 +36,7 @@ struct V8RuntimeConfig {
   std::string deviceName;
 
   // Startup snapshot blob
-  std::vector<char> snapshotBlob;
+  std::unique_ptr<const facebook::react::JSBigString> snapshotBlob;
 };
 
 } // namespace rnv8

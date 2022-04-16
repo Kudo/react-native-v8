@@ -18,10 +18,10 @@ class V8ExecutorFactory : public facebook::react::JSExecutorFactory {
   explicit V8ExecutorFactory(
       facebook::react::JSIExecutor::RuntimeInstaller runtimeInstaller,
       const facebook::react::JSIScopedTimeoutInvoker &timeoutInvoker,
-      const V8RuntimeConfig &config)
+      std::unique_ptr<V8RuntimeConfig> config)
       : runtimeInstaller_(runtimeInstaller),
         timeoutInvoker_(timeoutInvoker),
-        config_(config) {
+        config_(std::move(config)) {
     assert(timeoutInvoker_ && "Should not have empty timeoutInvoker");
   }
 
@@ -32,7 +32,7 @@ class V8ExecutorFactory : public facebook::react::JSExecutorFactory {
  private:
   facebook::react::JSIExecutor::RuntimeInstaller runtimeInstaller_;
   facebook::react::JSIScopedTimeoutInvoker timeoutInvoker_;
-  V8RuntimeConfig config_;
+  std::unique_ptr<V8RuntimeConfig> config_;
 };
 
 class V8Executor : public facebook::react::JSIExecutor {
