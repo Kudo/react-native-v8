@@ -12,7 +12,7 @@ import android.os.Build;
 import com.facebook.jni.HybridData;
 import com.facebook.react.bridge.JavaScriptExecutor;
 import com.facebook.soloader.SoLoader;
-import java.util.concurrent.ScheduledExecutorService;
+import io.csie.kudo.reactnative.v8.BuildConfig;
 
 public class V8Executor extends JavaScriptExecutor {
   static {
@@ -36,7 +36,10 @@ public class V8Executor extends JavaScriptExecutor {
   }
 
   private static String loadDefaultSnapshotBlobPath() {
-    return "assets://" + Build.SUPPORTED_ABIS[0] + "/snapshot_blob.bin";
+    if (BuildConfig.V8_USE_SNAPSHOT) {
+      return "assets://" + Build.SUPPORTED_ABIS[0] + "/snapshot_blob.bin";
+    }
+    return "";
   }
 
   private static native HybridData initHybrid(

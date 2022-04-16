@@ -136,6 +136,8 @@ android {
         _stackProtectorFlag ? (cppFlags("-fstack-protector-all")) : null
       }
     }
+
+    buildConfigField("boolean", "V8_USE_SNAPSHOT", v8UseSnapshot.toString())
   }
   externalNativeBuild {
     cmake {
