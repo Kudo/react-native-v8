@@ -29,7 +29,8 @@ const char kHostFunctionProxyProp[] = "__hostFunctionProxy";
 std::unique_ptr<v8::Platform> V8Runtime::s_platform = nullptr;
 std::mutex s_platform_mutex; // protects s_platform
 
-V8Runtime::V8Runtime(const V8RuntimeConfig &config) {
+V8Runtime::V8Runtime(std::unique_ptr<V8RuntimeConfig> config)
+    : config_(std::move(config)) {
   {
     const std::lock_guard<std::mutex> lock(s_platform_mutex);
     if (!s_platform) {
@@ -44,18 +45,18 @@ V8Runtime::V8Runtime(const V8RuntimeConfig &config) {
       v8::ArrayBuffer::Allocator::NewDefaultAllocator());
   v8::Isolate::CreateParams createParams;
   createParams.array_buffer_allocator = arrayBufferAllocator_.get();
-  if (!config.snapshotBlob.empty()) {
+  if (config_->snapshotBlob) {
     snapshotBlob_ = std::make_unique<v8::StartupData>();
-    snapshotBlob_->data = config.snapshotBlob.data();
-    snapshotBlob_->raw_size = static_cast<int>(config.snapshotBlob.size());
+    snapshotBlob_->data = config_->snapshotBlob->c_str();
+    snapshotBlob_->raw_size = static_cast<int>(config_->snapshotBlob->size());
     createParams.snapshot_blob = snapshotBlob_.get();
   }
 
   isolate_ = v8::Isolate::New(createParams);
 #if defined(__ANDROID__)
-  if (!config.timezoneId.empty()) {
+  if (!config_->timezoneId.empty()) {
     isolate_->DateTimeConfigurationChangeNotification(
-        v8::Isolate::TimeZoneDetection::kCustom, config.timezoneId.c_str());
+        v8::Isolate::TimeZoneDetection::kCustom, config_->timezoneId.c_str());
   }
 #endif
   v8::Locker locker(isolate_);
@@ -63,9 +64,9 @@ V8Runtime::V8Runtime(const V8RuntimeConfig &config) {
   v8::HandleScope scopedHandle(isolate_);
   context_.Reset(isolate_, CreateGlobalContext(isolate_));
   v8::Context::Scope scopedContext(context_.Get(isolate_));
-  if (config.enableInspector) {
+  if (config_->enableInspector) {
     inspectorClient_ = std::make_shared<InspectorClient>(
-        context_.Get(isolate_), config.appName, config.deviceName);
+        context_.Get(isolate_), config_->appName, config_->deviceName);
     inspectorClient_->ConnectToReactFrontend();
   }
 }

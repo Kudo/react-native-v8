@@ -32,29 +32,24 @@ static void installBindings(jsi::Runtime &runtime) {
   react::bindNativeLogger(runtime, androidLogger);
 }
 
-static std::vector<char> loadBlob(
+static std::unique_ptr<const react::JSBigString> loadBlob(
     jni::alias_ref<react::JAssetManager::javaobject> assetManager,
     const std::string &blobPath) {
-  std::vector<char> result;
   std::string assetScheme = "assets://";
   if (blobPath.substr(0, assetScheme.size()) == assetScheme) {
     std::string assetName = blobPath.substr(assetScheme.size());
     auto manager = react::extractAssetManager(assetManager);
     try {
-      auto script = react::loadScriptFromAssets(manager, assetName);
-      result.resize(script->size());
-      std::memcpy(result.data(), script->c_str(), script->size());
+      return react::loadScriptFromAssets(manager, assetName);
     } catch (...) {
       LOG(ERROR) << "Unable to loadBlob from AssetManager - name[" << assetName
                  << "]";
     }
   } else {
-    auto script = react::JSBigFileString::fromPath(blobPath);
-    result.resize(script->size());
-    std::memcpy(result.data(), script->c_str(), script->size());
+    return react::JSBigFileString::fromPath(blobPath);
   }
 
-  return result;
+  return nullptr;
 }
 
 class V8ExecutorHolder
@@ -74,17 +69,20 @@ class V8ExecutorHolder
       const std::string &snapshotBlobPath) {
     react::JReactMarker::setLogPerfMarkerIfNeeded();
 
-    V8RuntimeConfig config;
-    config.timezoneId = timezoneId;
-    config.enableInspector = enableInspector;
-    config.appName = appName;
-    config.deviceName = deviceName;
+    auto config = std::make_unique<V8RuntimeConfig>();
+    config->timezoneId = timezoneId;
+    config->enableInspector = enableInspector;
+    config->appName = appName;
+    config->deviceName = deviceName;
     if (!snapshotBlobPath.empty()) {
-      config.snapshotBlob = loadBlob(assetManager, snapshotBlobPath);
+      config->snapshotBlob =
+          std::move(loadBlob(assetManager, snapshotBlobPath));
     }
 
     return makeCxxInstance(folly::make_unique<V8ExecutorFactory>(
-        installBindings, react::JSIExecutor::defaultTimeoutInvoker, config));
+        installBindings,
+        react::JSIExecutor::defaultTimeoutInvoker,
+        std::move(config)));
   }
 
   static void registerNatives() {
