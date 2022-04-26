@@ -33,6 +33,12 @@ class V8Runtime : public facebook::jsi::Runtime {
   void OnIdle();
   void ReportException(v8::Isolate *isolate, v8::TryCatch *tryCatch) const;
 
+  std::unique_ptr<v8::ScriptCompiler::CachedData> LoadCodeCache(
+      const std::string &codecachePath);
+  bool SaveCodeCache(
+      const v8::Local<v8::Script> &script,
+      const std::string &codecachePath);
+
   //
   // facebook::jsi::Runtime implementations
   //
@@ -182,6 +188,7 @@ class V8Runtime : public facebook::jsi::Runtime {
   std::unique_ptr<V8RuntimeConfig> config_;
   std::unique_ptr<v8::ArrayBuffer::Allocator> arrayBufferAllocator_;
   std::unique_ptr<v8::StartupData> snapshotBlob_;
+  std::unique_ptr<v8::ScriptCompiler::CachedData> codecache_;
   v8::Isolate *isolate_;
   v8::Global<v8::Context> context_;
   std::shared_ptr<InspectorClient> inspectorClient_;

@@ -1,0 +1,89 @@
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * Copyright (c) 650 Industries. All rights reserved.
+ * Copyright (c) Kudo Chien.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+import java.nio.file.Paths
+
+
+def appProject = rootProject.allprojects.find { it.plugins.hasPlugin('com.android.application') }
+if (!appProject) {
+  return;
+}
+
+def appConfig = appProject.hasProperty("react") ? appProject.react : [:];
+def bundleAssetName = appConfig.bundleAssetName ?: "index.android.bundle"
+
+// Set bundleForVariant to a function to configure per variant,
+// defaults to `bundleIn${targetName}` or True for Release variants and False for debug variants
+def bundleForVariant = appConfig.bundleForVariant ?: {
+  def variant ->
+    appConfig."bundleIn${variant.name.capitalize()}" ||
+    appConfig."bundleIn${variant.buildType.name.capitalize()}" ||
+    variant.name.toLowerCase().contains("release")
+}
+
+def setupClosure = {
+  def variants = appProject.android.applicationVariants
+  variants.all { def variant ->
+    def targetName = variant.name.capitalize()
+    def targetPath = variant.dirName
+    def jsBundleDir = file("${appProject.buildDir}/generated/assets/react/${targetPath}")
+
+    def currentPrebuildBundleTask = tasks.create(name: "prebuild${targetName}BundledJs") {
+      group = "rnv8"
+      description = "prebuild cached bundle into ${targetName}."
+
+      // def toolsDir = Paths.get(projectDir.toString(), '../../v8-android-tools/tools/macos_android').toString()
+      def toolsDir = '/Users/kudo/02_Projs/react-native-v8/v8-android-tools/tools/macos_android'
+
+      ['arm64-v8a', 'x86_64'].each { arch ->
+        doLast {
+          def mkcodecachePath = Paths.get(toolsDir, arch, 'mkcodecache')
+          exec {
+            workingDir jsBundleDir
+            commandLine(mkcodecachePath, bundleAssetName)
+          }
+          ant.move file: Paths.get(jsBundleDir.toString(), 'codecache.bin'), todir: Paths.get(jsBundleDir.toString(), arch)
+          copy {
+            from(Paths.get(jsBundleDir.toString(), arch))
+            // for AGP 3.4+ new asset directory
+            into("${appProject.buildDir}/intermediates/merged_assets/${variant.name}/out/${arch}")
+          }
+        }
+      }
+
+      dependsOn(variant.ext.bundleJsAndAssets)
+      enabled bundleForVariant(variant)
+    }
+
+    def currentWipeBundleTask = tasks.create(name: "wipe${targetName}BundledJs") {
+      group = "rnv8"
+      description = "wipe bundle from ${targetName}."
+
+      doLast {
+        file(Paths.get(jsBundleDir.toString(), bundleAssetName)).text = "// @generated stub bundle";
+      }
+
+      dependsOn(currentPrebuildBundleTask)
+      enabled(currentPrebuildBundleTask.enabled)
+    }
+
+    def task = appProject.tasks.findByName("copy${targetName}BundledJs")
+    if (task) {
+      task.dependsOn(currentWipeBundleTask)
+    }
+  }
+}
+
+if (appProject.state.hasCompleted()) {
+  setupClosure.call()
+} else {
+  appProject.afterEvaluate {
+    setupClosure.call()
+  }
+}

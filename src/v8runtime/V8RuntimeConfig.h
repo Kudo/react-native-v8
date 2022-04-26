@@ -37,6 +37,9 @@ struct V8RuntimeConfig {
 
   // Startup snapshot blob
   std::unique_ptr<const facebook::react::JSBigString> snapshotBlob;
+
+  // Prebuild codecache blob
+  std::unique_ptr<const facebook::react::JSBigString> prebuiltCodecacheBlob;
 };
 
 } // namespace rnv8

@@ -28,11 +28,15 @@ public final class V8RuntimeConfig {
   // Startup snapshot blob
   @Nullable public String snapshotBlobPath;
 
+  // Prebuild codecache blob
+  @Nullable public String prebuiltCodecachePath;
+
   public static V8RuntimeConfig createDefault() {
     final V8RuntimeConfig config = new V8RuntimeConfig();
     config.timezoneId = getTimezoneId();
     config.enableInspector = false;
     config.snapshotBlobPath = null;
+    config.prebuiltCodecachePath = null;
     return config;
   }
 

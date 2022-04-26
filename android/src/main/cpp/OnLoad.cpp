@@ -66,7 +66,8 @@ class V8ExecutorHolder
       bool enableInspector,
       const std::string &appName,
       const std::string &deviceName,
-      const std::string &snapshotBlobPath) {
+      const std::string &snapshotBlobPath,
+      const std::string &prebuiltCodecachePath) {
     react::JReactMarker::setLogPerfMarkerIfNeeded();
 
     auto config = std::make_unique<V8RuntimeConfig>();
@@ -77,6 +78,10 @@ class V8ExecutorHolder
     if (!snapshotBlobPath.empty()) {
       config->snapshotBlob =
           std::move(loadBlob(assetManager, snapshotBlobPath));
+    }
+    if (!prebuiltCodecachePath.empty()) {
+      config->prebuiltCodecacheBlob =
+          std::move(loadBlob(assetManager, prebuiltCodecachePath));
     }
 
     return makeCxxInstance(folly::make_unique<V8ExecutorFactory>(
