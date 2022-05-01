@@ -67,7 +67,8 @@ class V8ExecutorHolder
       const std::string &appName,
       const std::string &deviceName,
       const std::string &snapshotBlobPath,
-      const std::string &prebuiltCodecachePath) {
+      int codecacheMode,
+      const std::string &codecachePath) {
     react::JReactMarker::setLogPerfMarkerIfNeeded();
 
     auto config = std::make_unique<V8RuntimeConfig>();
@@ -79,9 +80,11 @@ class V8ExecutorHolder
       config->snapshotBlob =
           std::move(loadBlob(assetManager, snapshotBlobPath));
     }
-    if (!prebuiltCodecachePath.empty()) {
+    config->codecacheMode = codecacheMode;
+    config->codecachePath = codecachePath;
+    if (codecacheMode == 2 && !codecachePath.empty()) {
       config->prebuiltCodecacheBlob =
-          std::move(loadBlob(assetManager, prebuiltCodecachePath));
+          std::move(loadBlob(assetManager, codecachePath));
     }
 
     return makeCxxInstance(folly::make_unique<V8ExecutorFactory>(

@@ -38,6 +38,16 @@ struct V8RuntimeConfig {
   // Startup snapshot blob
   std::unique_ptr<const facebook::react::JSBigString> snapshotBlob;
 
+  // Bytecode caching mode
+  //   0: disable bytecode cache
+  //   1: enable bytecode cache
+  //   2: use prebuilt bytecode cache
+  //   3: enable bytecode cache + use stub bundle
+  int codecacheMode;
+
+  // codecache path
+  std::string codecachePath;
+
   // Prebuild codecache blob
   std::unique_ptr<const facebook::react::JSBigString> prebuiltCodecacheBlob;
 };

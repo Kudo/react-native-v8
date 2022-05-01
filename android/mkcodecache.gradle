@@ -48,7 +48,7 @@ def setupClosure = {
             workingDir jsBundleDir
             commandLine(mkcodecachePath, bundleAssetName)
           }
-          ant.move file: Paths.get(jsBundleDir.toString(), 'codecache.bin'), todir: Paths.get(jsBundleDir.toString(), arch)
+          ant.move file: Paths.get(jsBundleDir.toString(), 'v8codecache.bin'), todir: Paths.get(jsBundleDir.toString(), arch)
           copy {
             from(Paths.get(jsBundleDir.toString(), arch))
             // for AGP 3.4+ new asset directory

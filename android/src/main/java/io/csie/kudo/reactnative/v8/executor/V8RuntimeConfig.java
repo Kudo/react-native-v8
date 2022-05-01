@@ -28,15 +28,23 @@ public final class V8RuntimeConfig {
   // Startup snapshot blob
   @Nullable public String snapshotBlobPath;
 
-  // Prebuild codecache blob
-  @Nullable public String prebuiltCodecachePath;
+  // Bytecode caching mode
+  //   0: disable bytecode cache
+  //   1: enable bytecode cache
+  //   2: use prebuilt bytecode cache
+  //   3: enable bytecode cache + use stub bundle
+  public int codecacheMode;
+
+  // Codecache blob
+  @Nullable public String codecachePath;
 
   public static V8RuntimeConfig createDefault() {
     final V8RuntimeConfig config = new V8RuntimeConfig();
     config.timezoneId = getTimezoneId();
     config.enableInspector = false;
     config.snapshotBlobPath = null;
-    config.prebuiltCodecachePath = null;
+    config.codecacheMode = 0;
+    config.codecachePath = null;
     return config;
   }
 

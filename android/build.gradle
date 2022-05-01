@@ -26,11 +26,6 @@ def safeExtGet(prop, fallback) {
   return rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
 }
 
-def safeAppExtReactGet(prop, fallback) {
-  def appProject = rootProject.getSubprojects().find { project -> project.plugins.hasPlugin("com.android.application") }
-  return appProject?.ext?.react?.get(prop) ?: fallback
-}
-
 def reactNativeDir = findNodePackageDir("react-native")
 def reactNativeManifest = file("${reactNativeDir}/package.json")
 def reactNativeManifestAsJson = new JsonSlurper().parseText(reactNativeManifest.text)
@@ -57,13 +52,13 @@ def findV8AndroidDir() {
   "  - v8-android\n" +
   "  - v8-android-nointl\n")
 }
-def v8AndroidDir = findV8AndroidDir()
+def v8AndroidDir = findProperty("v8.android.dir") ?: findV8AndroidDir()
 def v8AndroidVersion = new JsonSlurper().parseText(file("${v8AndroidDir}/package.json").text).version as String
 logger.info("v8AndroidVersion[${v8AndroidVersion}]")
 def v8AndroidVersionMajor = Integer.parseInt(v8AndroidVersion.tokenize('.')[0])
 
 def v8UseSnapshot = v8AndroidVersionMajor >= 10
-def v8UsePrebuiltCache = safeAppExtReactGet('v8UsePrebuiltCache', false).toBoolean()
+def v8UsePrebuiltCache = findProperty("v8.usePrebuiltCache")?.toBoolean() ?: false
 
 def localProps = new Properties()
 def localPropertiesFile = file("local.properties")

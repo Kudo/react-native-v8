@@ -122,6 +122,10 @@ jsi::Value V8Runtime::ExecuteScript(
 
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
+  if (config_->codecacheMode == 1 && !codecache_) {
+    codecache_ = LoadCodeCache(config_->codecachePath);
+  }
+
   std::unique_ptr<v8::ScriptCompiler::Source> source;
   v8::ScriptCompiler::CachedData *cachedData = codecache_.release();
   if (config_->prebuiltCodecacheBlob) {
@@ -157,9 +161,9 @@ jsi::Value V8Runtime::ExecuteScript(
   if (cachedData && cachedData->rejected) {
     LOG(INFO) << "[rnv8] cache missed.";
   }
-  // if (!codecachePath_.empty() && (!cachedData || cachedData->rejected)) {
-  //   SaveCodeCache(compiledScript, codecachePath_);
-  // }
+  if (config_->codecacheMode == 1 && (!cachedData || cachedData->rejected)) {
+    SaveCodeCache(compiledScript, config_->codecachePath);
+  }
 
   v8::Local<v8::Value> result;
   if (!compiledScript->Run(context).ToLocal(&result)) {
@@ -271,7 +275,7 @@ std::unique_ptr<v8::ScriptCompiler::CachedData> V8Runtime::LoadCodeCache(
     const std::string &codecachePath) {
   FILE *file = fopen(codecachePath.c_str(), "rb");
   if (!file) {
-    LOG(ERROR) << "Cannot load codecache file: " << codecachePath;
+    LOG(VERBOSE) << "Cannot load codecache file: " << codecachePath;
     return nullptr;
   }
   fseek(file, 0, SEEK_END);

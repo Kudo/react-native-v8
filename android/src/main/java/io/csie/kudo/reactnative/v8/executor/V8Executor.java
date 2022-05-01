@@ -28,8 +28,10 @@ public class V8Executor extends JavaScriptExecutor {
         config.deviceName,
         config.snapshotBlobPath != null ? config.snapshotBlobPath
                                         : loadDefaultSnapshotBlobPath(),
-        config.prebuiltCodecachePath != null ? config.prebuiltCodecachePath
-                                             : loadDefaultPrebuiltCachePath()));
+        config.codecacheMode,
+        config.codecachePath != null
+            ? config.codecachePath
+            : loadDefaultCodecachePath(config.codecacheMode)));
   }
 
   @Override
@@ -44,9 +46,9 @@ public class V8Executor extends JavaScriptExecutor {
     return "";
   }
 
-  private static String loadDefaultPrebuiltCachePath() {
-    if (BuildConfig.V8_USE_PREBUILT_CACHE) {
-      return "assets://" + Build.SUPPORTED_ABIS[0] + "/codecache.bin";
+  private static String loadDefaultCodecachePath(int codecacheMode) {
+    if (codecacheMode == 2 && BuildConfig.V8_USE_PREBUILT_CACHE) {
+      return "assets://" + Build.SUPPORTED_ABIS[0] + "/v8codecache.bin";
     }
     return "";
   }
@@ -58,5 +60,6 @@ public class V8Executor extends JavaScriptExecutor {
       String appName,
       String deviceName,
       String snapshotBlobPath,
-      String prebuiltCodecachePath);
+      int codecacheMode,
+      String codecachePath);
 }
