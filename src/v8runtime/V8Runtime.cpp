@@ -122,14 +122,19 @@ jsi::Value V8Runtime::ExecuteScript(
 
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
-  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNormal &&
+  if ((config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNormal ||
+       config_->codecacheMode ==
+           V8RuntimeConfig::CodecacheMode::kNormalWithStubBundle) &&
       !codecache_) {
     codecache_ = LoadCodeCache(config_->codecachePath);
   }
 
   std::unique_ptr<v8::ScriptCompiler::Source> source;
   v8::ScriptCompiler::CachedData *cachedData = codecache_.release();
-  if (config_->prebuiltCodecacheBlob) {
+  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt ||
+      (config_->codecacheMode ==
+           V8RuntimeConfig::CodecacheMode::kNormalWithStubBundle &&
+       cachedData)) {
     assert(cachedData);
     if (!cachedData) {
       return {};
@@ -162,7 +167,9 @@ jsi::Value V8Runtime::ExecuteScript(
   if (cachedData && cachedData->rejected) {
     LOG(INFO) << "[rnv8] cache missed.";
   }
-  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNormal &&
+  if ((config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNormal ||
+       config_->codecacheMode ==
+           V8RuntimeConfig::CodecacheMode::kNormalWithStubBundle) &&
       (!cachedData || cachedData->rejected)) {
     SaveCodeCache(compiledScript, config_->codecachePath);
   }

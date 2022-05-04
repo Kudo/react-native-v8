@@ -9,8 +9,11 @@ package io.csie.kudo.reactnative.v8.executor;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import androidx.annotation.Nullable;
 import com.facebook.react.bridge.JavaScriptExecutor;
 import com.facebook.react.bridge.JavaScriptExecutorFactory;
+import io.csie.kudo.reactnative.v8.BuildConfig;
+import java.io.File;
 
 public class V8ExecutorFactory implements JavaScriptExecutorFactory {
   private static final String TAG = "V8";
@@ -61,5 +64,20 @@ public class V8ExecutorFactory implements JavaScriptExecutorFactory {
   @Override
   public String toString() {
     return "JSIExecutor+V8Runtime";
+  }
+
+  @Nullable
+  public static String getBundleAssetName(
+      final Context context,
+      final boolean useDeveloperSupport) {
+    if (useDeveloperSupport) {
+      return null;
+    }
+    final boolean hasCache =
+        new File(context.getCodeCacheDir(), "v8codecache.bin").exists();
+    if (BuildConfig.V8_USE_CACHE_WITH_STUB_BUNDLE && hasCache) {
+      return "stub.bundle";
+    }
+    return null;
   }
 }

@@ -59,6 +59,7 @@ def v8AndroidVersionMajor = Integer.parseInt(v8AndroidVersion.tokenize('.')[0])
 
 def v8UseSnapshot = v8AndroidVersionMajor >= 10
 def v8UsePrebuiltCache = findProperty("v8.usePrebuiltCache")?.toBoolean() ?: false
+def v8UseCacheWithStubBundle = findProperty("v8.useCacheWithStubBundle")?.toBoolean() ?: false
 
 def localProps = new Properties()
 def localPropertiesFile = file("local.properties")
@@ -144,6 +145,7 @@ android {
 
     buildConfigField("boolean", "V8_USE_SNAPSHOT", v8UseSnapshot.toString())
     buildConfigField("boolean", "V8_USE_PREBUILT_CACHE", v8UsePrebuiltCache.toString())
+    buildConfigField("boolean", "V8_USE_CACHE_WITH_STUB_BUNDLE", v8UseCacheWithStubBundle.toString())
   }
   externalNativeBuild {
     cmake {
@@ -180,6 +182,10 @@ android {
 
       if (v8UseSnapshot) {
         assets.srcDirs += [ "${v8AndroidDir}/dist/snapshot_blob" ]
+      }
+
+      if (v8UseCacheWithStubBundle) {
+        assets.srcDirs += [ "src/stub_bundle" ]
       }
     }
   }
