@@ -80,9 +80,11 @@ class V8ExecutorHolder
       config->snapshotBlob =
           std::move(loadBlob(assetManager, snapshotBlobPath));
     }
-    config->codecacheMode = codecacheMode;
+    config->codecacheMode =
+        static_cast<V8RuntimeConfig::CodecacheMode>(codecacheMode);
     config->codecachePath = codecachePath;
-    if (codecacheMode == 2 && !codecachePath.empty()) {
+    if (config->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt &&
+        !codecachePath.empty()) {
       config->prebuiltCodecacheBlob =
           std::move(loadBlob(assetManager, codecachePath));
     }

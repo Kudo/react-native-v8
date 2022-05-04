@@ -9,7 +9,10 @@ package io.csie.kudo.reactnative.v8.executor;
 
 import android.os.Build;
 import android.os.StrictMode;
+import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.TimeZone;
 
 public final class V8RuntimeConfig {
@@ -28,12 +31,26 @@ public final class V8RuntimeConfig {
   // Startup snapshot blob
   @Nullable public String snapshotBlobPath;
 
+  @IntDef(
+      {CODECACHE_MODE_NONE,
+       CODECACHE_MODE_NORMAL,
+       CODECACHE_MODE_PREBUILT,
+       CODECACHE_MODE_NORMAL_WITH_STUB_BUNDLE})
+  @Retention(RetentionPolicy.SOURCE)
+  private @interface CodecacheMode {}
+
+  // Disable bytecode caching
+  public static final int CODECACHE_MODE_NONE = 0;
+  // Classic v8 bytecode caching
+  public static final int CODECACHE_MODE_NORMAL = 1;
+  // **EXPERIMENTAL** Prebuilt bytecode caching
+  public static final int CODECACHE_MODE_PREBUILT = 2;
+  // **EXPERIMENTAL** Classic v8 bytecode caching + loading stub JS bundle when
+  // cache existed
+  public static final int CODECACHE_MODE_NORMAL_WITH_STUB_BUNDLE = 3;
+
   // Bytecode caching mode
-  //   0: disable bytecode cache
-  //   1: enable bytecode cache
-  //   2: use prebuilt bytecode cache
-  //   3: enable bytecode cache + use stub bundle
-  public int codecacheMode;
+  public @CodecacheMode int codecacheMode;
 
   // Codecache blob
   @Nullable public String codecachePath;
@@ -43,7 +60,7 @@ public final class V8RuntimeConfig {
     config.timezoneId = getTimezoneId();
     config.enableInspector = false;
     config.snapshotBlobPath = null;
-    config.codecacheMode = 0;
+    config.codecacheMode = CODECACHE_MODE_NONE;
     config.codecachePath = null;
     return config;
   }
