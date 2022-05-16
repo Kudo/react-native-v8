@@ -154,6 +154,7 @@ android {
       "**/libglog.so",
       "**/libreactnativejni.so",
     ]
+    pickFirst "**/libv8android.so"
   }
   configurations {
     extractHeaders
