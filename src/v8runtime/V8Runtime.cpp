@@ -118,7 +118,53 @@ jsi::Value V8Runtime::ExecuteScript(
     return {};
   }
 
+  RegisterIdleTaskRunnerIfNeeded();
+
   return JSIV8ValueConverter::ToJSIValue(isolate, result);
+}
+
+void V8Runtime::RegisterIdleTaskRunnerIfNeeded() {
+  if (isRegisteredIdleTaskRunner_) {
+    return;
+  }
+
+  global().setProperty(
+      *this,
+      "__v8OnIdleCallback",
+      jsi::Function::createFromHostFunction(
+          *this,
+          jsi::PropNameID::forAscii(*this, "__v8OnIdleCallback"),
+          0,
+          [](jsi::Runtime &runtime,
+             jsi::Value const &thisValue,
+             const jsi::Value *args,
+             size_t count) {
+            V8Runtime *v8Runtime = dynamic_cast<V8Runtime *>(&runtime);
+            v8Runtime->OnIdle();
+            return jsi::Value();
+          }));
+  global()
+      .getPropertyAsFunction(*this, "requestIdleCallback")
+      .call(*this, global().getPropertyAsFunction(*this, "__v8OnIdleCallback"));
+
+  isRegisteredIdleTaskRunner_ = true;
+}
+
+void V8Runtime::OnIdle() {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  while (v8::platform::PumpMessageLoop(
+      s_platform.get(),
+      isolate_,
+      v8::platform::MessageLoopBehavior::kDoNotWait)) {
+    continue;
+  }
+  global()
+      .getPropertyAsFunction(*this, "requestIdleCallback")
+      .call(*this, global().getPropertyAsFunction(*this, "__v8OnIdleCallback"));
 }
 
 void V8Runtime::ReportException(v8::Isolate *isolate, v8::TryCatch *tryCatch)
