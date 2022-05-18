@@ -93,7 +93,7 @@ V8Runtime::~V8Runtime() {
   }
   isolate_->Dispose();
   // v8::V8::Dispose();
-  // v8::V8::ShutdownPlatform();
+  // v8::V8::DisposePlatform();
 }
 
 v8::Local<v8::Context> V8Runtime::CreateGlobalContext(v8::Isolate *isolate) {
