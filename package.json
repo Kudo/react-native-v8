@@ -23,6 +23,6 @@
     "src/"
   ],
   "devDependencies": {
-    "clang-format": "^1.6.0"
+    "clang-format": "^1.8.0"
   }
 }
