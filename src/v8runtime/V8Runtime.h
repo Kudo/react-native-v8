@@ -29,6 +29,8 @@ class V8Runtime : public facebook::jsi::Runtime {
       v8::Isolate *isolate,
       const v8::Local<v8::String> &script,
       const std::string &sourceURL);
+  void RegisterIdleTaskRunnerIfNeeded();
+  void OnIdle();
   void ReportException(v8::Isolate *isolate, v8::TryCatch *tryCatch) const;
 
   //
@@ -181,6 +183,7 @@ class V8Runtime : public facebook::jsi::Runtime {
   v8::Isolate *isolate_;
   v8::Global<v8::Context> context_;
   std::shared_ptr<InspectorClient> inspectorClient_;
+  bool isRegisteredIdleTaskRunner_ = false;
 };
 
 } // namespace rnv8
