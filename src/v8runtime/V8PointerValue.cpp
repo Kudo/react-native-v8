@@ -12,16 +12,14 @@ namespace rnv8 {
 V8PointerValue::V8PointerValue(
     v8::Isolate *isolate,
     const v8::Local<v8::Value> &value)
-    : value_(isolate, value) {}
+    : isolate_(isolate), value_(isolate, value) {}
 
 V8PointerValue::V8PointerValue(
     v8::Isolate *isolate,
     v8::Global<v8::Value> &&value)
-    : value_(std::move(value)) {}
+    : isolate_(isolate), value_(std::move(value)) {}
 
-V8PointerValue::~V8PointerValue() {
-  value_.Reset();
-}
+V8PointerValue::~V8PointerValue() {}
 
 v8::Local<v8::Value> V8PointerValue::Get(v8::Isolate *isolate) const {
   v8::EscapableHandleScope scopedHandle(isolate);
@@ -65,6 +63,11 @@ V8PointerValue *V8PointerValue::createFromUtf8(
 }
 
 void V8PointerValue::invalidate() {
+  {
+    v8::Locker locker(isolate_);
+    v8::Isolate::Scope scopedIsolate(isolate_);
+    value_.Reset();
+  }
   delete this;
 }
 

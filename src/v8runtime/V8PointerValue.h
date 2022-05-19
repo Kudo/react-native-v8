@@ -20,7 +20,7 @@ class V8PointerValue final : public V8Runtime::PointerValue {
   // Passing Global value directly
   V8PointerValue(v8::Isolate *isolate, v8::Global<v8::Value> &&value);
 
-  ~V8PointerValue();
+  ~V8PointerValue() override;
 
   v8::Local<v8::Value> Get(v8::Isolate *isolate) const;
 
@@ -37,6 +37,7 @@ class V8PointerValue final : public V8Runtime::PointerValue {
  private:
   friend class JSIV8ValueConverter;
   friend class V8Runtime;
+  v8::Isolate *isolate_;
   v8::Global<v8::Value> value_;
 };
 
