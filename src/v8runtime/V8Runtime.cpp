@@ -301,12 +301,7 @@ jsi::Runtime::PointerValue *V8Runtime::cloneSymbol(
   const V8PointerValue *v8PointerValue =
       static_cast<const V8PointerValue *>(pv);
   assert(v8PointerValue->Get(isolate_)->IsSymbol());
-
-  v8::Local<v8::Symbol> object =
-      v8::Local<v8::Symbol>::Cast(v8PointerValue->Get(isolate_));
-  v8::Local<v8::Symbol> newSymbol =
-      v8::Local<v8::Symbol>::New(isolate_, object);
-  return new V8PointerValue(isolate_, newSymbol);
+  return new V8PointerValue(isolate_, v8PointerValue->Get(isolate_));
 }
 
 jsi::Runtime::PointerValue *V8Runtime::cloneString(
@@ -319,15 +314,11 @@ jsi::Runtime::PointerValue *V8Runtime::cloneString(
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
+
   const V8PointerValue *v8PointerValue =
       static_cast<const V8PointerValue *>(pv);
   assert(v8PointerValue->Get(isolate_)->IsString());
-
-  v8::Local<v8::String> string =
-      v8::Local<v8::String>::Cast(v8PointerValue->Get(isolate_));
-  v8::Local<v8::String> newString =
-      v8::Local<v8::String>::New(isolate_, string);
-  return new V8PointerValue(isolate_, newString);
+  return new V8PointerValue(isolate_, v8PointerValue->Get(isolate_));
 }
 
 jsi::Runtime::PointerValue *V8Runtime::cloneObject(
@@ -340,15 +331,11 @@ jsi::Runtime::PointerValue *V8Runtime::cloneObject(
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
+
   const V8PointerValue *v8PointerValue =
       static_cast<const V8PointerValue *>(pv);
   assert(v8PointerValue->Get(isolate_)->IsObject());
-
-  v8::Local<v8::Object> object =
-      v8::Local<v8::Object>::Cast(v8PointerValue->Get(isolate_));
-  v8::Local<v8::Object> newObject =
-      v8::Local<v8::Object>::New(isolate_, object);
-  return new V8PointerValue(isolate_, newObject);
+  return new V8PointerValue(isolate_, v8PointerValue->Get(isolate_));
 }
 
 jsi::Runtime::PointerValue *V8Runtime::clonePropNameID(
