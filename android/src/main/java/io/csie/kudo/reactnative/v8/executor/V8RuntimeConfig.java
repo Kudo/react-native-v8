@@ -25,7 +25,7 @@ public final class V8RuntimeConfig {
   // Application name
   public String appName;
 
-  // Device nam
+  // Device name
   public String deviceName;
 
   // Startup snapshot blob

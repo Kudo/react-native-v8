@@ -16,4 +16,8 @@ namespace rnv8 {
 std::unique_ptr<facebook::jsi::Runtime> createV8Runtime(
     std::unique_ptr<V8RuntimeConfig> config);
 
+std::unique_ptr<facebook::jsi::Runtime> createSharedV8Runtime(
+    const facebook::jsi::Runtime *sharedRuntime,
+    std::unique_ptr<V8RuntimeConfig> config);
+
 } // namespace rnv8

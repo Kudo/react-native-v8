@@ -53,13 +53,6 @@ V8Runtime::V8Runtime(std::unique_ptr<V8RuntimeConfig> config)
     snapshotBlob_->raw_size = static_cast<int>(config_->snapshotBlob->size());
     createParams.snapshot_blob = snapshotBlob_.get();
   }
-  if (config_->prebuiltCodecacheBlob) {
-    codecache_ = std::make_unique<v8::ScriptCompiler::CachedData>(
-        reinterpret_cast<const uint8_t *>(
-            config_->prebuiltCodecacheBlob->c_str()),
-        static_cast<int>(config_->prebuiltCodecacheBlob->size()),
-        v8::ScriptCompiler::CachedData::BufferPolicy::BufferNotOwned);
-  }
 
   isolate_ = v8::Isolate::New(createParams);
 #if defined(__ANDROID__)
@@ -80,6 +73,43 @@ V8Runtime::V8Runtime(std::unique_ptr<V8RuntimeConfig> config)
   }
 }
 
+V8Runtime::V8Runtime(
+    const V8Runtime *v8Runtime,
+    std::unique_ptr<V8RuntimeConfig> config)
+    : config_(std::move(config)) {
+  isSharedRuntime_ = true;
+  // We don't need to register another idle taskrunner again
+  isRegisteredIdleTaskRunner_ = true;
+  isolate_ = v8Runtime->isolate_;
+
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  context_.Reset(isolate_, CreateGlobalContext(isolate_));
+
+  auto localContext = context_.Get(isolate_);
+  localContext->SetSecurityToken(
+      v8Runtime->context_.Get(isolate_)->GetSecurityToken());
+
+  bool inheritProtoResult =
+      localContext->Global()
+          ->GetPrototype()
+          .As<v8::Object>()
+          ->SetPrototype(
+              localContext,
+              v8Runtime->context_.Get(isolate_)->Global()->GetPrototype())
+          .FromJust();
+  if (!inheritProtoResult) {
+    LOG(ERROR) << "Unable to inherit prototype from parent shared runtime.";
+  }
+
+  if (config_->enableInspector) {
+    inspectorClient_ = std::make_shared<InspectorClient>(
+        context_.Get(isolate_), config_->appName, config_->deviceName);
+    inspectorClient_->ConnectToReactFrontend();
+  }
+}
+
 V8Runtime::~V8Runtime() {
   {
     v8::Locker locker(isolate_);
@@ -91,7 +121,9 @@ V8Runtime::~V8Runtime() {
 
     context_.Reset();
   }
-  isolate_->Dispose();
+  if (!isSharedRuntime_) {
+    isolate_->Dispose();
+  }
   // v8::V8::Dispose();
   // v8::V8::DisposePlatform();
 }
@@ -122,33 +154,12 @@ jsi::Value V8Runtime::ExecuteScript(
 
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
-  if ((config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNormal ||
-       config_->codecacheMode ==
-           V8RuntimeConfig::CodecacheMode::kNormalWithStubBundle) &&
-      !codecache_) {
-    codecache_ = LoadCodeCache(config_->codecachePath);
-  }
+  auto codecache = LoadCodeCacheIfNeeded(config_->codecachePath);
+  v8::ScriptCompiler::CachedData *cachedData = codecache.release();
 
-  std::unique_ptr<v8::ScriptCompiler::Source> source;
-  v8::ScriptCompiler::CachedData *cachedData = codecache_.release();
-  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt ||
-      (config_->codecacheMode ==
-           V8RuntimeConfig::CodecacheMode::kNormalWithStubBundle &&
-       cachedData)) {
-    assert(cachedData);
-    if (!cachedData) {
-      return {};
-    }
-    uint32_t payloadSize = (cachedData->data[8] << 0) |
-        (cachedData->data[9] << 8) | (cachedData->data[10] << 16) |
-        (cachedData->data[11] << 24);
-    std::string stubScriptString(payloadSize, ' ');
-    v8::Local<v8::String> stubScript =
-        v8::String::NewFromUtf8(isolate, stubScriptString.c_str())
-            .ToLocalChecked();
-    source = std::make_unique<v8::ScriptCompiler::Source>(
-        stubScript, origin, cachedData);
-  } else {
+  std::unique_ptr<v8::ScriptCompiler::Source> source =
+      UseFakeSourceIfNeeded(origin, cachedData);
+  if (!source) {
     source = std::make_unique<v8::ScriptCompiler::Source>(
         script, origin, cachedData);
   }
@@ -167,12 +178,7 @@ jsi::Value V8Runtime::ExecuteScript(
   if (cachedData && cachedData->rejected) {
     LOG(INFO) << "[rnv8] cache missed.";
   }
-  if ((config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNormal ||
-       config_->codecacheMode ==
-           V8RuntimeConfig::CodecacheMode::kNormalWithStubBundle) &&
-      (!cachedData || cachedData->rejected)) {
-    SaveCodeCache(compiledScript, config_->codecachePath);
-  }
+  SaveCodeCacheIfNeeded(compiledScript, config_->codecachePath, cachedData);
 
   v8::Local<v8::Value> result;
   if (!compiledScript->Run(context).ToLocal(&result)) {
@@ -280,8 +286,26 @@ void V8Runtime::ReportException(v8::Isolate *isolate, v8::TryCatch *tryCatch)
   }
 }
 
-std::unique_ptr<v8::ScriptCompiler::CachedData> V8Runtime::LoadCodeCache(
-    const std::string &codecachePath) {
+std::unique_ptr<v8::ScriptCompiler::CachedData>
+V8Runtime::LoadCodeCacheIfNeeded(const std::string &codecachePath) {
+  // caching is for main runtime only
+  if (isSharedRuntime_) {
+    return nullptr;
+  }
+
+  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNone) {
+    return nullptr;
+  }
+
+  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt) {
+    assert(config_->prebuiltCodecacheBlob);
+    return std::make_unique<v8::ScriptCompiler::CachedData>(
+        reinterpret_cast<const uint8_t *>(
+            config_->prebuiltCodecacheBlob->c_str()),
+        static_cast<int>(config_->prebuiltCodecacheBlob->size()),
+        v8::ScriptCompiler::CachedData::BufferPolicy::BufferNotOwned);
+  }
+
   FILE *file = fopen(codecachePath.c_str(), "rb");
   if (!file) {
     LOG(INFO) << "Cannot load codecache file: " << codecachePath;
@@ -301,15 +325,30 @@ std::unique_ptr<v8::ScriptCompiler::CachedData> V8Runtime::LoadCodeCache(
       v8::ScriptCompiler::CachedData::BufferPolicy::BufferOwned);
 }
 
-bool V8Runtime::SaveCodeCache(
+bool V8Runtime::SaveCodeCacheIfNeeded(
     const v8::Local<v8::Script> &script,
-    const std::string &codecachePath) {
+    const std::string &codecachePath,
+    v8::ScriptCompiler::CachedData *cachedData) {
+  // caching is for main runtime only
+  if (isSharedRuntime_) {
+    return false;
+  }
+
+  if (cachedData && !cachedData->rejected) {
+    return false;
+  }
+
+  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNone ||
+      config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt) {
+    return false;
+  }
+
   v8::HandleScope scopedHandle(isolate_);
 
   v8::Local<v8::UnboundScript> unboundScript = script->GetUnboundScript();
-  std::unique_ptr<v8::ScriptCompiler::CachedData> cachedData;
-  cachedData.reset(v8::ScriptCompiler::CreateCodeCache(unboundScript));
-  if (!cachedData) {
+  std::unique_ptr<v8::ScriptCompiler::CachedData> newCachedData;
+  newCachedData.reset(v8::ScriptCompiler::CreateCodeCache(unboundScript));
+  if (!newCachedData) {
     return false;
   }
 
@@ -318,9 +357,43 @@ bool V8Runtime::SaveCodeCache(
     LOG(ERROR) << "Cannot save codecache file: " << codecachePath;
     return false;
   }
-  fwrite(cachedData->data, 1, cachedData->length, file);
+  fwrite(newCachedData->data, 1, newCachedData->length, file);
   fclose(file);
   return true;
+}
+
+std::unique_ptr<v8::ScriptCompiler::Source> V8Runtime::UseFakeSourceIfNeeded(
+    const v8::ScriptOrigin &origin,
+    v8::ScriptCompiler::CachedData *cachedData) {
+  // caching is for main runtime only
+  if (isSharedRuntime_) {
+    return nullptr;
+  }
+
+  if (!cachedData) {
+    return nullptr;
+  }
+
+  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt ||
+      config_->codecacheMode ==
+          V8RuntimeConfig::CodecacheMode::kNormalWithStubBundle) {
+    uint32_t payloadSize = (cachedData->data[8] << 0) |
+        (cachedData->data[9] << 8) | (cachedData->data[10] << 16) |
+        (cachedData->data[11] << 24);
+    std::string stubScriptString(payloadSize, ' ');
+    v8::Local<v8::String> stubScript =
+        v8::String::NewFromUtf8(isolate_, stubScriptString.c_str())
+            .ToLocalChecked();
+    return std::make_unique<v8::ScriptCompiler::Source>(
+        stubScript, origin, cachedData);
+  }
+
+  return nullptr;
+}
+
+// static
+v8::Platform *V8Runtime::GetPlatform() {
+  return s_platform.get();
 }
 
 //

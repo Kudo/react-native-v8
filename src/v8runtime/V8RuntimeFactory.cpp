@@ -16,4 +16,11 @@ std::unique_ptr<facebook::jsi::Runtime> createV8Runtime(
   return std::make_unique<V8Runtime>(std::move(config));
 }
 
+std::unique_ptr<facebook::jsi::Runtime> createSharedV8Runtime(
+    const facebook::jsi::Runtime *sharedRuntime,
+    std::unique_ptr<V8RuntimeConfig> config) {
+  auto *sharedV8Runtime = dynamic_cast<const V8Runtime *>(sharedRuntime);
+  return std::make_unique<V8Runtime>(sharedV8Runtime, std::move(config));
+}
+
 } // namespace rnv8

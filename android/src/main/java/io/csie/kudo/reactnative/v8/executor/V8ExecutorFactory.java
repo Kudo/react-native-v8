@@ -18,8 +18,8 @@ import java.io.File;
 public class V8ExecutorFactory implements JavaScriptExecutorFactory {
   private static final String TAG = "V8";
 
+  private final Context mContext;
   private final V8RuntimeConfig mConfig;
-  private final AssetManager mAssetManager;
 
   public V8ExecutorFactory(final Context context) {
     this(context, V8RuntimeConfig.createDefault());
@@ -30,23 +30,24 @@ public class V8ExecutorFactory implements JavaScriptExecutorFactory {
       final String appName,
       final String deviceName,
       final boolean useDeveloperSupport) {
+    mContext = context;
     mConfig = V8RuntimeConfig.createDefault();
     mConfig.appName = appName;
     mConfig.deviceName = deviceName;
     mConfig.enableInspector = useDeveloperSupport;
-    mAssetManager = context.getAssets();
+    mConfig.codecacheMode = BuildConfig.V8_CACHE_MODE;
   }
 
   public V8ExecutorFactory(
       final Context context,
       final V8RuntimeConfig config) {
+    mContext = context;
     mConfig = config;
-    mAssetManager = context.getAssets();
   }
 
   @Override
   public JavaScriptExecutor create() {
-    return new V8Executor(mAssetManager, mConfig);
+    return new V8Executor(mContext, mConfig);
   }
 
   @Override
@@ -75,7 +76,9 @@ public class V8ExecutorFactory implements JavaScriptExecutorFactory {
     }
     final boolean hasCache =
         new File(context.getCodeCacheDir(), "v8codecache.bin").exists();
-    if (BuildConfig.V8_USE_CACHE_WITH_STUB_BUNDLE && hasCache) {
+    if (BuildConfig.V8_CACHE_MODE ==
+            V8RuntimeConfig.CODECACHE_MODE_NORMAL_WITH_STUB_BUNDLE &&
+        hasCache) {
       return "stub.bundle";
     }
     return null;

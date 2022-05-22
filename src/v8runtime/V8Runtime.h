@@ -21,6 +21,9 @@ class InspectorClient;
 class V8Runtime : public facebook::jsi::Runtime {
  public:
   V8Runtime(std::unique_ptr<V8RuntimeConfig> config);
+  V8Runtime(
+      const V8Runtime *v8Runtime,
+      std::unique_ptr<V8RuntimeConfig> config);
   ~V8Runtime();
 
  private:
@@ -33,11 +36,17 @@ class V8Runtime : public facebook::jsi::Runtime {
   void OnIdle();
   void ReportException(v8::Isolate *isolate, v8::TryCatch *tryCatch) const;
 
-  std::unique_ptr<v8::ScriptCompiler::CachedData> LoadCodeCache(
+  std::unique_ptr<v8::ScriptCompiler::CachedData> LoadCodeCacheIfNeeded(
       const std::string &codecachePath);
-  bool SaveCodeCache(
+  bool SaveCodeCacheIfNeeded(
       const v8::Local<v8::Script> &script,
-      const std::string &codecachePath);
+      const std::string &codecachePath,
+      v8::ScriptCompiler::CachedData *cachedData);
+  std::unique_ptr<v8::ScriptCompiler::Source> UseFakeSourceIfNeeded(
+      const v8::ScriptOrigin &origin,
+      v8::ScriptCompiler::CachedData *cachedData);
+
+  static v8::Platform *GetPlatform();
 
   //
   // facebook::jsi::Runtime implementations
@@ -188,11 +197,11 @@ class V8Runtime : public facebook::jsi::Runtime {
   std::unique_ptr<V8RuntimeConfig> config_;
   std::unique_ptr<v8::ArrayBuffer::Allocator> arrayBufferAllocator_;
   std::unique_ptr<v8::StartupData> snapshotBlob_;
-  std::unique_ptr<v8::ScriptCompiler::CachedData> codecache_;
   v8::Isolate *isolate_;
   v8::Global<v8::Context> context_;
   std::shared_ptr<InspectorClient> inspectorClient_;
   bool isRegisteredIdleTaskRunner_ = false;
+  bool isSharedRuntime_ = false;
 };
 
 } // namespace rnv8
