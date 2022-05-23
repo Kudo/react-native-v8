@@ -20,6 +20,9 @@
     "android/",
     "!android/build",
     "!android/.cxx",
+    "expo/",
+    "!expo/build",
+    "expo-module.config.json",
     "src/"
   ],
   "devDependencies": {
