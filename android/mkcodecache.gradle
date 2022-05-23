@@ -11,21 +11,10 @@ import java.nio.file.Paths
 import org.apache.tools.ant.taskdefs.condition.Os
 
 
-def appProject = rootProject.allprojects.find { it.plugins.hasPlugin('com.android.application') }
+def appProjectName = findProperty('v8.appProject')
+def appProject = appProjectName ? project(":${appProjectName}") : rootProject.allprojects.find { it.plugins.hasPlugin('com.android.application') }
 if (!appProject) {
   return;
-}
-
-def appConfig = appProject.hasProperty("react") ? appProject.react : [:];
-def bundleAssetName = appConfig.bundleAssetName ?: "index.android.bundle"
-
-// Set bundleForVariant to a function to configure per variant,
-// defaults to `bundleIn${targetName}` or True for Release variants and False for debug variants
-def bundleForVariant = appConfig.bundleForVariant ?: {
-  def variant ->
-    appConfig."bundleIn${variant.name.capitalize()}" ||
-    appConfig."bundleIn${variant.buildType.name.capitalize()}" ||
-    variant.name.toLowerCase().contains("release")
 }
 
 File findNodePackageDir(String packageName, boolean absolute = true) {
@@ -64,6 +53,18 @@ def getV8ToolsDir() {
 }
 
 def setupClosure = {
+  def appConfig = appProject.hasProperty("react") ? appProject.react : [:];
+  def bundleAssetName = appConfig.bundleAssetName ?: "index.android.bundle"
+
+  // Set bundleForVariant to a function to configure per variant,
+  // defaults to `bundleIn${targetName}` or True for Release variants and False for debug variants
+  def bundleForVariant = appConfig.bundleForVariant ?: {
+    def variant ->
+      appConfig."bundleIn${variant.name.capitalize()}" ||
+      appConfig."bundleIn${variant.buildType.name.capitalize()}" ||
+      variant.name.toLowerCase().contains("release")
+  }
+
   def variants = appProject.android.applicationVariants
   variants.all { def variant ->
     def targetName = variant.name.capitalize()
@@ -96,8 +97,12 @@ def setupClosure = {
         }
       }
 
-      dependsOn(variant.ext.bundleJsAndAssets)
-      enabled bundleForVariant(variant)
+      if (variant.ext.has('bundleJsAndAssets')) {
+        dependsOn(variant.ext.bundleJsAndAssets)
+        enabled bundleForVariant(variant)
+      } else {
+        enabled false
+      }
     }
 
     def currentWipeBundleTask = tasks.create(name: "wipe${targetName}BundledJs") {
