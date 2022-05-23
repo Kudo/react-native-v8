@@ -376,9 +376,10 @@ task prepareThirdPartyNdkHeaders(dependsOn:[downloadNdkBuildDependencies, prepar
 
 tasks.whenTaskAdded { task ->
   if (
-      task.name.startsWith("externalNativeBuild")
-      || task.name.startsWith("buildCMake")
-      || task.name.startsWith("configureCMake")
+      !task.name.contains("Clean") && (
+        task.name.startsWith("externalNativeBuild")
+        || task.name.startsWith("buildCMake")
+        || task.name.startsWith("configureCMake"))
   ) {
     task.dependsOn(prepareThirdPartyNdkHeaders)
     extractAARHeaders.dependsOn(prepareThirdPartyNdkHeaders)
