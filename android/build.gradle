@@ -23,7 +23,7 @@ File findNodePackageDir(String packageName, boolean absolute = true) {
 }
 
 def safeExtGet(prop, fallback) {
-  rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+  return rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
 }
 
 def reactNativeDir = findNodePackageDir("react-native")
@@ -52,9 +52,34 @@ def findV8AndroidDir() {
   "  - v8-android\n" +
   "  - v8-android-nointl\n")
 }
-def v8AndroidDir = findV8AndroidDir()
+
+def v8AndroidDir = findProperty("v8.android.dir") ?: findV8AndroidDir()
 def v8AndroidVersion = new JsonSlurper().parseText(file("${v8AndroidDir}/package.json").text).version as String
 logger.info("v8AndroidVersion[${v8AndroidVersion}]")
+def v8AndroidVersionMajor = Integer.parseInt(v8AndroidVersion.tokenize('.')[0])
+
+def v8UseSnapshot = v8AndroidVersionMajor >= 10
+
+// These constant values should align to V8RuntimeConfig.java
+ext.CODECACHE_MODE_NONE = 0
+ext.CODECACHE_MODE_NORMAL = 1
+ext.CODECACHE_MODE_PREBUILT = 2
+ext.CODECACHE_MODE_NORMAL_WITH_STUB_BUNDLE = 3
+def parseCacheMode(cacheMode) {
+  switch (cacheMode) {
+    case null:
+      return ext.CODECACHE_MODE_NONE
+    case "normal":
+      return ext.CODECACHE_MODE_NORMAL
+    case "prebuilt":
+      return ext.CODECACHE_MODE_PREBUILT
+    case "normalWithStubBundle":
+      return ext.CODECACHE_MODE_NORMAL_WITH_STUB_BUNDLE
+    default:
+      throw new GradleException("Unsupported cache mode - ${cacheMode}")
+  }
+}
+def v8CacheMode = parseCacheMode(findProperty("v8.cacheMode"))
 
 def localProps = new Properties()
 def localPropertiesFile = file("local.properties")
@@ -114,6 +139,9 @@ buildscript {
 
 apply plugin: "com.android.library"
 apply plugin: "de.undercouch.download"
+if (v8CacheMode == CODECACHE_MODE_PREBUILT) {
+  apply from: "./mkcodecache.gradle"
+}
 
 android {
   compileSdkVersion safeExtGet("compileSdkVersion", 30)
@@ -134,6 +162,9 @@ android {
         _stackProtectorFlag ? (cppFlags("-fstack-protector-all")) : null
       }
     }
+
+    buildConfigField("boolean", "V8_USE_SNAPSHOT", v8UseSnapshot.toString())
+    buildConfigField("int", "V8_CACHE_MODE", v8CacheMode.toString())
   }
   externalNativeBuild {
     cmake {
@@ -167,6 +198,14 @@ android {
   sourceSets {
     main {
       jniLibs.srcDirs = ["${reactNativeDir}/ReactAndroid/src/main/jni/first-party/v8/jni"]
+
+      if (v8UseSnapshot) {
+        assets.srcDirs += [ "${v8AndroidDir}/dist/snapshot_blob" ]
+      }
+
+      if (v8CacheMode == CODECACHE_MODE_NORMAL_WITH_STUB_BUNDLE) {
+        assets.srcDirs += [ "src/stub_bundle" ]
+      }
     }
   }
 }

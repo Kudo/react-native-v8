@@ -7,6 +7,7 @@
 
 #include "V8Runtime.h"
 
+#include <glog/logging.h>
 #include <mutex>
 #include <sstream>
 #include "HostProxy.h"
@@ -29,13 +30,15 @@ const char kHostFunctionProxyProp[] = "__hostFunctionProxy";
 std::unique_ptr<v8::Platform> V8Runtime::s_platform = nullptr;
 std::mutex s_platform_mutex; // protects s_platform
 
-V8Runtime::V8Runtime(const V8RuntimeConfig &config) {
+V8Runtime::V8Runtime(std::unique_ptr<V8RuntimeConfig> config)
+    : config_(std::move(config)) {
   {
     const std::lock_guard<std::mutex> lock(s_platform_mutex);
     if (!s_platform) {
       s_platform = v8::platform::NewDefaultPlatform();
       v8::V8::InitializeICU();
       v8::V8::InitializePlatform(s_platform.get());
+      v8::V8::SetFlagsFromString("--nolazy");
       v8::V8::Initialize();
     }
   }
@@ -44,11 +47,18 @@ V8Runtime::V8Runtime(const V8RuntimeConfig &config) {
       v8::ArrayBuffer::Allocator::NewDefaultAllocator());
   v8::Isolate::CreateParams createParams;
   createParams.array_buffer_allocator = arrayBufferAllocator_.get();
+  if (config_->snapshotBlob) {
+    snapshotBlob_ = std::make_unique<v8::StartupData>();
+    snapshotBlob_->data = config_->snapshotBlob->c_str();
+    snapshotBlob_->raw_size = static_cast<int>(config_->snapshotBlob->size());
+    createParams.snapshot_blob = snapshotBlob_.get();
+  }
+
   isolate_ = v8::Isolate::New(createParams);
 #if defined(__ANDROID__)
-  if (!config.timezoneId.empty()) {
+  if (!config_->timezoneId.empty()) {
     isolate_->DateTimeConfigurationChangeNotification(
-        v8::Isolate::TimeZoneDetection::kCustom, config.timezoneId.c_str());
+        v8::Isolate::TimeZoneDetection::kCustom, config_->timezoneId.c_str());
   }
 #endif
   v8::Locker locker(isolate_);
@@ -56,9 +66,46 @@ V8Runtime::V8Runtime(const V8RuntimeConfig &config) {
   v8::HandleScope scopedHandle(isolate_);
   context_.Reset(isolate_, CreateGlobalContext(isolate_));
   v8::Context::Scope scopedContext(context_.Get(isolate_));
-  if (config.enableInspector) {
+  if (config_->enableInspector) {
     inspectorClient_ = std::make_shared<InspectorClient>(
-        context_.Get(isolate_), config.appName, config.deviceName);
+        context_.Get(isolate_), config_->appName, config_->deviceName);
+    inspectorClient_->ConnectToReactFrontend();
+  }
+}
+
+V8Runtime::V8Runtime(
+    const V8Runtime *v8Runtime,
+    std::unique_ptr<V8RuntimeConfig> config)
+    : config_(std::move(config)) {
+  isSharedRuntime_ = true;
+  // We don't need to register another idle taskrunner again
+  isRegisteredIdleTaskRunner_ = true;
+  isolate_ = v8Runtime->isolate_;
+
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  context_.Reset(isolate_, CreateGlobalContext(isolate_));
+
+  auto localContext = context_.Get(isolate_);
+  localContext->SetSecurityToken(
+      v8Runtime->context_.Get(isolate_)->GetSecurityToken());
+
+  bool inheritProtoResult =
+      localContext->Global()
+          ->GetPrototype()
+          .As<v8::Object>()
+          ->SetPrototype(
+              localContext,
+              v8Runtime->context_.Get(isolate_)->Global()->GetPrototype())
+          .FromJust();
+  if (!inheritProtoResult) {
+    LOG(ERROR) << "Unable to inherit prototype from parent shared runtime.";
+  }
+
+  if (config_->enableInspector) {
+    inspectorClient_ = std::make_shared<InspectorClient>(
+        context_.Get(isolate_), config_->appName, config_->deviceName);
     inspectorClient_->ConnectToReactFrontend();
   }
 }
@@ -74,9 +121,11 @@ V8Runtime::~V8Runtime() {
 
     context_.Reset();
   }
-  isolate_->Dispose();
+  if (!isSharedRuntime_) {
+    isolate_->Dispose();
+  }
   // v8::V8::Dispose();
-  // v8::V8::ShutdownPlatform();
+  // v8::V8::DisposePlatform();
 }
 
 v8::Local<v8::Context> V8Runtime::CreateGlobalContext(v8::Isolate *isolate) {
@@ -100,16 +149,36 @@ jsi::Value V8Runtime::ExecuteScript(
       isolate,
       sourceURL.c_str(),
       v8::NewStringType::kNormal,
-      sourceURL.length());
-  v8::ScriptOrigin origin(sourceURLValue.ToLocalChecked());
+      static_cast<int>(sourceURL.length()));
+  v8::ScriptOrigin origin(isolate, sourceURLValue.ToLocalChecked());
 
-  v8::Local<v8::Script> compiledScript;
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
-  if (!v8::Script::Compile(context, script, &origin).ToLocal(&compiledScript)) {
+  auto codecache = LoadCodeCacheIfNeeded(config_->codecachePath);
+  v8::ScriptCompiler::CachedData *cachedData = codecache.release();
+
+  std::unique_ptr<v8::ScriptCompiler::Source> source =
+      UseFakeSourceIfNeeded(origin, cachedData);
+  if (!source) {
+    source = std::make_unique<v8::ScriptCompiler::Source>(
+        script, origin, cachedData);
+  }
+
+  v8::Local<v8::Script> compiledScript;
+  if (!v8::ScriptCompiler::Compile(
+           context,
+           source.release(),
+           cachedData ? v8::ScriptCompiler::kConsumeCodeCache
+                      : v8::ScriptCompiler::kNoCompileOptions)
+           .ToLocal(&compiledScript)) {
     ReportException(isolate, &tryCatch);
     return {};
   }
+
+  if (cachedData && cachedData->rejected) {
+    LOG(INFO) << "[rnv8] cache missed.";
+  }
+  SaveCodeCacheIfNeeded(compiledScript, config_->codecachePath, cachedData);
 
   v8::Local<v8::Value> result;
   if (!compiledScript->Run(context).ToLocal(&result)) {
@@ -215,6 +284,116 @@ void V8Runtime::ReportException(v8::Isolate *isolate, v8::TryCatch *tryCatch)
     throw jsi::JSError(const_cast<V8Runtime &>(*this), ss.str());
     return;
   }
+}
+
+std::unique_ptr<v8::ScriptCompiler::CachedData>
+V8Runtime::LoadCodeCacheIfNeeded(const std::string &codecachePath) {
+  // caching is for main runtime only
+  if (isSharedRuntime_) {
+    return nullptr;
+  }
+
+  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNone) {
+    return nullptr;
+  }
+
+  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt) {
+    assert(config_->prebuiltCodecacheBlob);
+    return std::make_unique<v8::ScriptCompiler::CachedData>(
+        reinterpret_cast<const uint8_t *>(
+            config_->prebuiltCodecacheBlob->c_str()),
+        static_cast<int>(config_->prebuiltCodecacheBlob->size()),
+        v8::ScriptCompiler::CachedData::BufferPolicy::BufferNotOwned);
+  }
+
+  FILE *file = fopen(codecachePath.c_str(), "rb");
+  if (!file) {
+    LOG(INFO) << "Cannot load codecache file: " << codecachePath;
+    return nullptr;
+  }
+  fseek(file, 0, SEEK_END);
+  size_t size = ftell(file);
+  uint8_t *buffer = new uint8_t[size];
+  rewind(file);
+
+  fread(buffer, size, 1, file);
+  fclose(file);
+
+  return std::make_unique<v8::ScriptCompiler::CachedData>(
+      buffer,
+      static_cast<int>(size),
+      v8::ScriptCompiler::CachedData::BufferPolicy::BufferOwned);
+}
+
+bool V8Runtime::SaveCodeCacheIfNeeded(
+    const v8::Local<v8::Script> &script,
+    const std::string &codecachePath,
+    v8::ScriptCompiler::CachedData *cachedData) {
+  // caching is for main runtime only
+  if (isSharedRuntime_) {
+    return false;
+  }
+
+  if (cachedData && !cachedData->rejected) {
+    return false;
+  }
+
+  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNone ||
+      config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt) {
+    return false;
+  }
+
+  v8::HandleScope scopedHandle(isolate_);
+
+  v8::Local<v8::UnboundScript> unboundScript = script->GetUnboundScript();
+  std::unique_ptr<v8::ScriptCompiler::CachedData> newCachedData;
+  newCachedData.reset(v8::ScriptCompiler::CreateCodeCache(unboundScript));
+  if (!newCachedData) {
+    return false;
+  }
+
+  FILE *file = fopen(codecachePath.c_str(), "wb");
+  if (!file) {
+    LOG(ERROR) << "Cannot save codecache file: " << codecachePath;
+    return false;
+  }
+  fwrite(newCachedData->data, 1, newCachedData->length, file);
+  fclose(file);
+  return true;
+}
+
+std::unique_ptr<v8::ScriptCompiler::Source> V8Runtime::UseFakeSourceIfNeeded(
+    const v8::ScriptOrigin &origin,
+    v8::ScriptCompiler::CachedData *cachedData) {
+  // caching is for main runtime only
+  if (isSharedRuntime_) {
+    return nullptr;
+  }
+
+  if (!cachedData) {
+    return nullptr;
+  }
+
+  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt ||
+      config_->codecacheMode ==
+          V8RuntimeConfig::CodecacheMode::kNormalWithStubBundle) {
+    uint32_t payloadSize = (cachedData->data[8] << 0) |
+        (cachedData->data[9] << 8) | (cachedData->data[10] << 16) |
+        (cachedData->data[11] << 24);
+    std::string stubScriptString(payloadSize, ' ');
+    v8::Local<v8::String> stubScript =
+        v8::String::NewFromUtf8(isolate_, stubScriptString.c_str())
+            .ToLocalChecked();
+    return std::make_unique<v8::ScriptCompiler::Source>(
+        stubScript, origin, cachedData);
+  }
+
+  return nullptr;
+}
+
+// static
+v8::Platform *V8Runtime::GetPlatform() {
+  return s_platform.get();
 }
 
 //

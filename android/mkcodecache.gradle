@@ -1,0 +1,128 @@
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * Copyright (c) 650 Industries. All rights reserved.
+ * Copyright (c) Kudo Chien.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+import java.nio.file.Paths
+import org.apache.tools.ant.taskdefs.condition.Os
+
+
+def appProject = rootProject.allprojects.find { it.plugins.hasPlugin('com.android.application') }
+if (!appProject) {
+  return;
+}
+
+def appConfig = appProject.hasProperty("react") ? appProject.react : [:];
+def bundleAssetName = appConfig.bundleAssetName ?: "index.android.bundle"
+
+// Set bundleForVariant to a function to configure per variant,
+// defaults to `bundleIn${targetName}` or True for Release variants and False for debug variants
+def bundleForVariant = appConfig.bundleForVariant ?: {
+  def variant ->
+    appConfig."bundleIn${variant.name.capitalize()}" ||
+    appConfig."bundleIn${variant.buildType.name.capitalize()}" ||
+    variant.name.toLowerCase().contains("release")
+}
+
+File findNodePackageDir(String packageName, boolean absolute = true) {
+  def nodeCommand = ["node", "--print", "require.resolve('${packageName}/package.json')"]
+  def proc = nodeCommand.execute(null, rootDir)
+  def error = proc.err.text
+  if (error) {
+    throw new GradleException("findNodePackageDir() execution failed - nodeCommand[${nodeCommand.join(' ')}]\n" + error)
+  }
+  def dir = new File(proc.text.trim()).getParentFile()
+  return absolute ? dir.getAbsoluteFile() : dir
+}
+
+def getV8ToolsDir() {
+  def dir = findProperty('v8.android.tools.dir')
+  if (dir) {
+    return dir
+  }
+
+  def osBin = 'unsupported'
+  if (Os.isFamily(Os.FAMILY_MAC)) { osBin = 'macos' }
+  else if (Os.isOs(null, 'linux', 'amd64', null)) { osBin = 'linux' }
+  else {
+    throw new GradleException('Unsupported os for v8-android-tools')
+  }
+
+  try {
+    dir = findNodePackageDir("v8-android-tools-${osBin}").toString()
+  } catch (e) {
+    throw new GradleException("Unable to find tools package, please make sure v8-android-tools-${osBin} is installed.")
+  }
+
+  def v8AndroidDir = findProperty("v8.android.dir") ?: findV8AndroidDir()
+  def v8Variant = file(v8AndroidDir).name
+  return Paths.get(dir, v8Variant).toString()
+}
+
+def setupClosure = {
+  def variants = appProject.android.applicationVariants
+  variants.all { def variant ->
+    def targetName = variant.name.capitalize()
+    def targetPath = variant.dirName
+    def jsBundleDir = file("${appProject.buildDir}/generated/assets/react/${targetPath}")
+
+    def currentPrebuildBundleTask = tasks.create(name: "prebuild${targetName}BundledJs") {
+      group = "rnv8"
+      description = "prebuild cached bundle into ${targetName}."
+
+      def toolsDir = getV8ToolsDir()
+
+      ['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'].each { arch ->
+        doLast {
+          def mkcodecachePath = Paths.get(toolsDir, arch, 'mkcodecache')
+          if (!file(mkcodecachePath).exists()) {
+            logger.warn("Unsupported abi for v8-android-tools - arch[${arch}] mkcodecachePath[${mkcodecachePath}]")
+            return
+          }
+          exec {
+            workingDir jsBundleDir
+            commandLine(mkcodecachePath, bundleAssetName)
+          }
+          ant.move file: Paths.get(jsBundleDir.toString(), 'v8codecache.bin'), todir: Paths.get(jsBundleDir.toString(), arch)
+          copy {
+            from(Paths.get(jsBundleDir.toString(), arch))
+            // for AGP 3.4+ new asset directory
+            into("${appProject.buildDir}/intermediates/merged_assets/${variant.name}/out/${arch}")
+          }
+        }
+      }
+
+      dependsOn(variant.ext.bundleJsAndAssets)
+      enabled bundleForVariant(variant)
+    }
+
+    def currentWipeBundleTask = tasks.create(name: "wipe${targetName}BundledJs") {
+      group = "rnv8"
+      description = "wipe bundle from ${targetName}."
+
+      doLast {
+        file(Paths.get(jsBundleDir.toString(), bundleAssetName)).text = "// @generated stub bundle";
+      }
+
+      dependsOn(currentPrebuildBundleTask)
+      enabled(currentPrebuildBundleTask.enabled)
+    }
+
+    def task = appProject.tasks.findByName("copy${targetName}BundledJs")
+    if (task) {
+      task.dependsOn(currentWipeBundleTask)
+    }
+  }
+}
+
+if (appProject.state.hasCompleted()) {
+  setupClosure.call()
+} else {
+  appProject.afterEvaluate {
+    setupClosure.call()
+  }
+}

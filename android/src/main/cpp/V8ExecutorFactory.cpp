@@ -22,9 +22,9 @@ namespace rnv8 {
 namespace {
 
 std::unique_ptr<jsi::Runtime> makeV8RuntimeSystraced(
-    const V8RuntimeConfig &config) {
+    std::unique_ptr<V8RuntimeConfig> config) {
   react::SystraceSection s("V8ExecutorFactory::makeV8RuntimeSystraced");
-  return createV8Runtime(config);
+  return createV8Runtime(std::move(config));
 }
 
 } // namespace
@@ -32,7 +32,8 @@ std::unique_ptr<jsi::Runtime> makeV8RuntimeSystraced(
 std::unique_ptr<react::JSExecutor> V8ExecutorFactory::createJSExecutor(
     std::shared_ptr<react::ExecutorDelegate> delegate,
     std::shared_ptr<react::MessageQueueThread> jsQueue) {
-  std::unique_ptr<jsi::Runtime> v8Runtime = makeV8RuntimeSystraced(config_);
+  std::unique_ptr<jsi::Runtime> v8Runtime =
+      makeV8RuntimeSystraced(std::move(config_));
 
   // Add js engine information to Error.prototype so in error reporting we
   // can send this information.

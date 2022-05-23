@@ -55,7 +55,7 @@ $ yarn add react-native-v8 v8-android-jit
  public class MainApplication extends Application implements ReactApplication {
 
    private final ReactNativeHost mReactNativeHost =
-@@ -33,6 +38,14 @@ public class MainApplication extends Application implements ReactApplication {
+@@ -33,6 +39,14 @@ public class MainApplication extends Application implements ReactApplication {
          protected String getJSMainModuleName() {
            return "index";
          }
@@ -63,6 +63,7 @@ $ yarn add react-native-v8 v8-android-jit
 +        @Override
 +        protected JavaScriptExecutorFactory getJavaScriptExecutorFactory() {
 +          return new V8ExecutorFactory(
++              getApplicationContext(),
 +              getPackageName(),
 +              AndroidInfoHelpers.getFriendlyDeviceName(),
 +              getUseDeveloperSupport());
