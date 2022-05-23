@@ -32,11 +32,14 @@ jobs:
           script: |
             adb logcat -c
             python3 scripts/gen_project.py --rn-version ${{ matrix.rn-version }} --v8-android-variant ${{ matrix.v8-android-variant }} TestApp
-            adb logcat -d | grep -E "=== V8 version\[.+\] ===" > /dev/null
+            adb logcat -d > TestApp/adb.log
+            grep -E "=== V8 version\[.+\] ===" TestApp/adb.log > /dev/null
 
       - name: Upload failed artifacts
         if: failure()
         uses: actions/upload-artifact@v3
         with:
           name: artifacts-${{ matrix.rn-version }}-${{ matrix.v8-android-variant }}
-          path: TestApp/android/app/build/outputs/apk/release/app-release.apk
+          path: |
+            TestApp/android/app/build/outputs/apk/release/app-release.apk
+            TestApp/adb.log
