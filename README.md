@@ -27,7 +27,7 @@ $ yarn add react-native-v8 v8-android-jit
 
 2. Exclude unused libraries to reduce APK size
 
-````diff
+```diff
 --- a/android/app/build.gradle
 +++ b/android/app/build.gradle
 @@ -161,11 +161,18 @@ android {
@@ -40,6 +40,7 @@ $ yarn add react-native-v8 v8-android-jit
 +        exclude "**/libjsc.so"
 +    }
  }
+```
 
 3. Setup V8 in the `MainApplication.java`.
 
@@ -83,7 +84,7 @@ $ yarn add react-native-v8 v8-android-jit
        };
 
    @Override
-````
+```
 
 4. [OPTIONAL] If you encounter gradle errors from JVM Out-of-memory, please increase the JVM memory size
 
