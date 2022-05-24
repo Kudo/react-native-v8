@@ -1,11 +1,3 @@
-package-lock.json
-/build
-/dist
-
-scripts/depot_tools
-v8/
-!android/src/main/java/io/csie/kudo/reactnative/v8/
-
 # Created by https://www.gitignore.io/api/node,android,reactnative,intellij+all,androidstudio,visualstudiocode
 
 ### Android ###
@@ -448,3 +440,13 @@ gradle-app.setting
 
 
 # End of https://www.gitignore.io/api/node,android,reactnative,intellij+all,androidstudio,visualstudiocode
+
+package-lock.json
+/build
+/dist
+
+scripts/depot_tools
+v8/
+!android/src/main/java/io/csie/kudo/reactnative/v8/
+
+!plugin/build/

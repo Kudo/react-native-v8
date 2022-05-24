@@ -2,6 +2,13 @@
   "name": "react-native-v8",
   "version": "1.2.0",
   "description": "Opt-in V8 runtime for React Native Android",
+  "scripts": {
+    "build": "expo-module build",
+    "clean": "expo-module clean",
+    "expo-module": "expo-module",
+    "build:plugin": "expo-module build plugin",
+    "clean:plugin": "expo-module clean plugin"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Kudo/react-native-v8.git"
@@ -20,12 +27,26 @@
     "android/",
     "!android/build",
     "!android/.cxx",
+    "!android/.gradle",
+    "index.js",
     "expo/",
     "!expo/build",
     "expo-module.config.json",
+    "app.plugin.js",
+    "plugin/",
     "src/"
   ],
   "devDependencies": {
-    "clang-format": "^1.8.0"
+    "clang-format": "^1.8.0",
+    "expo-build-properties": "^0.1.0",
+    "expo-module-scripts": "^2.0.0"
+  },
+  "peerDependencies": {
+    "expo-build-properties": "^0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "expo-build-properties": {
+      "optional": true
+    }
   }
 }
