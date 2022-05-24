@@ -10,7 +10,7 @@ This project aims to support V8 replacement runtime for React Native. Designed a
 For managed projects, you can install through the single command:
 
 ```sh
-$ expo install react-native-v8 expo-build-properties
+$ expo install react-native-v8 v8-android-jit expo-build-properties
 ```
 
 - Please make sure you don't have [`"jsEngine": "hermes"`](https://docs.expo.dev/guides/using-hermes/#android-setup).
