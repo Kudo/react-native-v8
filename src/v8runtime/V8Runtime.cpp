@@ -897,9 +897,6 @@ bool V8Runtime::isArray(const jsi::Object &object) const {
 }
 
 bool V8Runtime::isArrayBuffer(const jsi::Object &object) const {
-  // Current OSS JSI seems not have call flow to allocate ArrayBuffer
-  assert(false);
-
   v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
@@ -1025,11 +1022,29 @@ size_t V8Runtime::size(const jsi::Array &array) {
 }
 
 size_t V8Runtime::size(const jsi::ArrayBuffer &arrayBuffer) {
-  throw std::logic_error("Not implemented");
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::Local<v8::Object> v8Object =
+      JSIV8ValueConverter::ToV8Object(*this, arrayBuffer);
+  assert(v8Object->IsArrayBuffer());
+  v8::ArrayBuffer *v8ArrayBuffer = v8::ArrayBuffer::Cast(*v8Object);
+  return v8ArrayBuffer->ByteLength();
 }
 
 uint8_t *V8Runtime::data(const jsi::ArrayBuffer &arrayBuffer) {
-  throw std::logic_error("Not implemented");
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::Local<v8::Object> v8Object =
+      JSIV8ValueConverter::ToV8Object(*this, arrayBuffer);
+  assert(v8Object->IsArrayBuffer());
+  v8::ArrayBuffer *v8ArrayBuffer = v8::ArrayBuffer::Cast(*v8Object);
+  return reinterpret_cast<uint8_t *>(v8ArrayBuffer->GetBackingStore()->Data());
 }
 
 jsi::Value V8Runtime::getValueAtIndex(const jsi::Array &array, size_t i) {
