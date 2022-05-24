@@ -5,6 +5,18 @@
 
 This project aims to support V8 replacement runtime for React Native. Designed as opt-in package, it is easy to integrate with existing React Native projects.
 
+## Installation for Expo projects (>= SDK 45)
+
+For managed projects, you can install through the single command:
+
+```sh
+$ expo install react-native-v8 expo-build-properties
+```
+
+- Please make sure you don't have [`"jsEngine": "hermes"`](https://docs.expo.dev/guides/using-hermes/#android-setup).
+
+For bare projects, you can run `expo prebuild -p android --clean` after the installation to prebuild again.
+
 ## Installation for React Native >= 0.66
 
 1. Install `react-native-v8` and a [v8-android variant](#v8-variants). For example, the `v8-android-jit`:
@@ -15,7 +27,7 @@ $ yarn add react-native-v8 v8-android-jit
 
 2. Exclude unused libraries to reduce APK size
 
-```diff
+````diff
 --- a/android/app/build.gradle
 +++ b/android/app/build.gradle
 @@ -161,11 +161,18 @@ android {
@@ -71,7 +83,7 @@ $ yarn add react-native-v8 v8-android-jit
        };
 
    @Override
-```
+````
 
 4. [OPTIONAL] If you encounter gradle errors from JVM Out-of-memory, please increase the JVM memory size
 
@@ -119,8 +131,6 @@ For detailed V8 features, please check [the v8-android-buildscripts feature flag
 | `v8-android-jit-nointl` | Yes | No   |
 | `v8-android`            | No  | Yes  |
 | `v8-android-nointl`     | No  | No   |
-
-
 
 ## iOS Support (Experimented)
 
