@@ -156,8 +156,7 @@ android {
                   "-DBOOST_VERSION=${BOOST_VERSION}",
                   "-DBUILD_DIR=${buildDir}",
                   "-DRN_DIR=${reactNativeDir}",
-                  "-DV8_ANDROID_DIR=${v8AndroidDir}",
-                  "--clean-first"
+                  "-DV8_ANDROID_DIR=${v8AndroidDir}"
         abiFilters (*reactNativeArchitectures())
         _stackProtectorFlag ? (cppFlags("-fstack-protector-all")) : null
       }
