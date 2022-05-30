@@ -7,6 +7,7 @@
 #
 
 cmake_minimum_required(VERSION 3.5.1)
+project(react-native-v8)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 14)
