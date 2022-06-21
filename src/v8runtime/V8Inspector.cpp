@@ -134,9 +134,11 @@ class LocalConnection : public react::ILocalConnection {
 int InspectorClient::nextContextGroupId_ = 1;
 
 InspectorClient::InspectorClient(
+    std::shared_ptr<facebook::react::MessageQueueThread> jsQueue,
     v8::Local<v8::Context> context,
     const std::string &appName,
     const std::string &deviceName) {
+  this->jsQueue = jsQueue;    
   isolate_ = context->GetIsolate();
   v8::HandleScope scopedHandle(isolate_);
   channel_.reset(new InspectorFrontend(this, context));
@@ -238,6 +240,31 @@ void InspectorClient::AwakePauseLockWithMessage(const std::string &message) {
   pauseWaitable_.notify_all();
 }
 
+void InspectorClient::DispatchProxy(const std::string &message) {
+  std::string normalizedString = stripMetroCachePrevention(message);
+
+  auto messageObj = folly::parseJson(message);
+  auto method = messageObj["method"].asString();
+
+  v8_inspector::StringView messageView(
+          reinterpret_cast<const uint8_t *>(normalizedString.data()),
+          normalizedString.size());
+
+  if (method == "Profiler.start" || method == "Profiler.stop") {
+    jsQueue->runOnQueue([this, messageView]() {
+        v8::Isolate *isolate = GetIsolate();
+        v8::Locker locker(isolate);
+        v8::Isolate::Scope scopedIsolate(isolate);
+        v8::HandleScope scopedHandle(isolate);
+        v8::Context::Scope scopedContext(GetContext().Get(isolate));
+        session_->dispatchProtocolMessage(messageView);
+    });
+    return;
+  }
+
+  session_->dispatchProtocolMessage(messageView);
+}
+
 void InspectorClient::DispatchProtocolMessage(const std::string &message) {
   auto session = GetInspectorSession();
   if (!session) {
@@ -248,11 +275,7 @@ void InspectorClient::DispatchProtocolMessage(const std::string &message) {
   v8::Isolate::Scope scopedIsolate(isolate);
   v8::HandleScope scopedHandle(isolate);
   v8::Context::Scope scopedContext(GetContext().Get(isolate));
-  std::string normalizedString = stripMetroCachePrevention(message);
-  v8_inspector::StringView messageView(
-      reinterpret_cast<const uint8_t *>(normalizedString.data()),
-      normalizedString.size());
-  session->dispatchProtocolMessage(messageView);
+  DispatchProxy(message);
 }
 
 void InspectorClient::DispatchProtocolMessages(
@@ -268,11 +291,7 @@ void InspectorClient::DispatchProtocolMessages(
   v8::Context::Scope scopedContext(GetContext().Get(isolate));
 
   for (auto &message : messages) {
-    std::string normalizedString = stripMetroCachePrevention(message);
-    v8_inspector::StringView messageView(
-        reinterpret_cast<const uint8_t *>(normalizedString.data()),
-        normalizedString.size());
-    session->dispatchProtocolMessage(messageView);
+    DispatchProxy(message);
   }
 }
 

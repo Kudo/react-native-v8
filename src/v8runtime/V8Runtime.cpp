@@ -30,7 +30,8 @@ const char kHostFunctionProxyProp[] = "__hostFunctionProxy";
 std::unique_ptr<v8::Platform> V8Runtime::s_platform = nullptr;
 std::mutex s_platform_mutex; // protects s_platform
 
-V8Runtime::V8Runtime(std::unique_ptr<V8RuntimeConfig> config)
+V8Runtime::V8Runtime(std::unique_ptr<V8RuntimeConfig> config, 
+std::shared_ptr<facebook::react::MessageQueueThread> jsQueue)
     : config_(std::move(config)) {
   {
     const std::lock_guard<std::mutex> lock(s_platform_mutex);
@@ -66,9 +67,10 @@ V8Runtime::V8Runtime(std::unique_ptr<V8RuntimeConfig> config)
   v8::HandleScope scopedHandle(isolate_);
   context_.Reset(isolate_, CreateGlobalContext(isolate_));
   v8::Context::Scope scopedContext(context_.Get(isolate_));
+  this->jsQueue = jsQueue;
   if (config_->enableInspector) {
     inspectorClient_ = std::make_shared<InspectorClient>(
-        context_.Get(isolate_), config_->appName, config_->deviceName);
+        jsQueue, context_.Get(isolate_), config_->appName, config_->deviceName);
     inspectorClient_->ConnectToReactFrontend();
   }
 }
@@ -81,6 +83,7 @@ V8Runtime::V8Runtime(
   // We don't need to register another idle taskrunner again
   isRegisteredIdleTaskRunner_ = true;
   isolate_ = v8Runtime->isolate_;
+  this->jsQueue = v8Runtime->jsQueue;
 
   v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
@@ -105,7 +108,7 @@ V8Runtime::V8Runtime(
 
   if (config_->enableInspector) {
     inspectorClient_ = std::make_shared<InspectorClient>(
-        context_.Get(isolate_), config_->appName, config_->deviceName);
+        this->jsQueue, context_.Get(isolate_), config_->appName, config_->deviceName);
     inspectorClient_->ConnectToReactFrontend();
   }
 }

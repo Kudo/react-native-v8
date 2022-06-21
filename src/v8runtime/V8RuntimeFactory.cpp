@@ -12,8 +12,9 @@
 namespace rnv8 {
 
 std::unique_ptr<facebook::jsi::Runtime> createV8Runtime(
-    std::unique_ptr<V8RuntimeConfig> config) {
-  return std::make_unique<V8Runtime>(std::move(config));
+    std::unique_ptr<V8RuntimeConfig> config,
+    std::shared_ptr<facebook::react::MessageQueueThread> jsQueue) {
+  return std::make_unique<V8Runtime>(std::move(config), jsQueue);
 }
 
 std::unique_ptr<facebook::jsi::Runtime> createSharedV8Runtime(

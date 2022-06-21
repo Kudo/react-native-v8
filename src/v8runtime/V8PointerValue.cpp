@@ -6,6 +6,7 @@
  */
 
 #include "V8PointerValue.h"
+#include <cxxreact/MessageQueueThread.h>
 
 namespace rnv8 {
 
