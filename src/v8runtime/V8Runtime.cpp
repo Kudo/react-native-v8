@@ -70,7 +70,7 @@ std::shared_ptr<facebook::react::MessageQueueThread> jsQueue)
   jsQueue_ = jsQueue;
   if (config_->enableInspector) {
     inspectorClient_ = std::make_shared<InspectorClient>(
-        jsQueue, context_.Get(isolate_), config_->appName, config_->deviceName);
+        jsQueue_, context_.Get(isolate_), config_->appName, config_->deviceName);
     inspectorClient_->ConnectToReactFrontend();
   }
 }
@@ -83,7 +83,7 @@ V8Runtime::V8Runtime(
   // We don't need to register another idle taskrunner again
   isRegisteredIdleTaskRunner_ = true;
   isolate_ = v8Runtime->isolate_;
-  this->jsQueue = v8Runtime->jsQueue;
+  this->jsQueue_ = v8Runtime->jsQueue_;
 
   v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
