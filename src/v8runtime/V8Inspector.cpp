@@ -250,6 +250,7 @@ void InspectorClient::DispatchProxy(const std::string &message) {
           reinterpret_cast<const uint8_t *>(normalizedString.data()),
           normalizedString.size());
 
+  // For `v8::CpuProfiler` or some other modules with thread local storage, we should dispatch messages in the js thread.
   if (method == "Profiler.start" || method == "Profiler.stop") {
     jsQueue_->runOnQueue([this, messageView]() {
         v8::Isolate *isolate = GetIsolate();
