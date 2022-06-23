@@ -10,11 +10,12 @@
 #include <memory.h>
 #include "V8RuntimeConfig.h"
 #include "jsi/jsi.h"
+#include <cxxreact/MessageQueueThread.h>
 
 namespace rnv8 {
 
 std::unique_ptr<facebook::jsi::Runtime> createV8Runtime(
-    std::unique_ptr<V8RuntimeConfig> config);
+    std::unique_ptr<V8RuntimeConfig> config, std::shared_ptr<facebook::react::MessageQueueThread> jsQueue);
 
 std::unique_ptr<facebook::jsi::Runtime> createSharedV8Runtime(
     const facebook::jsi::Runtime *sharedRuntime,

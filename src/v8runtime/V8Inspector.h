@@ -8,7 +8,7 @@
 #pragma once
 
 #include <condition_variable>
-
+#include <cxxreact/MessageQueueThread.h>
 #include "jsinspector/InspectorInterfaces.h"
 #include "v8-inspector.h"
 
@@ -43,6 +43,7 @@ class InspectorClient final
       public std::enable_shared_from_this<InspectorClient> {
  public:
   InspectorClient(
+      std::shared_ptr<facebook::react::MessageQueueThread> jsQueue,
       v8::Local<v8::Context> context,
       const std::string &appName,
       const std::string &deviceName);
@@ -58,12 +59,14 @@ class InspectorClient final
   void SendRemoteMessage(const v8_inspector::StringView &message);
   bool IsPaused();
   void AwakePauseLockWithMessage(const std::string &message);
+  void DispatchProxy(const std::string &message);
   void DispatchProtocolMessage(const std::string &message);
   void DispatchProtocolMessages(const std::vector<std::string> &messages);
 
   v8::Isolate *GetIsolate();
   v8::Global<v8::Context> &GetContext();
   v8_inspector::V8InspectorSession *GetInspectorSession();
+  std::shared_ptr<facebook::react::MessageQueueThread> jsQueue_;
 
  private:
   static std::string CreateInspectorName(
