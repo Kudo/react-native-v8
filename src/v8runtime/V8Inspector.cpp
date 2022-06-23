@@ -138,7 +138,7 @@ InspectorClient::InspectorClient(
     v8::Local<v8::Context> context,
     const std::string &appName,
     const std::string &deviceName) {
-  this->jsQueue = jsQueue;    
+  jsQueue_ = jsQueue;    
   isolate_ = context->GetIsolate();
   v8::HandleScope scopedHandle(isolate_);
   channel_.reset(new InspectorFrontend(this, context));
@@ -251,7 +251,7 @@ void InspectorClient::DispatchProxy(const std::string &message) {
           normalizedString.size());
 
   if (method == "Profiler.start" || method == "Profiler.stop") {
-    jsQueue->runOnQueue([this, messageView]() {
+    jsQueue_->runOnQueue([this, messageView]() {
         v8::Isolate *isolate = GetIsolate();
         v8::Locker locker(isolate);
         v8::Isolate::Scope scopedIsolate(isolate);
