@@ -104,6 +104,12 @@ find_library(
   NO_CMAKE_FIND_ROOT_PATH
 )
 find_library(
+  JSINSPECTOR_LIB
+  jsinspector
+  PATHS ${LIBRN_DIR}
+  NO_CMAKE_FIND_ROOT_PATH
+)
+find_library(
   V8_ANDROID_LIB
   v8android
   PATHS ${LIBV8_DIR}
@@ -112,14 +118,12 @@ find_library(
 
 # reactnative_internal_static
 file(GLOB INCLUDE_RN_JSIREACT_CPP  "${RN_DIR}/ReactCommon/jsiexecutor/jsireact/*.cpp")
-file(GLOB INCLUDE_RN_JSINSPECTOR_CPP  "${RN_DIR}/ReactCommon/jsinspector/*.cpp")
 file(GLOB INCLUDE_RN_REACTPERFLOGGER_CPP  "${RN_DIR}/ReactCommon/reactperflogger/reactperflogger/*.cpp")
 
 add_library(
   reactnative_internal_static
   STATIC
   "${INCLUDE_RN_JSIREACT_CPP}"
-  "${INCLUDE_RN_JSINSPECTOR_CPP}"
   "${INCLUDE_RN_REACTPERFLOGGER_CPP}"
   "${RN_DIR}/ReactCommon/cxxreact/JSExecutor.cpp"
 )
@@ -151,6 +155,7 @@ target_link_libraries(
   ${PACKAGE_NAME}
   ${LOG_LIB}
   ${JSI_LIB}
+  ${JSINSPECTOR_LIB}
   ${GLOG_LIB}
   ${FBJNI_LIB}
   ${FOLLY_JSON_LIB}
