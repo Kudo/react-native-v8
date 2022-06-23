@@ -108,7 +108,7 @@ V8Runtime::V8Runtime(
 
   if (config_->enableInspector) {
     inspectorClient_ = std::make_shared<InspectorClient>(
-        this->jsQueue_, context_.Get(isolate_), config_->appName, config_->deviceName);
+        jsQueue_, context_.Get(isolate_), config_->appName, config_->deviceName);
     inspectorClient_->ConnectToReactFrontend();
   }
 }
