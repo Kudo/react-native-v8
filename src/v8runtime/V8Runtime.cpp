@@ -67,7 +67,7 @@ std::shared_ptr<facebook::react::MessageQueueThread> jsQueue)
   v8::HandleScope scopedHandle(isolate_);
   context_.Reset(isolate_, CreateGlobalContext(isolate_));
   v8::Context::Scope scopedContext(context_.Get(isolate_));
-  this->jsQueue = jsQueue;
+  jsQueue_ = jsQueue;
   if (config_->enableInspector) {
     inspectorClient_ = std::make_shared<InspectorClient>(
         jsQueue, context_.Get(isolate_), config_->appName, config_->deviceName);
