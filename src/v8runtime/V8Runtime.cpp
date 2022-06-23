@@ -83,7 +83,7 @@ V8Runtime::V8Runtime(
   // We don't need to register another idle taskrunner again
   isRegisteredIdleTaskRunner_ = true;
   isolate_ = v8Runtime->isolate_;
-  this->jsQueue_ = v8Runtime->jsQueue_;
+  jsQueue_ = v8Runtime->jsQueue_;
 
   v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
