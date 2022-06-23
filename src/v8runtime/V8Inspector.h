@@ -66,7 +66,7 @@ class InspectorClient final
   v8::Isolate *GetIsolate();
   v8::Global<v8::Context> &GetContext();
   v8_inspector::V8InspectorSession *GetInspectorSession();
-  std::shared_ptr<facebook::react::MessageQueueThread> jsQueue;
+  std::shared_ptr<facebook::react::MessageQueueThread> jsQueue_;
 
  private:
   static std::string CreateInspectorName(
