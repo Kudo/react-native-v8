@@ -204,7 +204,7 @@ class V8Runtime : public facebook::jsi::Runtime {
   std::shared_ptr<InspectorClient> inspectorClient_;
   bool isRegisteredIdleTaskRunner_ = false;
   bool isSharedRuntime_ = false;
-  std::shared_ptr<facebook::react::MessageQueueThread> jsQueue;
+  std::shared_ptr<facebook::react::MessageQueueThread> jsQueue_;
 };
 
 } // namespace rnv8
