@@ -183,6 +183,7 @@ android {
       "**/libfolly_json.so",
       "**/libglog.so",
       "**/libreactnativejni.so",
+      "**/libjsinspector.so",
     ]
     pickFirst "**/libv8android.so"
   }
