@@ -20,9 +20,9 @@ set(CMAKE_CXX_FLAGS "-DFOLLY_NO_CONFIG=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -DFOLLY_HA
 #   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 # endif()
 
-if(${ANDROID_ABI} STREQUAL "arm64-v8a" OR ${ANDROID_ABI} STREQUAL "x86_64")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DV8_COMPRESS_POINTERS")
-endif()
+if (${ANDROID_ABI} STREQUAL "arm64-v8a" OR ${ANDROID_ABI} STREQUAL "x86_64")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DV8_COMPRESS_POINTERS")
+endif ()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
@@ -34,14 +34,14 @@ set(RN_SO_DIR "${RN_DIR}/ReactAndroid/src/main/jni/first-party/react/jni")
 set(FBJNI_HEADERS_DIR "${RN_SO_DIR}/../../fbjni/headers")
 
 set(V8RUNTIME_COMMON_DIR "${CMAKE_SOURCE_DIR}/../src/v8runtime")
-file(GLOB SOURCES_V8RUNTIME  "${V8RUNTIME_COMMON_DIR}/*.cpp")
+file(GLOB SOURCES_V8RUNTIME "${V8RUNTIME_COMMON_DIR}/*.cpp")
 
 add_library(
-  ${PACKAGE_NAME}
-  SHARED
-  ${SOURCES_V8RUNTIME}
-  "${SRC_DIR}/V8ExecutorFactory.cpp"
-  "${SRC_DIR}/OnLoad.cpp"
+        ${PACKAGE_NAME}
+        SHARED
+        ${SOURCES_V8RUNTIME}
+        "${SRC_DIR}/V8ExecutorFactory.cpp"
+        "${SRC_DIR}/OnLoad.cpp"
 )
 
 # includes
@@ -49,19 +49,19 @@ add_library(
 file(GLOB LIBFBJNI_INCLUDE_DIR ${FBJNI_HEADERS_DIR})
 
 target_include_directories(
-  ${PACKAGE_NAME}
-  PRIVATE
-  "${V8RUNTIME_COMMON_DIR}"
-  "${LIBFBJNI_INCLUDE_DIR}"
-  "${BUILD_DIR}/third-party-ndk/boost/boost_${BOOST_VERSION}"
-  "${BUILD_DIR}/third-party-ndk/double-conversion"
-  "${BUILD_DIR}/third-party-ndk/folly"
-  "${BUILD_DIR}/third-party-ndk/glog/exported"
-  "${RN_DIR}/ReactAndroid/src/main/jni"
-  "${RN_DIR}/ReactCommon"
-  "${RN_DIR}/ReactCommon/jsi"
-  "${RN_DIR}/ReactCommon/jsiexecutor"
-  "${V8_ANDROID_DIR}/dist/include"
+        ${PACKAGE_NAME}
+        PRIVATE
+        "${V8RUNTIME_COMMON_DIR}"
+        "${LIBFBJNI_INCLUDE_DIR}"
+        "${BUILD_DIR}/third-party-ndk/boost/boost_${BOOST_VERSION}"
+        "${BUILD_DIR}/third-party-ndk/double-conversion"
+        "${BUILD_DIR}/third-party-ndk/folly"
+        "${BUILD_DIR}/third-party-ndk/glog/exported"
+        "${RN_DIR}/ReactAndroid/src/main/jni"
+        "${RN_DIR}/ReactCommon"
+        "${RN_DIR}/ReactCommon/jsi"
+        "${RN_DIR}/ReactCommon/jsiexecutor"
+        "${V8_ANDROID_DIR}/dist/include"
 )
 
 # find libraries
@@ -70,81 +70,93 @@ file(GLOB LIBRN_DIR "${RN_SO_DIR}/${ANDROID_ABI}")
 file(GLOB LIBV8_DIR "${RN_SO_DIR}/../../v8/jni/${ANDROID_ABI}")
 
 find_library(
-  LOG_LIB
-  log
+        LOG_LIB
+        log
+)
+
+find_library(
+        REACT_NATIVE_JNI_LIB
+        reactnativejni
+        PATHS ${LIBRN_DIR}
+        NO_CMAKE_FIND_ROOT_PATH
 )
 find_library(
-  FOLLY_JSON_LIB
-  folly_json
-  PATHS ${LIBRN_DIR}
-  NO_CMAKE_FIND_ROOT_PATH
+        GLOG_LIB
+        glog
+        PATHS ${LIBRN_DIR}
+        NO_CMAKE_FIND_ROOT_PATH
 )
 find_library(
-  REACT_NATIVE_JNI_LIB
-  reactnativejni
-  PATHS ${LIBRN_DIR}
-  NO_CMAKE_FIND_ROOT_PATH
+        FBJNI_LIB
+        fbjni
+        PATHS ${LIBRN_DIR}
+        NO_CMAKE_FIND_ROOT_PATH
 )
 find_library(
-  GLOG_LIB
-  glog
-  PATHS ${LIBRN_DIR}
-  NO_CMAKE_FIND_ROOT_PATH
+        JSI_LIB
+        jsi
+        PATHS ${LIBRN_DIR}
+        NO_CMAKE_FIND_ROOT_PATH
 )
 find_library(
-  FBJNI_LIB
-  fbjni
-  PATHS ${LIBRN_DIR}
-  NO_CMAKE_FIND_ROOT_PATH
+        JSINSPECTOR_LIB
+        jsinspector
+        PATHS ${LIBRN_DIR}
+        NO_CMAKE_FIND_ROOT_PATH
 )
 find_library(
-  JSI_LIB
-  jsi
-  PATHS ${LIBRN_DIR}
-  NO_CMAKE_FIND_ROOT_PATH
-)
-find_library(
-  JSINSPECTOR_LIB
-  jsinspector
-  PATHS ${LIBRN_DIR}
-  NO_CMAKE_FIND_ROOT_PATH
-)
-find_library(
-  V8_ANDROID_LIB
-  v8android
-  PATHS ${LIBV8_DIR}
-  NO_CMAKE_FIND_ROOT_PATH
+        V8_ANDROID_LIB
+        v8android
+        PATHS ${LIBV8_DIR}
+        NO_CMAKE_FIND_ROOT_PATH
 )
 
 # reactnative_internal_static
-file(GLOB INCLUDE_RN_JSIREACT_CPP  "${RN_DIR}/ReactCommon/jsiexecutor/jsireact/*.cpp")
-file(GLOB INCLUDE_RN_REACTPERFLOGGER_CPP  "${RN_DIR}/ReactCommon/reactperflogger/reactperflogger/*.cpp")
+file(GLOB INCLUDE_RN_JSIREACT_CPP "${RN_DIR}/ReactCommon/jsiexecutor/jsireact/*.cpp")
+file(GLOB INCLUDE_RN_REACTPERFLOGGER_CPP "${RN_DIR}/ReactCommon/reactperflogger/reactperflogger/*.cpp")
 
 add_library(
-  reactnative_internal_static
-  STATIC
-  "${INCLUDE_RN_JSIREACT_CPP}"
-  "${INCLUDE_RN_REACTPERFLOGGER_CPP}"
-  "${RN_DIR}/ReactCommon/cxxreact/JSExecutor.cpp"
+        reactnative_internal_static
+        STATIC
+        "${INCLUDE_RN_JSIREACT_CPP}"
+        "${INCLUDE_RN_REACTPERFLOGGER_CPP}"
+        "${RN_DIR}/ReactCommon/cxxreact/JSExecutor.cpp"
 )
 
 target_include_directories(
-  reactnative_internal_static
-  PRIVATE
-  "${BUILD_DIR}/third-party-ndk/boost/boost_${BOOST_VERSION}"
-  "${BUILD_DIR}/third-party-ndk/double-conversion"
-  "${BUILD_DIR}/third-party-ndk/folly"
-  "${BUILD_DIR}/third-party-ndk/glog/exported"
-  "${RN_DIR}/ReactCommon"
-  "${RN_DIR}/ReactCommon/jsi"
-  "${RN_DIR}/ReactCommon/jsiexecutor"
-  "${RN_DIR}/ReactCommon/jsinspector"
-  "${RN_DIR}/ReactCommon/reactperflogger"
+        reactnative_internal_static
+        PRIVATE
+        "${BUILD_DIR}/third-party-ndk/boost/boost_${BOOST_VERSION}"
+        "${BUILD_DIR}/third-party-ndk/double-conversion"
+        "${BUILD_DIR}/third-party-ndk/folly"
+        "${BUILD_DIR}/third-party-ndk/glog/exported"
+        "${RN_DIR}/ReactCommon"
+        "${RN_DIR}/ReactCommon/jsi"
+        "${RN_DIR}/ReactCommon/jsiexecutor"
+        "${RN_DIR}/ReactCommon/jsinspector"
+        "${RN_DIR}/ReactCommon/reactperflogger"
 )
 
+
+if (${REACT_NATIVE_TARGET_VERSION} LESS 69)
+    find_library(
+            FOLLY_LIB
+            folly_json
+            PATHS ${LIBRN_DIR}
+            NO_CMAKE_FIND_ROOT_PATH
+    )
+else ()
+    find_library(
+            FOLLY_LIB
+            folly_runtime
+            PATHS ${LIBRN_DIR}
+            NO_CMAKE_FIND_ROOT_PATH
+    )
+endif ()
+
 target_link_libraries(
-  reactnative_internal_static
-  ${FOLLY_JSON_LIB}
+        reactnative_internal_static
+        ${FOLLY_LIB}
 )
 
 # link to shared libraries
@@ -152,15 +164,15 @@ target_link_libraries(
 set_target_properties(${PACKAGE_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries(
-  ${PACKAGE_NAME}
-  ${LOG_LIB}
-  ${JSI_LIB}
-  ${JSINSPECTOR_LIB}
-  ${GLOG_LIB}
-  ${FBJNI_LIB}
-  ${FOLLY_JSON_LIB}
-  ${REACT_NATIVE_JNI_LIB}
-  ${V8_ANDROID_LIB}
-  reactnative_internal_static
-  android
+        ${PACKAGE_NAME}
+        ${LOG_LIB}
+        ${JSI_LIB}
+        ${JSINSPECTOR_LIB}
+        ${GLOG_LIB}
+        ${FBJNI_LIB}
+        ${FOLLY_LIB}
+        ${REACT_NATIVE_JNI_LIB}
+        ${V8_ANDROID_LIB}
+        reactnative_internal_static
+        android
 )
