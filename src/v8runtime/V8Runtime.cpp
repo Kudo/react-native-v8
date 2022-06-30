@@ -572,6 +572,19 @@ jsi::PropNameID V8Runtime::createPropNameIDFromString(const jsi::String &str) {
       reinterpret_cast<const uint8_t *>(*utf8), utf8.length());
 }
 
+jsi::PropNameID V8Runtime::createPropNameIDFromSymbol(const jsi::Symbol &sym) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  std::string str = symbolToString(sym);
+  const uint8_t* utf8 = reinterpret_cast<const uint8_t*>(str.c_str());
+  V8PointerValue *value =
+      V8PointerValue::createFromUtf8(isolate_,utf8, str.length());
+  return make<jsi::PropNameID>(value);
+}
+
 std::string V8Runtime::utf8(const jsi::PropNameID &sym) {
   v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
