@@ -12,7 +12,7 @@ jobs:
     runs-on: macos-10.15
     strategy:
       matrix:
-        rn-version: [0.68, 0.67]
+        rn-version: [0.69, 0.68]
         v8-android-variant:
           [v8-android-jit, v8-android-jit-nointl, v8-android, v8-android-nointl]
 
