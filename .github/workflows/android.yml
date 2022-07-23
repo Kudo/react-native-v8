@@ -25,6 +25,15 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      - name: Restore yarn caches
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-workspace-modules-${{ hashFiles('yarn.lock') }}
+
+      - name: Yarn install
+        run: yarn install --frozen-lockfile
+
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
