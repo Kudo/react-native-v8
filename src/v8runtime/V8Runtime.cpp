@@ -572,6 +572,23 @@ jsi::PropNameID V8Runtime::createPropNameIDFromString(const jsi::String &str) {
       reinterpret_cast<const uint8_t *>(*utf8), utf8.length());
 }
 
+#if REACT_NATIVE_TARGET_VERSION >= 69
+jsi::PropNameID V8Runtime::createPropNameIDFromSymbol(
+    const facebook::jsi::Symbol &sym) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  const V8PointerValue *v8PointerValue =
+      static_cast<const V8PointerValue *>(getPointerValue(sym));
+  assert(v8PointerValue->Get(isolate_)->IsSymbol());
+
+  return make<jsi::PropNameID>(
+      const_cast<PointerValue *>(getPointerValue(sym)));
+}
+#endif
+
 std::string V8Runtime::utf8(const jsi::PropNameID &sym) {
   v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
