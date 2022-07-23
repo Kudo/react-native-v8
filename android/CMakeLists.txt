@@ -13,7 +13,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS "-DFOLLY_NO_CONFIG=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -DFOLLY_HAVE_MEMRCHR=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_MOBILE=1 -fexceptions -fno-omit-frame-pointer -frtti -Wno-sign-compare")
+set(CMAKE_CXX_FLAGS "-DFOLLY_NO_CONFIG=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -DFOLLY_HAVE_MEMRCHR=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_MOBILE=1 -DREACT_NATIVE_TARGET_VERSION=${REACT_NATIVE_TARGET_VERSION} -fexceptions -fno-omit-frame-pointer -frtti -Wno-sign-compare")
 
 # if(${NATIVE_DEBUG})
 #   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g")
@@ -30,8 +30,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 set(PACKAGE_NAME "v8executor")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src/main/cpp")
 
-set(RN_SO_DIR "${RN_DIR}/ReactAndroid/src/main/jni/first-party/react/jni")
-set(FBJNI_HEADERS_DIR "${RN_SO_DIR}/../../fbjni/headers")
+set(FBJNI_HEADERS_DIR "${RN_DIR}/ReactAndroid/src/main/jni/first-party/fbjni/headers")
 
 set(V8RUNTIME_COMMON_DIR "${CMAKE_SOURCE_DIR}/../src/v8runtime")
 file(GLOB SOURCES_V8RUNTIME  "${V8RUNTIME_COMMON_DIR}/*.cpp")
@@ -66,19 +65,28 @@ target_include_directories(
 
 # find libraries
 
-file(GLOB LIBRN_DIR "${RN_SO_DIR}/${ANDROID_ABI}")
-file(GLOB LIBV8_DIR "${RN_SO_DIR}/../../v8/jni/${ANDROID_ABI}")
+file(GLOB LIBRN_DIR "${SO_DIR}/react/jni/${ANDROID_ABI}")
+file(GLOB LIBV8_DIR "${SO_DIR}/v8/jni/${ANDROID_ABI}")
 
 find_library(
   LOG_LIB
   log
 )
-find_library(
-  FOLLY_JSON_LIB
-  folly_json
-  PATHS ${LIBRN_DIR}
-  NO_CMAKE_FIND_ROOT_PATH
-)
+if(${REACT_NATIVE_TARGET_VERSION} LESS 69)
+  find_library(
+    FOLLY_LIB
+    folly_json
+    PATHS ${LIBRN_DIR}
+    NO_CMAKE_FIND_ROOT_PATH
+  )
+else()
+  find_library(
+    FOLLY_LIB
+    folly_runtime
+    PATHS ${LIBRN_DIR}
+    NO_CMAKE_FIND_ROOT_PATH
+  )
+endif()
 find_library(
   REACT_NATIVE_JNI_LIB
   reactnativejni
@@ -144,7 +152,7 @@ target_include_directories(
 
 target_link_libraries(
   reactnative_internal_static
-  ${FOLLY_JSON_LIB}
+  ${FOLLY_LIB}
 )
 
 # link to shared libraries
@@ -158,7 +166,7 @@ target_link_libraries(
   ${JSINSPECTOR_LIB}
   ${GLOG_LIB}
   ${FBJNI_LIB}
-  ${FOLLY_JSON_LIB}
+  ${FOLLY_LIB}
   ${REACT_NATIVE_JNI_LIB}
   ${V8_ANDROID_LIB}
   reactnative_internal_static

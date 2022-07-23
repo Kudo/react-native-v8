@@ -12,7 +12,7 @@ jobs:
     runs-on: macos-10.15
     strategy:
       matrix:
-        rn-version: [0.68, 0.67]
+        rn-version: [0.69, 0.68]
         v8-android-variant:
           [v8-android-jit, v8-android-jit-nointl, v8-android, v8-android-nointl]
 
@@ -24,6 +24,15 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
+
+      - name: Restore yarn caches
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-workspace-modules-${{ hashFiles('yarn.lock') }}
+
+      - name: Yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2

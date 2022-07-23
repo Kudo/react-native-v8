@@ -1,6 +1,7 @@
 /*
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  * Copyright (c) Software Mansion <swmansion.com>.
+ * Copyright (c) 650 Industries.
  * Copyright (c) Kudo Chien.
  *
  * This source code is licensed under the MIT license found in the
@@ -32,6 +33,7 @@ def reactNativeManifestAsJson = new JsonSlurper().parseText(reactNativeManifest.
 def reactNativeVersion = reactNativeManifestAsJson.version as String
 def (major, minor, patch) = reactNativeVersion.tokenize('.')
 def rnMinorVersion = Integer.parseInt(minor)
+def extractSoDir = "${buildDir}/jniLibs"
 
 def findV8AndroidDir() {
   def v8Packages = [
@@ -156,7 +158,9 @@ android {
                   "-DBOOST_VERSION=${BOOST_VERSION}",
                   "-DBUILD_DIR=${buildDir}",
                   "-DRN_DIR=${reactNativeDir}",
-                  "-DV8_ANDROID_DIR=${v8AndroidDir}"
+                  "-DREACT_NATIVE_TARGET_VERSION=${rnMinorVersion}",
+                  "-DV8_ANDROID_DIR=${v8AndroidDir}",
+                  "-DSO_DIR=${extractSoDir}"
         abiFilters (*reactNativeArchitectures())
         _stackProtectorFlag ? (cppFlags("-fstack-protector-all")) : null
       }
@@ -197,7 +201,7 @@ android {
   }
   sourceSets {
     main {
-      jniLibs.srcDirs = ["${reactNativeDir}/ReactAndroid/src/main/jni/first-party/v8/jni"]
+      jniLibs.srcDirs = ["${extractSoDir}/v8/jni"]
 
       if (v8UseSnapshot) {
         assets.srcDirs += [ "${v8AndroidDir}/dist/snapshot_blob" ]
@@ -223,7 +227,12 @@ task createNativeDepsDirectories() {
 }
 
 task downloadBoost(dependsOn: createNativeDepsDirectories, type: Download) {
-  src("https://github.com/react-native-community/boost-for-react-native/releases/download/v${BOOST_VERSION.replace("_", ".")}-0/boost_${BOOST_VERSION}.tar.gz")
+  def transformedVersion = BOOST_VERSION.replace("_", ".")
+  def srcUrl = "https://boostorg.jfrog.io/artifactory/main/release/${transformedVersion}/source/boost_${BOOST_VERSION}.tar.gz"
+  if (rnMinorVersion < 69) {
+    srcUrl = "https://github.com/react-native-community/boost-for-react-native/releases/download/v${transformedVersion}-0/boost_${BOOST_VERSION}.tar.gz"
+  }
+  src(srcUrl)
   onlyIfNewer(true)
   overwrite(false)
   dest(new File(downloadsDir, "boost_${BOOST_VERSION}.tar.gz"))
@@ -318,6 +327,43 @@ task prepareGlog(dependsOn: dependenciesPath ? [] : [downloadGlog], type: Copy) 
   }
 }
 
+def extractReactNativeAAR = { buildType ->
+  def suffix = buildType == 'Debug' ? '-debug' : '-release'
+  def rnAARs = fileTree("${reactNativeDir}/android").matching { include "**/react-native/**/*${suffix}.aar" }
+  if (rnAARs.isEmpty()) {
+    rnAARs = fileTree("${reactNativeDir}/android").matching { include "**/react-native/**/*.aar" }
+  }
+  if (rnAARs.any()) {
+    // node_modules/react-native has a .aar, extract headers
+    if (rnAARs.size() > 1) {
+      logger.error("More than one React Native AAR file has been found:")
+      rnAARs.each {println(it) }
+      throw new GradleException("Multiple React Native AARs found:\n${rnAARs.join("\n")}" +
+          "\nRemove the old ones and try again")
+    }
+  }
+  def rnAAR = rnAARs.singleFile
+  def file = rnAAR.absoluteFile
+  def packageName = file.name.tokenize('-')[0]
+  copy {
+    from zipTree(file)
+    into "${extractSoDir}/${packageName}"
+    include "jni/**/*"
+  }
+}
+
+task extractReactNativeAARRelease {
+  doLast {
+    extractReactNativeAAR('Release')
+  }
+}
+
+task extractReactNativeAARDebug {
+  doLast {
+    extractReactNativeAAR('Debug')
+  }
+}
+
 task extractAARHeaders {
   doLast {
     configurations.extractHeaders.files.each {
@@ -339,7 +385,7 @@ task extractSOFiles {
       def packageName = file.name.tokenize('-')[0]
       copy {
         from zipTree(file)
-        into "${reactNativeDir}/ReactAndroid/src/main/jni/first-party/${packageName}/"
+        into "${extractSoDir}/${packageName}"
         include "jni/**/*.so"
       }
     }
@@ -354,9 +400,6 @@ dependencies {
 
   extractHeaders("com.facebook.fbjni:fbjni:" + FBJNI_VERSION + ":headers")
   extractSO("com.facebook.fbjni:fbjni:" + FBJNI_VERSION)
-
-  def rnAAR = fileTree("${reactNativeDir}/android").matching({ it.include "**/**/*.aar" }).singleFile
-  extractSO(files(rnAAR))
 
   def v8AAR = fileTree("${v8AndroidDir}/dist").matching({ it.include "**/**/*.aar" }).singleFile
   extractSO(files(v8AAR))
@@ -375,6 +418,7 @@ task prepareThirdPartyNdkHeaders(dependsOn:[downloadNdkBuildDependencies, prepar
 }
 
 tasks.whenTaskAdded { task ->
+  def buildType = task.name.endsWith('Debug') ? 'Debug' : 'Release'
   if (
       !task.name.contains("Clean") && (
         task.name.startsWith("externalNativeBuild")
@@ -385,6 +429,9 @@ tasks.whenTaskAdded { task ->
     extractAARHeaders.dependsOn(prepareThirdPartyNdkHeaders)
     extractSOFiles.dependsOn(prepareThirdPartyNdkHeaders)
     task.dependsOn(extractAARHeaders)
+    task.dependsOn(extractSOFiles)
+    task.dependsOn("extractReactNativeAAR${buildType}")
+  } else if (task.name == "merge${buildType}JniLibFolders") {
     task.dependsOn(extractSOFiles)
   }
 }
