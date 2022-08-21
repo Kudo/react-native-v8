@@ -10,6 +10,7 @@
 
 import groovy.json.JsonSlurper
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.apache.tools.ant.taskdefs.condition.Os
 
 
 File findNodePackageDir(String packageName, boolean absolute = true) {
@@ -21,6 +22,14 @@ File findNodePackageDir(String packageName, boolean absolute = true) {
   }
   def dir = new File(proc.text.trim()).getParentFile()
   return absolute ? dir.getAbsoluteFile() : dir
+}
+
+String toPlatformFileString(File path) {
+  def result = path.toString()
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    result = result.replace(File.separatorChar, '/' as char)
+  }
+  return result
 }
 
 def safeExtGet(prop, fallback) {
@@ -157,7 +166,7 @@ android {
         arguments "-DANDROID_STL=c++_shared",
                   "-DBOOST_VERSION=${BOOST_VERSION}",
                   "-DBUILD_DIR=${buildDir}",
-                  "-DRN_DIR=${reactNativeDir}",
+                  "-DRN_DIR=${toPlatformFileString(reactNativeDir)}",
                   "-DREACT_NATIVE_TARGET_VERSION=${rnMinorVersion}",
                   "-DV8_ANDROID_DIR=${v8AndroidDir}",
                   "-DSO_DIR=${extractSoDir}"
