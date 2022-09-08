@@ -194,6 +194,7 @@ android {
       "**/libfbjni.so",
       "**/libjsi.so",
       "**/libfolly_json.so",
+      "**/libfolly_runtime.so",
       "**/libglog.so",
       "**/libreactnativejni.so",
       "**/libjsinspector.so",
