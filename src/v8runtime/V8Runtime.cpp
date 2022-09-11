@@ -30,8 +30,9 @@ const char kHostFunctionProxyProp[] = "__hostFunctionProxy";
 std::unique_ptr<v8::Platform> V8Runtime::s_platform = nullptr;
 std::mutex s_platform_mutex; // protects s_platform
 
-V8Runtime::V8Runtime(std::unique_ptr<V8RuntimeConfig> config, 
-std::shared_ptr<facebook::react::MessageQueueThread> jsQueue)
+V8Runtime::V8Runtime(
+    std::unique_ptr<V8RuntimeConfig> config,
+    std::shared_ptr<facebook::react::MessageQueueThread> jsQueue)
     : config_(std::move(config)) {
   {
     const std::lock_guard<std::mutex> lock(s_platform_mutex);
@@ -70,7 +71,10 @@ std::shared_ptr<facebook::react::MessageQueueThread> jsQueue)
   jsQueue_ = jsQueue;
   if (config_->enableInspector) {
     inspectorClient_ = std::make_shared<InspectorClient>(
-        jsQueue_, context_.Get(isolate_), config_->appName, config_->deviceName);
+        jsQueue_,
+        context_.Get(isolate_),
+        config_->appName,
+        config_->deviceName);
     inspectorClient_->ConnectToReactFrontend();
   }
 }
@@ -108,7 +112,10 @@ V8Runtime::V8Runtime(
 
   if (config_->enableInspector) {
     inspectorClient_ = std::make_shared<InspectorClient>(
-        jsQueue_, context_.Get(isolate_), config_->appName, config_->deviceName);
+        jsQueue_,
+        context_.Get(isolate_),
+        config_->appName,
+        config_->deviceName);
     inspectorClient_->ConnectToReactFrontend();
   }
 }

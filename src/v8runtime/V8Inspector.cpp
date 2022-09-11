@@ -138,7 +138,7 @@ InspectorClient::InspectorClient(
     v8::Local<v8::Context> context,
     const std::string &appName,
     const std::string &deviceName) {
-  jsQueue_ = jsQueue;    
+  jsQueue_ = jsQueue;
   isolate_ = context->GetIsolate();
   v8::HandleScope scopedHandle(isolate_);
   channel_.reset(new InspectorFrontend(this, context));
@@ -246,15 +246,16 @@ void InspectorClient::DispatchProxy(const std::string &message) {
   auto messageObj = folly::parseJson(message);
   auto method = messageObj["method"].asString();
 
-  // For `v8::CpuProfiler` or some other modules with thread local storage, we should dispatch messages in the js thread.
+  // For `v8::CpuProfiler` or some other modules with thread local storage, we
+  // should dispatch messages in the js thread.
   if (method == "Profiler.start" || method == "Profiler.stop") {
     jsQueue_->runOnQueue([this, normalizedString]() {
-        v8::Isolate *isolate = GetIsolate();
-        v8::Locker locker(isolate);
-        v8::Isolate::Scope scopedIsolate(isolate);
-        v8::HandleScope scopedHandle(isolate);
-        v8::Context::Scope scopedContext(GetContext().Get(isolate));
-        session_->dispatchProtocolMessage(ToStringView(normalizedString));
+      v8::Isolate *isolate = GetIsolate();
+      v8::Locker locker(isolate);
+      v8::Isolate::Scope scopedIsolate(isolate);
+      v8::HandleScope scopedHandle(isolate);
+      v8::Context::Scope scopedContext(GetContext().Get(isolate));
+      session_->dispatchProtocolMessage(ToStringView(normalizedString));
     });
     return;
   }
