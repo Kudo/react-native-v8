@@ -30,8 +30,9 @@ const char kHostFunctionProxyProp[] = "__hostFunctionProxy";
 std::unique_ptr<v8::Platform> V8Runtime::s_platform = nullptr;
 std::mutex s_platform_mutex; // protects s_platform
 
-V8Runtime::V8Runtime(std::unique_ptr<V8RuntimeConfig> config, 
-std::shared_ptr<facebook::react::MessageQueueThread> jsQueue)
+V8Runtime::V8Runtime(
+    std::unique_ptr<V8RuntimeConfig> config,
+    std::shared_ptr<facebook::react::MessageQueueThread> jsQueue)
     : config_(std::move(config)) {
   {
     const std::lock_guard<std::mutex> lock(s_platform_mutex);
@@ -70,7 +71,10 @@ std::shared_ptr<facebook::react::MessageQueueThread> jsQueue)
   jsQueue_ = jsQueue;
   if (config_->enableInspector) {
     inspectorClient_ = std::make_shared<InspectorClient>(
-        jsQueue_, context_.Get(isolate_), config_->appName, config_->deviceName);
+        jsQueue_,
+        context_.Get(isolate_),
+        config_->appName,
+        config_->deviceName);
     inspectorClient_->ConnectToReactFrontend();
   }
 }
@@ -108,7 +112,10 @@ V8Runtime::V8Runtime(
 
   if (config_->enableInspector) {
     inspectorClient_ = std::make_shared<InspectorClient>(
-        jsQueue_, context_.Get(isolate_), config_->appName, config_->deviceName);
+        jsQueue_,
+        context_.Get(isolate_),
+        config_->appName,
+        config_->deviceName);
     inspectorClient_->ConnectToReactFrontend();
   }
 }
@@ -485,6 +492,25 @@ jsi::Runtime::PointerValue *V8Runtime::cloneSymbol(
   assert(v8PointerValue->Get(isolate_)->IsSymbol());
   return new V8PointerValue(isolate_, v8PointerValue->Get(isolate_));
 }
+
+#if REACT_NATIVE_TARGET_VERSION >= 70
+jsi::Runtime::PointerValue *V8Runtime::cloneBigInt(
+    const Runtime::PointerValue *pv) {
+  if (!pv) {
+    return nullptr;
+  }
+
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  const V8PointerValue *v8PointerValue =
+      static_cast<const V8PointerValue *>(pv);
+  assert(v8PointerValue->Get(isolate_)->IsBigInt());
+  return new V8PointerValue(isolate_, v8PointerValue->Get(isolate_));
+}
+#endif
 
 jsi::Runtime::PointerValue *V8Runtime::cloneString(
     const Runtime::PointerValue *pv) {
@@ -1243,6 +1269,27 @@ bool V8Runtime::strictEquals(const jsi::Symbol &a, const jsi::Symbol &b) const {
   }
   return result;
 }
+
+#if REACT_NATIVE_TARGET_VERSION >= 70
+bool V8Runtime::strictEquals(const jsi::BigInt &a, const jsi::BigInt &b) const {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::TryCatch tryCatch(isolate_);
+  v8::Local<v8::Value> v8ValueA =
+      (static_cast<const V8PointerValue *>(getPointerValue(a)))->Get(isolate_);
+  v8::Local<v8::Value> v8ValueB =
+      (static_cast<const V8PointerValue *>(getPointerValue(b)))->Get(isolate_);
+  bool result = v8ValueA->StrictEquals(v8ValueB);
+
+  if (tryCatch.HasCaught()) {
+    ReportException(isolate_, &tryCatch);
+  }
+  return result;
+}
+#endif
 
 bool V8Runtime::strictEquals(const jsi::String &a, const jsi::String &b) const {
   v8::Locker locker(isolate_);

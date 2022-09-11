@@ -22,7 +22,7 @@ namespace rnv8 {
 namespace {
 
 std::unique_ptr<jsi::Runtime> makeV8RuntimeSystraced(
-    std::unique_ptr<V8RuntimeConfig> config, 
+    std::unique_ptr<V8RuntimeConfig> config,
     std::shared_ptr<react::MessageQueueThread> jsQueue) {
   react::SystraceSection s("V8ExecutorFactory::makeV8RuntimeSystraced");
   return createV8Runtime(std::move(config), jsQueue);

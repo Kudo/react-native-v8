@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <condition_variable>
 #include <cxxreact/MessageQueueThread.h>
+#include <condition_variable>
 #include "jsinspector/InspectorInterfaces.h"
 #include "v8-inspector.h"
 
