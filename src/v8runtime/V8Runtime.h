@@ -73,6 +73,9 @@ class V8Runtime : public facebook::jsi::Runtime {
 
  protected:
   PointerValue *cloneSymbol(const Runtime::PointerValue *pv) override;
+#if REACT_NATIVE_TARGET_VERSION >= 70
+  PointerValue *cloneBigInt(const Runtime::PointerValue *pv) override;
+#endif
   PointerValue *cloneString(const Runtime::PointerValue *pv) override;
   PointerValue *cloneObject(const Runtime::PointerValue *pv) override;
   PointerValue *clonePropNameID(const Runtime::PointerValue *pv) override;
@@ -170,6 +173,11 @@ class V8Runtime : public facebook::jsi::Runtime {
   bool strictEquals(
       const facebook::jsi::Symbol &a,
       const facebook::jsi::Symbol &b) const override;
+#if REACT_NATIVE_TARGET_VERSION >= 70
+  bool strictEquals(
+      const facebook::jsi::BigInt &a,
+      const facebook::jsi::BigInt &b) const override;
+#endif
   bool strictEquals(
       const facebook::jsi::String &a,
       const facebook::jsi::String &b) const override;
