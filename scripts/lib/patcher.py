@@ -72,6 +72,7 @@ class ProjectConfigPatcher:
         with io.open(app_gradle_path, "r", encoding="utf8") as f:
             content = str(f.read())
         new_content = self._get_patched_packging_option(content)
+        new_content = new_content.replace("enableHermes: true", "enableHermes: false")
         with io.open(app_gradle_path, "w", encoding="utf8") as f:
             f.write(new_content)
 
