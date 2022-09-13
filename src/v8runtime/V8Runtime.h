@@ -29,14 +29,15 @@ class V8Runtime : public facebook::jsi::Runtime {
       std::unique_ptr<V8RuntimeConfig> config);
   ~V8Runtime();
 
+  // Calling this function when the platform main runloop is idle
+  void OnMainLoopIdle();
+
  private:
   v8::Local<v8::Context> CreateGlobalContext(v8::Isolate *isolate);
   facebook::jsi::Value ExecuteScript(
       v8::Isolate *isolate,
       const v8::Local<v8::String> &script,
       const std::string &sourceURL);
-  void RegisterIdleTaskRunnerIfNeeded();
-  void OnIdle();
   void ReportException(v8::Isolate *isolate, v8::TryCatch *tryCatch) const;
 
   std::unique_ptr<v8::ScriptCompiler::CachedData> LoadCodeCacheIfNeeded(
@@ -215,7 +216,6 @@ class V8Runtime : public facebook::jsi::Runtime {
   v8::Isolate *isolate_;
   v8::Global<v8::Context> context_;
   std::shared_ptr<InspectorClient> inspectorClient_;
-  bool isRegisteredIdleTaskRunner_ = false;
   bool isSharedRuntime_ = false;
   std::shared_ptr<facebook::react::MessageQueueThread> jsQueue_;
 };
