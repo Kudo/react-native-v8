@@ -17,11 +17,13 @@ import com.facebook.react.uimanager.ViewManager;
 import java.util.Collections;
 import java.util.List;
 
+import io.csie.kudo.reactnative.v8.executor.V8Module;
+
 public class ReactNativeV8Package implements ReactPackage {
   @NonNull
   @Override
   public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
-    return Collections.emptyList();
+    return Collections.singletonList(new V8Module(reactContext));
   }
 
   @NonNull

@@ -12,11 +12,13 @@
 #include <glog/logging.h>
 #include <jni.h>
 #include <react/jni/JReactMarker.h>
+#include <react/jni/JRuntimeExecutor.h>
 #include <react/jni/JSLoader.h>
 #include <react/jni/JSLogging.h>
 #include <react/jni/JavaScriptExecutorHolder.h>
 
 #include "V8ExecutorFactory.h"
+#include "V8Runtime.h"
 #include "V8RuntimeConfig.h"
 
 namespace jni = facebook::jni;
@@ -95,9 +97,21 @@ class V8ExecutorHolder
         std::move(config)));
   }
 
+  static void onMainLoopIdle(
+      jni::alias_ref<jclass>,
+      jni::alias_ref<facebook::react::JRuntimeExecutor::javaobject>
+          runtimeExecutor) {
+    runtimeExecutor->cthis()->get()([](jsi::Runtime &runtime) {
+      auto &v8Runtime = reinterpret_cast<V8Runtime &>(runtime);
+      v8Runtime.OnMainLoopIdle();
+    });
+  }
+
   static void registerNatives() {
-    registerHybrid(
-        {makeNativeMethod("initHybrid", V8ExecutorHolder::initHybrid)});
+    registerHybrid({
+        makeNativeMethod("initHybrid", V8ExecutorHolder::initHybrid),
+        makeNativeMethod("onMainLoopIdle", V8ExecutorHolder::onMainLoopIdle),
+    });
   }
 
  private:

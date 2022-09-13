@@ -60,6 +60,7 @@ target_include_directories(
   "${RN_DIR}/ReactCommon"
   "${RN_DIR}/ReactCommon/jsi"
   "${RN_DIR}/ReactCommon/jsiexecutor"
+  "${RN_DIR}/ReactCommon/runtimeexecutor"
   "${V8_ANDROID_DIR}/dist/include"
 )
 
@@ -118,6 +119,12 @@ find_library(
   NO_CMAKE_FIND_ROOT_PATH
 )
 find_library(
+  RUNTIMEEXECUTOR_LIB
+  runtimeexecutor
+  PATHS ${LIBRN_DIR}
+  NO_CMAKE_FIND_ROOT_PATH
+)
+find_library(
   V8_ANDROID_LIB
   v8android
   PATHS ${LIBV8_DIR}
@@ -168,6 +175,7 @@ target_link_libraries(
   ${FBJNI_LIB}
   ${FOLLY_LIB}
   ${REACT_NATIVE_JNI_LIB}
+  ${RUNTIMEEXECUTOR_LIB}
   ${V8_ANDROID_LIB}
   reactnative_internal_static
   android
