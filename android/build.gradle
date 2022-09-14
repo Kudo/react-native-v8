@@ -44,6 +44,11 @@ def (major, minor, patch) = reactNativeVersion.tokenize('.')
 def rnMinorVersion = Integer.parseInt(minor)
 def extractSoDir = "${buildDir}/jniLibs"
 
+def appProject = findProject(":app") ? project(":app") : null
+if (appProject?.ext?.react?.enableHermes) {
+  throw new GradleException("Please disable Hermes because Hermes will transform the JavaScript bundle as bytecode bundle.\n")
+}
+
 def findV8AndroidDir() {
   def v8Packages = [
     "v8-android-jit",
