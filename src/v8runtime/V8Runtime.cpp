@@ -576,6 +576,9 @@ jsi::PropNameID V8Runtime::createPropNameIDFromSymbol(
       static_cast<const V8PointerValue *>(getPointerValue(sym));
   assert(v8PointerValue->Get(isolate_)->IsSymbol());
 
+  // suppress unused-variable warning
+  (void)v8PointerValue;
+
   return make<jsi::PropNameID>(
       const_cast<PointerValue *>(getPointerValue(sym)));
 }
