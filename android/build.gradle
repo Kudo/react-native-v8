@@ -204,6 +204,7 @@ android {
       "**/libglog.so",
       "**/libreactnativejni.so",
       "**/libjsinspector.so",
+      "**/libruntimeexecutor.so",
     ]
     pickFirst "**/libv8android.so"
   }
