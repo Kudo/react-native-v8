@@ -102,8 +102,10 @@ class V8ExecutorHolder
       jni::alias_ref<facebook::react::JRuntimeExecutor::javaobject>
           runtimeExecutor) {
     runtimeExecutor->cthis()->get()([](jsi::Runtime &runtime) {
-      auto &v8Runtime = reinterpret_cast<V8Runtime &>(runtime);
-      v8Runtime.OnMainLoopIdle();
+      auto v8Runtime = dynamic_cast<V8Runtime *>(&runtime);
+      if (v8Runtime) {
+        v8Runtime->OnMainLoopIdle();
+      }
     });
   }
 
