@@ -21,8 +21,8 @@ public class V8Module
 
   @Override
   public void onCatalystInstanceDestroy() {
-    super.onCatalystInstanceDestroy();
     unregisterMainIdleHandler();
+    super.onCatalystInstanceDestroy();
   }
 
   @Override
