@@ -572,12 +572,7 @@ jsi::PropNameID V8Runtime::createPropNameIDFromSymbol(
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
 
-  const V8PointerValue *v8PointerValue =
-      static_cast<const V8PointerValue *>(getPointerValue(sym));
-  assert(v8PointerValue->Get(isolate_)->IsSymbol());
-
-  // suppress unused-variable warning
-  (void)v8PointerValue;
+  assert(static_cast<const V8PointerValue *>(getPointerValue(sym))->Get(isolate_)->IsSymbol());
 
   return make<jsi::PropNameID>(
       const_cast<PointerValue *>(getPointerValue(sym)));
