@@ -43,6 +43,7 @@ def reactNativeVersion = reactNativeManifestAsJson.version as String
 def (major, minor, patch) = reactNativeVersion.tokenize('.')
 def rnMinorVersion = Integer.parseInt(minor)
 def extractSoDir = "${buildDir}/jniLibs"
+def prefabHeadersDir = "${buildDir}/prefab-headers"
 
 def appProject = findProject(":app") ? project(":app") : null
 if (appProject?.ext?.react?.enableHermes) {
@@ -176,6 +177,7 @@ android {
                   "-DREACT_NATIVE_TARGET_VERSION=${rnMinorVersion}",
                   "-DV8_ANDROID_DIR=${v8AndroidDir}",
                   "-DSO_DIR=${extractSoDir}"
+        targets   "v8executor"
         abiFilters (*reactNativeArchitectures())
         _stackProtectorFlag ? (cppFlags("-fstack-protector-all")) : null
       }
@@ -229,6 +231,17 @@ android {
       }
     }
   }
+
+  buildFeatures {
+    prefab true
+    prefabPublishing true
+  }
+
+  prefab {
+    v8executor {
+      headers file(prefabHeadersDir).absolutePath
+    }
+  }
 }
 
 task cleanCmakeCache() {
@@ -236,6 +249,12 @@ task cleanCmakeCache() {
   doFirst {
     delete "${projectDir}/.cxx"
   }
+}
+
+task prepareHeadersForPrefab(type: Copy) {
+  from("${projectDir}/../src/v8runtime")
+  include("**/*.h")
+  into(file("${prefabHeadersDir}/v8runtime"))
 }
 
 task createNativeDepsDirectories() {
@@ -450,6 +469,8 @@ def nativeBuildDependsOn(dependsOnTask, buildTypesIncludes) {
 }
 
 afterEvaluate {
+  preBuild.dependsOn(prepareHeadersForPrefab)
+
   extractAARHeaders.dependsOn(prepareThirdPartyNdkHeaders)
   extractSOFiles.dependsOn(prepareThirdPartyNdkHeaders)
 
