@@ -218,7 +218,7 @@ android {
   }
   sourceSets {
     main {
-      jniLibs.srcDirs = ["${extractSoDir}/v8/jni"]
+      jniLibs.srcDirs += ["${extractSoDir}/v8/jni"]
 
       if (v8UseSnapshot) {
         assets.srcDirs += [ "${v8AndroidDir}/dist/snapshot_blob" ]
@@ -434,21 +434,31 @@ task downloadNdkBuildDependencies {
 task prepareThirdPartyNdkHeaders(dependsOn:[downloadNdkBuildDependencies, prepareBoost, prepareDoubleConversion, prepareFolly, prepareGlog]) {
 }
 
-tasks.whenTaskAdded { task ->
-  def buildType = task.name.endsWith('Debug') ? 'Debug' : 'Release'
-  if (
-      !task.name.contains("Clean") && (
-        task.name.startsWith("externalNativeBuild")
-        || task.name.startsWith("buildCMake")
-        || task.name.startsWith("configureCMake"))
-  ) {
-    task.dependsOn(prepareThirdPartyNdkHeaders)
-    extractAARHeaders.dependsOn(prepareThirdPartyNdkHeaders)
-    extractSOFiles.dependsOn(prepareThirdPartyNdkHeaders)
-    task.dependsOn(extractAARHeaders)
-    task.dependsOn(extractSOFiles)
-    task.dependsOn("extractReactNativeAAR${buildType}")
-  } else if (task.name == "merge${buildType}JniLibFolders") {
-    task.dependsOn(extractSOFiles)
+def nativeBuildDependsOn(dependsOnTask, buildTypesIncludes) {
+  def buildTasks = tasks.findAll { task ->
+    def taskName = task.name
+    if (taskName.contains("Clean")) { return false }
+    if (taskName.contains("externalNative") || taskName.contains("CMake") || taskName.contains("generateJsonModel")) {
+      if (buildTypesIncludes == null) { return true }
+      for (buildType in buildTypesIncludes) {
+        if (taskName.contains(buildType)) { return true }
+      }
+    }
+    return false
   }
+  buildTasks.forEach { task -> task.dependsOn(dependsOnTask) }
+}
+
+afterEvaluate {
+  extractAARHeaders.dependsOn(prepareThirdPartyNdkHeaders)
+  extractSOFiles.dependsOn(prepareThirdPartyNdkHeaders)
+
+  nativeBuildDependsOn(prepareThirdPartyNdkHeaders, null)
+  nativeBuildDependsOn(extractAARHeaders, null)
+  nativeBuildDependsOn(extractSOFiles, null)
+  nativeBuildDependsOn(extractReactNativeAARRelease, ["Release", "RelWithDebInfo"])
+  nativeBuildDependsOn(extractReactNativeAARDebug, ["Debug"])
+
+  tasks.findByName("mergeReleaseJniLibFolders")?.dependsOn(extractSOFiles)
+  tasks.findByName("mergeDebugJniLibFolders")?.dependsOn(extractSOFiles)
 }
