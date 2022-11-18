@@ -118,12 +118,16 @@ find_library(
   PATHS ${LIBRN_DIR}
   NO_CMAKE_FIND_ROOT_PATH
 )
-find_library(
-  RUNTIMEEXECUTOR_LIB
-  runtimeexecutor
-  PATHS ${LIBRN_DIR}
-  NO_CMAKE_FIND_ROOT_PATH
-)
+if(${REACT_NATIVE_TARGET_VERSION} GREATER_EQUAL 68)
+  find_library(
+    RUNTIMEEXECUTOR_LIB
+    runtimeexecutor
+    PATHS ${LIBRN_DIR}
+    NO_CMAKE_FIND_ROOT_PATH
+  )
+else()
+  set(RUNTIMEEXECUTOR_LIB "")
+endif()
 find_library(
   V8_ANDROID_LIB
   v8android
