@@ -9,7 +9,7 @@ on:
 
 jobs:
   e2e-test:
-    runs-on: macos-10.15
+    runs-on: macos-latest
     strategy:
       matrix:
         rn-version: ['0.70']
