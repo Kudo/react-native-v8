@@ -77,52 +77,60 @@ if(${REACT_NATIVE_TARGET_VERSION} LESS 69)
   find_library(
     FOLLY_LIB
     folly_json
-    PATHS ${LIBRN_DIR}
+    PATHS ${LIBRN_DIR} 
+    NO_DEFAULT_PATH
     NO_CMAKE_FIND_ROOT_PATH
   )
 else()
   find_library(
     FOLLY_LIB
     folly_runtime
-    PATHS ${LIBRN_DIR}
+    PATHS ${LIBRN_DIR} 
+    NO_DEFAULT_PATH
     NO_CMAKE_FIND_ROOT_PATH
   )
 endif()
 find_library(
   REACT_NATIVE_JNI_LIB
   reactnativejni
-  PATHS ${LIBRN_DIR}
+  PATHS ${LIBRN_DIR} 
+  NO_DEFAULT_PATH
   NO_CMAKE_FIND_ROOT_PATH
 )
 find_library(
   GLOG_LIB
   glog
-  PATHS ${LIBRN_DIR}
+  PATHS ${LIBRN_DIR} 
+  NO_DEFAULT_PATH
   NO_CMAKE_FIND_ROOT_PATH
 )
 find_library(
   FBJNI_LIB
   fbjni
-  PATHS ${LIBRN_DIR}
+  PATHS ${LIBRN_DIR} 
+  NO_DEFAULT_PATH
   NO_CMAKE_FIND_ROOT_PATH
 )
 find_library(
   JSI_LIB
   jsi
-  PATHS ${LIBRN_DIR}
+  PATHS ${LIBRN_DIR} 
+  NO_DEFAULT_PATH
   NO_CMAKE_FIND_ROOT_PATH
 )
 find_library(
   JSINSPECTOR_LIB
   jsinspector
-  PATHS ${LIBRN_DIR}
+  PATHS ${LIBRN_DIR} 
+  NO_DEFAULT_PATH
   NO_CMAKE_FIND_ROOT_PATH
 )
 if(${REACT_NATIVE_TARGET_VERSION} GREATER_EQUAL 68)
   find_library(
     RUNTIMEEXECUTOR_LIB
     runtimeexecutor
-    PATHS ${LIBRN_DIR}
+    PATHS ${LIBRN_DIR} 
+    NO_DEFAULT_PATH
     NO_CMAKE_FIND_ROOT_PATH
   )
 else()
@@ -132,6 +140,7 @@ find_library(
   V8_ANDROID_LIB
   v8android
   PATHS ${LIBV8_DIR}
+  NO_DEFAULT_PATH
   NO_CMAKE_FIND_ROOT_PATH
 )
 
