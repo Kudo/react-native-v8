@@ -572,7 +572,9 @@ jsi::PropNameID V8Runtime::createPropNameIDFromSymbol(
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
 
-  assert(static_cast<const V8PointerValue *>(getPointerValue(sym))->Get(isolate_)->IsSymbol());
+  assert(static_cast<const V8PointerValue *>(getPointerValue(sym))
+             ->Get(isolate_)
+             ->IsSymbol());
 
   return make<jsi::PropNameID>(
       const_cast<PointerValue *>(getPointerValue(sym)));
@@ -611,6 +613,30 @@ bool V8Runtime::compare(const jsi::PropNameID &a, const jsi::PropNameID &b) {
 
 std::string V8Runtime::symbolToString(const jsi::Symbol &symbol) {
   return jsi::Value(*this, symbol).toString(*this).utf8(*this);
+}
+
+jsi::BigInt V8Runtime::createBigIntFromInt64(int64_t) {
+  throw std::logic_error("Not implemented");
+}
+
+jsi::BigInt V8Runtime::createBigIntFromUint64(uint64_t) {
+  throw std::logic_error("Not implemented");
+}
+
+bool V8Runtime::bigintIsInt64(const jsi::BigInt &) {
+  throw std::logic_error("Not implemented");
+}
+
+bool V8Runtime::bigintIsUint64(const jsi::BigInt &) {
+  throw std::logic_error("Not implemented");
+}
+
+uint64_t V8Runtime::truncate(const jsi::BigInt &) {
+  throw std::logic_error("Not implemented");
+}
+
+jsi::String V8Runtime::bigintToString(const jsi::BigInt &, int) {
+  throw std::logic_error("Not implemented");
 }
 
 jsi::String V8Runtime::createStringFromAscii(const char *str, size_t length) {
@@ -750,6 +776,21 @@ jsi::HostFunctionType &V8Runtime::getHostFunction(
       reinterpret_cast<HostFunctionProxy *>(wrappedHostFunctionProxy->Value());
   assert(hostFunctionProxy);
   return hostFunctionProxy->GetHostFunction();
+}
+
+bool V8Runtime::hasNativeState(const jsi::Object &) {
+  throw std::logic_error("Not implemented");
+}
+
+std::shared_ptr<jsi::NativeState> V8Runtime::getNativeState(
+    const jsi::Object &) {
+  throw std::logic_error("Not implemented");
+}
+
+void V8Runtime::setNativeState(
+    const jsi::Object &,
+    std::shared_ptr<jsi::NativeState> state) {
+  throw std::logic_error("Not implemented");
 }
 
 jsi::Value V8Runtime::getProperty(
@@ -1019,6 +1060,11 @@ jsi::Array V8Runtime::createArray(size_t length) {
       v8::Array::New(isolate_, static_cast<int>(length));
   return make<jsi::Object>(new V8PointerValue(isolate_, v8Array))
       .getArray(*this);
+}
+
+jsi::ArrayBuffer V8Runtime::createArrayBuffer(
+    std::shared_ptr<jsi::MutableBuffer> buffer) {
+  throw std::logic_error("Not implemented");
 }
 
 size_t V8Runtime::size(const jsi::Array &array) {
