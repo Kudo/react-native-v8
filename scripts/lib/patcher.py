@@ -76,15 +76,6 @@ class ProjectConfigPatcher:
         with io.open(app_gradle_path, "w", encoding="utf8") as f:
             f.write(new_content)
 
-    def _increase_jvm_heap_size(self):
-        gradle_properties_path = os.path.abspath("android/gradle.properties")
-        self._replace_file_content(
-            gradle_properties_path,
-            r"^# org.gradle.jvmargs=-Xmx2048m -XX:MaxPermSize=512m -XX:\+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8",
-            "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m",
-            re_flags=re.MULTILINE,
-        )
-
     def _patch_react_native_host(self):
         main_app_files = glob.glob("android/**/MainApplication.java", recursive=True)
         v8_block = """
@@ -106,24 +97,7 @@ class ProjectConfigPatcher:
             )
 
     def _patch_appjs(self):
-        appjs_path = os.path.abspath("App.js")
-        v8_block = """
-          {global._v8runtime && (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>
-                Engine: V8 {global._v8runtime().version}
-                {console.log(`=== V8 version[${global._v8runtime().version}] ===`)}
-              </Text>
-            </View>
-          )}"""
-        self._replace_file_content(
-            appjs_path,
-            r"({global.HermesInternal == null \? null.*?\)}$)",
-            "\\1" + v8_block,
-            re_flags=(re.DOTALL | re.MULTILINE),
-        )
-
-        # Support new App.js
+        appjs_path = os.path.abspath("App.tsx")
         v8log_block = """
           if (global._v8runtime) {
             console.log(`=== V8 version[${global._v8runtime().version}] ===`);
@@ -135,10 +109,18 @@ class ProjectConfigPatcher:
             re_flags=re.MULTILINE,
         )
 
+    def _disable_hermes(self):
+        self._replace_file_content(
+            os.path.abspath("android/gradle.properties"),
+            r'^hermesEnabled=true$',
+            'hermesEnabled=false',
+            re_flags=re.MULTILINE,
+        )
+
     def add_v8_support(self):
         self._patch_app_gradle()
         self._patch_react_native_host()
-        self._increase_jvm_heap_size()
+        self._disable_hermes()
 
     def add_vm_hint(self):
         self._patch_appjs()
