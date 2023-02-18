@@ -5,6 +5,9 @@ const config_plugins_1 = require("@expo/config-plugins");
 const generateCode_1 = require("@expo/config-plugins/build/utils/generateCode");
 const withV8ExpoAdapter = (config) => {
     return (0, config_plugins_1.withAppBuildGradle)(config, (config) => {
+        if (config.jsEngine !== 'jsc') {
+            throw new Error('Must setup `expo.jsEngine` as `jsc` in app.json.');
+        }
         if (config.modResults.language === 'groovy') {
             config.modResults.contents = updateAndroidAppGradle(config.modResults.contents);
         }
