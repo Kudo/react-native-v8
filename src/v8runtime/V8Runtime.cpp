@@ -615,28 +615,113 @@ std::string V8Runtime::symbolToString(const jsi::Symbol &symbol) {
   return jsi::Value(*this, symbol).toString(*this).utf8(*this);
 }
 
-jsi::BigInt V8Runtime::createBigIntFromInt64(int64_t) {
-  throw std::logic_error("Not implemented");
+jsi::BigInt V8Runtime::createBigIntFromInt64(int64_t value) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::Local<v8::BigInt> v8BigInt = v8::BigInt::New(isolate_, value);
+  return make<jsi::BigInt>(new V8PointerValue(isolate_, v8BigInt));
 }
 
-jsi::BigInt V8Runtime::createBigIntFromUint64(uint64_t) {
-  throw std::logic_error("Not implemented");
+jsi::BigInt V8Runtime::createBigIntFromUint64(uint64_t value) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::Local<v8::BigInt> v8BigInt = v8::BigInt::NewFromUnsigned(isolate_, value);
+  return make<jsi::BigInt>(new V8PointerValue(isolate_, v8BigInt));
 }
 
-bool V8Runtime::bigintIsInt64(const jsi::BigInt &) {
-  throw std::logic_error("Not implemented");
+bool V8Runtime::bigintIsInt64(const jsi::BigInt &value) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  const V8PointerValue *v8PointerValue =
+      static_cast<const V8PointerValue *>(getPointerValue(value));
+  assert(v8PointerValue->Get(isolate_)->IsBigInt());
+  v8::Local<v8::BigInt> v8BigInt =
+      v8::Local<v8::BigInt>::Cast(v8PointerValue->Get(isolate_));
+  bool lossless = false;
+  v8BigInt->Int64Value(&lossless);
+  return lossless == true;
 }
 
-bool V8Runtime::bigintIsUint64(const jsi::BigInt &) {
-  throw std::logic_error("Not implemented");
+bool V8Runtime::bigintIsUint64(const jsi::BigInt &value) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  const V8PointerValue *v8PointerValue =
+      static_cast<const V8PointerValue *>(getPointerValue(value));
+  assert(v8PointerValue->Get(isolate_)->IsBigInt());
+  v8::Local<v8::BigInt> v8BigInt =
+      v8::Local<v8::BigInt>::Cast(v8PointerValue->Get(isolate_));
+  bool lossless = false;
+  v8BigInt->Uint64Value(&lossless);
+  return lossless == true;
 }
 
-uint64_t V8Runtime::truncate(const jsi::BigInt &) {
-  throw std::logic_error("Not implemented");
+uint64_t V8Runtime::truncate(const jsi::BigInt &value) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  const V8PointerValue *v8PointerValue =
+      static_cast<const V8PointerValue *>(getPointerValue(value));
+  assert(v8PointerValue->Get(isolate_)->IsBigInt());
+  v8::Local<v8::BigInt> v8BigInt =
+      v8::Local<v8::BigInt>::Cast(v8PointerValue->Get(isolate_));
+  return v8BigInt->Uint64Value();
 }
 
-jsi::String V8Runtime::bigintToString(const jsi::BigInt &, int) {
-  throw std::logic_error("Not implemented");
+jsi::String V8Runtime::bigintToString(const jsi::BigInt &value, int radix) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  const V8PointerValue *v8PointerValue =
+      static_cast<const V8PointerValue *>(getPointerValue(value));
+  assert(v8PointerValue->Get(isolate_)->IsBigInt());
+  v8::Local<v8::BigInt> v8Value =
+      v8::Local<v8::BigInt>::Cast(v8PointerValue->Get(isolate_));
+
+  // V8 does not expose `toString(radix)` in its API, so we have to use
+  // `BigInt.prototype.toString.call(value, radix)` instead.
+  v8::Local<v8::Object> global = context_.Get(isolate_)->Global();
+  v8::Local<v8::Object> bigintClass = v8::Local<v8::Object>::Cast(
+      global
+          ->Get(
+              isolate_->GetCurrentContext(),
+              v8::String::NewFromUtf8Literal(isolate_, "BigInt"))
+          .ToLocalChecked());
+  v8::Local<v8::Object> bigintProto = v8::Local<v8::Object>::Cast(
+      bigintClass
+          ->Get(
+              isolate_->GetCurrentContext(),
+              v8::String::NewFromUtf8Literal(isolate_, "prototype"))
+          .ToLocalChecked());
+  v8::Local<v8::Function> bigintToStringFunction =
+      v8::Local<v8::Function>::Cast(
+          bigintProto
+              ->Get(
+                  isolate_->GetCurrentContext(),
+                  v8::String::NewFromUtf8Literal(isolate_, "toString"))
+              .ToLocalChecked());
+  v8::Local<v8::Value> args[] = {v8::Integer::New(isolate_, radix)};
+  v8::Local<v8::Value> result =
+      bigintToStringFunction
+          ->Call(isolate_->GetCurrentContext(), v8Value, 1, args)
+          .ToLocalChecked();
+  assert(result->IsString());
+  return V8Runtime::make<jsi::String>(new V8PointerValue(isolate_, result));
 }
 
 jsi::String V8Runtime::createStringFromAscii(const char *str, size_t length) {
