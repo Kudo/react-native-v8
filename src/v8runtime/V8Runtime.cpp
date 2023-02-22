@@ -921,6 +921,9 @@ void V8Runtime::setNativeState(
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
 
+  v8::Local<v8::Object> v8ObjectOriginal =
+      JSIV8ValueConverter::ToV8Object(*this, object);
+
   v8::Local<v8::ObjectTemplate> objectTemplate =
       v8::ObjectTemplate::New(isolate_);
   objectTemplate->SetInternalFieldCount(2);
@@ -942,6 +945,27 @@ void V8Runtime::setNativeState(
   v8Object->SetAlignedPointerInInternalField(
       1, reinterpret_cast<void *>(nativeStatePtr));
 
+  // Clone properties to the new object created from object template with
+  // two internal fields.
+  v8::Local<v8::Object> global = context_.Get(isolate_)->Global();
+  v8::Local<v8::Object> objectClass = v8::Local<v8::Object>::Cast(
+      global
+          ->Get(
+              isolate_->GetCurrentContext(),
+              v8::String::NewFromUtf8Literal(isolate_, "Object"))
+          .ToLocalChecked());
+  v8::Local<v8::Function> objectAssignFunction = v8::Local<v8::Function>::Cast(
+      objectClass
+          ->Get(
+              isolate_->GetCurrentContext(),
+              v8::String::NewFromUtf8Literal(isolate_, "assign"))
+          .ToLocalChecked());
+  v8::Local<v8::Value> args[] = {v8Object, v8ObjectOriginal};
+  objectAssignFunction->Call(
+      isolate_->GetCurrentContext(), v8::Undefined(isolate_), 2, args);
+
+  // Bind a global handle with weak callback to cleanup the shared_ptr
+  // on the C++ heap.
   v8::Global<v8::Object> weakV8Object(isolate_, v8Object);
   weakV8Object.SetWeak(
       &weakV8Object,
