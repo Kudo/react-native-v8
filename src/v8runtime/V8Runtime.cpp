@@ -367,6 +367,17 @@ std::unique_ptr<v8::ScriptCompiler::Source> V8Runtime::UseFakeSourceIfNeeded(
   return nullptr;
 }
 
+V8Runtime::InternalFieldType V8Runtime::GetInternalFieldType(
+    v8::Local<v8::Object> object) const {
+  if (object->InternalFieldCount() != 2) {
+    return V8Runtime::InternalFieldType::kInvalid;
+  }
+  v8::Local<v8::Value> typeValue = object->GetInternalField(0);
+  assert(typeValue->IsUint32());
+  return static_cast<V8Runtime::InternalFieldType>(
+      v8::Local<v8::Uint32>::Cast(typeValue)->Value());
+}
+
 // static
 v8::Platform *V8Runtime::GetPlatform() {
   return s_platform.get();
@@ -796,7 +807,7 @@ jsi::Object V8Runtime::createObject(
       nullptr,
       nullptr,
       HostObjectProxy::Enumerator));
-  hostObjectTemplate->SetInternalFieldCount(1);
+  hostObjectTemplate->SetInternalFieldCount(2);
 
   if (!hostObjectTemplate->NewInstance(isolate_->GetCurrentContext())
            .ToLocal(&v8Object)) {
@@ -806,7 +817,10 @@ jsi::Object V8Runtime::createObject(
 
   v8::Local<v8::External> wrappedHostObjectProxy =
       v8::External::New(isolate_, hostObjectProxy);
-  v8Object->SetInternalField(0, wrappedHostObjectProxy);
+  v8Object->SetInternalField(
+      0,
+      v8::Integer::NewFromUnsigned(isolate_, InternalFieldType::kHostObject));
+  v8Object->SetInternalField(1, wrappedHostObjectProxy);
   hostObjectProxy->BindFinalizer(v8Object);
 
   return make<jsi::Object>(new V8PointerValue(isolate_, v8Object));
@@ -826,7 +840,7 @@ std::shared_ptr<jsi::HostObject> V8Runtime::getHostObject(
   v8::Local<v8::Object> v8Object =
       JSIV8ValueConverter::ToV8Object(*this, object);
   v8::Local<v8::External> internalField =
-      v8::Local<v8::External>::Cast(v8Object->GetInternalField(0));
+      v8::Local<v8::External>::Cast(v8Object->GetInternalField(1));
   HostObjectProxy *hostObjectProxy =
       reinterpret_cast<HostObjectProxy *>(internalField->Value());
   assert(hostObjectProxy);
@@ -863,19 +877,81 @@ jsi::HostFunctionType &V8Runtime::getHostFunction(
   return hostFunctionProxy->GetHostFunction();
 }
 
-bool V8Runtime::hasNativeState(const jsi::Object &) {
-  throw std::logic_error("Not implemented");
+bool V8Runtime::hasNativeState(const jsi::Object &object) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::Local<v8::Object> v8Object =
+      JSIV8ValueConverter::ToV8Object(*this, object);
+  return GetInternalFieldType(v8Object) == InternalFieldType::kNativeState;
 }
 
 std::shared_ptr<jsi::NativeState> V8Runtime::getNativeState(
-    const jsi::Object &) {
-  throw std::logic_error("Not implemented");
+    const jsi::Object &object) {
+  if (isHostObject(object)) {
+    throw jsi::JSINativeException("native state unsupported on HostObject");
+  }
+  assert(hasNativeState(object));
+
+  // We are guarenteed at this point to have hasNativeState(obj) == true
+  // so the internal data should be a NativeState
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::Local<v8::Object> v8Object =
+      JSIV8ValueConverter::ToV8Object(*this, object);
+  auto *nativeStatePtr = reinterpret_cast<std::shared_ptr<jsi::NativeState> *>(
+      v8Object->GetAlignedPointerFromInternalField(1));
+  return std::shared_ptr(*nativeStatePtr);
 }
 
 void V8Runtime::setNativeState(
-    const jsi::Object &,
+    const jsi::Object &object,
     std::shared_ptr<jsi::NativeState> state) {
-  throw std::logic_error("Not implemented");
+  if (isHostObject(object)) {
+    throw jsi::JSINativeException("native state unsupported on HostObject");
+  }
+
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::Local<v8::ObjectTemplate> objectTemplate =
+      v8::ObjectTemplate::New(isolate_);
+  objectTemplate->SetInternalFieldCount(2);
+  v8::Local<v8::Object> v8Object;
+  if (!objectTemplate->NewInstance(isolate_->GetCurrentContext())
+           .ToLocal(&v8Object)) {
+    throw jsi::JSError(*this, "Unable to create new Object for setNativeState");
+  }
+  V8PointerValue *v8PointerValue = static_cast<V8PointerValue *>(
+      const_cast<Runtime::PointerValue *>(getPointerValue(object)));
+  v8PointerValue->Reset(isolate_, v8Object);
+
+  v8Object->SetInternalField(
+      0,
+      v8::Integer::NewFromUnsigned(isolate_, InternalFieldType::kNativeState));
+  // Allocate a shared_ptr on the C++ heap and use it as context of NativeState.
+  auto *nativeStatePtr =
+      new std::shared_ptr<jsi::NativeState>(std::move(state));
+  v8Object->SetAlignedPointerInInternalField(
+      1, reinterpret_cast<void *>(nativeStatePtr));
+
+  v8::Global<v8::Object> weakV8Object(isolate_, v8Object);
+  weakV8Object.SetWeak(
+      &weakV8Object,
+      [](const v8::WeakCallbackInfo<v8::Global<v8::Object>> &data) {
+        v8::Global<v8::Object> *weakV8ObjectPtr = data.GetParameter();
+        weakV8ObjectPtr->Reset();
+        delete reinterpret_cast<std::shared_ptr<jsi::NativeState> *>(
+            data.GetInternalField(1));
+      },
+      v8::WeakCallbackType::kInternalFields);
 }
 
 jsi::Value V8Runtime::getProperty(
@@ -1062,7 +1138,7 @@ bool V8Runtime::isHostObject(const jsi::Object &object) const {
 
   v8::Local<v8::Object> v8Object =
       JSIV8ValueConverter::ToV8Object(*this, object);
-  return v8Object->InternalFieldCount() == 1;
+  return GetInternalFieldType(v8Object) == InternalFieldType::kHostObject;
 }
 
 bool V8Runtime::isHostFunction(const jsi::Function &function) const {

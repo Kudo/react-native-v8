@@ -26,6 +26,11 @@ v8::Local<v8::Value> V8PointerValue::Get(v8::Isolate *isolate) const {
   return scopedHandle.Escape(value_.Get(isolate));
 }
 
+void V8PointerValue::Reset(v8::Isolate *isolate, v8::Local<v8::Value> value) {
+  v8::HandleScope scopedHandle(isolate);
+  value_.Reset(isolate, value);
+}
+
 // static
 V8PointerValue *V8PointerValue::createFromOneByte(
     v8::Isolate *isolate,

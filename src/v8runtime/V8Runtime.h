@@ -50,6 +50,14 @@ class V8Runtime : public facebook::jsi::Runtime {
       const v8::ScriptOrigin &origin,
       v8::ScriptCompiler::CachedData *cachedData);
 
+  enum InternalFieldType {
+    kInvalid = 0,
+    kHostObject = 1,
+    kNativeState = 2,
+    kMaxValue = kNativeState,
+  };
+  InternalFieldType GetInternalFieldType(v8::Local<v8::Object> object) const;
+
   static v8::Platform *GetPlatform();
 
   //

@@ -35,7 +35,7 @@ void HostObjectProxy::Getter(
     const v8::PropertyCallbackInfo<v8::Value> &info) {
   v8::HandleScope scopedHandle(info.GetIsolate());
   v8::Local<v8::External> data =
-      v8::Local<v8::External>::Cast(info.This()->GetInternalField(0));
+      v8::Local<v8::External>::Cast(info.This()->GetInternalField(1));
   HostObjectProxy *hostObjectProxy =
       reinterpret_cast<HostObjectProxy *>(data->Value());
 
@@ -87,7 +87,7 @@ void HostObjectProxy::Setter(
     const v8::PropertyCallbackInfo<v8::Value> &info) {
   v8::HandleScope scopedHandle(info.GetIsolate());
   v8::Local<v8::External> data =
-      v8::Local<v8::External>::Cast(info.This()->GetInternalField(0));
+      v8::Local<v8::External>::Cast(info.This()->GetInternalField(1));
   HostObjectProxy *hostObjectProxy =
       reinterpret_cast<HostObjectProxy *>(data->Value());
 
@@ -138,7 +138,7 @@ void HostObjectProxy::Enumerator(
     const v8::PropertyCallbackInfo<v8::Array> &info) {
   v8::HandleScope scopedHandle(info.GetIsolate());
   v8::Local<v8::External> data =
-      v8::Local<v8::External>::Cast(info.This()->GetInternalField(0));
+      v8::Local<v8::External>::Cast(info.This()->GetInternalField(1));
   HostObjectProxy *hostObjectProxy =
       reinterpret_cast<HostObjectProxy *>(data->Value());
 
