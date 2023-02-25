@@ -5,7 +5,13 @@
 
 This project aims to support V8 replacement runtime for React Native. Designed as opt-in package, it is easy to integrate with existing React Native projects.
 
-## Installation for Expo projects (>= SDK 45)
+> **Note** From react-native-v8 2.0, the minimum requirement for react-native is 0.71.2.
+
+For earlier versions, please check out the older readmes.
+- [react-native>=0.66.0 readme](https://github.com/Kudo/react-native-v8/blob/1.0-stable/README.md)
+- [react-native<0.66.0 readme](https://github.com/Kudo/react-native-v8/blob/0.67-stable/README.md)
+
+## Installation for Expo projects (>= SDK 48)
 
 For managed projects, you can install through the single command:
 
@@ -13,11 +19,11 @@ For managed projects, you can install through the single command:
 $ expo install react-native-v8 v8-android-jit
 ```
 
-- Please make sure you don't have [`"jsEngine": "hermes"`](https://docs.expo.dev/guides/using-hermes/#android-setup).
+- Please make sure you have [`"android.jsEngine": "jsc"`](https://docs.expo.dev/versions/latest/config/app/#jsengine-2).
 
 For bare projects, you can run `expo prebuild -p android --clean` after the installation to prebuild again.
 
-## Installation for React Native >= 0.66
+## Installation for React Native >= 0.71
 
 1. Install `react-native-v8` and a [v8-android variant](#v8-variants). For example, the `v8-android-jit`:
 
@@ -45,22 +51,22 @@ $ yarn add react-native-v8 v8-android-jit
 3. Setup V8 in the `MainApplication.java`.
 
 ```diff
---- a/android/app/src/main/java/com/rn067/MainApplication.java
-+++ b/android/app/src/main/java/com/rn067/MainApplication.java
-@@ -2,15 +2,20 @@ package com.rn067;
+--- a/android/app/src/main/java/com/rn071/MainApplication.java
++++ b/android/app/src/main/java/com/rn071/MainApplication.java
+@@ -1,15 +1,20 @@
+ package com.rn071;
 
  import android.app.Application;
- import android.content.Context;
 +
  import com.facebook.react.PackageList;
  import com.facebook.react.ReactApplication;
- import com.facebook.react.ReactInstanceManager;
  import com.facebook.react.ReactNativeHost;
  import com.facebook.react.ReactPackage;
 +import com.facebook.react.bridge.JavaScriptExecutorFactory;
+ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
+ import com.facebook.react.defaults.DefaultReactNativeHost;
 +import com.facebook.react.modules.systeminfo.AndroidInfoHelpers;
  import com.facebook.soloader.SoLoader;
- import java.lang.reflect.InvocationTargetException;
  import java.util.List;
 
 +import io.csie.kudo.reactnative.v8.executor.V8ExecutorFactory;
@@ -68,9 +74,9 @@ $ yarn add react-native-v8 v8-android-jit
  public class MainApplication extends Application implements ReactApplication {
 
    private final ReactNativeHost mReactNativeHost =
-@@ -33,6 +39,14 @@ public class MainApplication extends Application implements ReactApplication {
-         protected String getJSMainModuleName() {
-           return "index";
+@@ -42,6 +47,15 @@ public class MainApplication extends Application implements ReactApplication {
+         protected Boolean isHermesEnabled() {
+           return BuildConfig.IS_HERMES_ENABLED;
          }
 +
 +        @Override
@@ -86,28 +92,22 @@ $ yarn add react-native-v8 v8-android-jit
    @Override
 ```
 
-4. [OPTIONAL] If you encounter gradle errors from JVM Out-of-memory, please increase the JVM memory size
+4. Disable Hermes
 
 ```diff
 --- a/android/gradle.properties
 +++ b/android/gradle.properties
-@@ -11,6 +11,7 @@
- # The setting is particularly useful for tweaking memory settings.
- # Default value: -Xmx1024m -XX:MaxPermSize=256m
- # org.gradle.jvmargs=-Xmx2048m -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
-+org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m
+@@ -41,4 +41,4 @@ newArchEnabled=false
 
- # When configured, Gradle will run in incubating parallel mode.
- # This option should only be used with decoupled projects. More details, visit
+ # Use this property to enable or disable the Hermes JS engine.
+ # If set to false, you will be using JSC instead.
+-hermesEnabled=true
++hermesEnabled=false
 ```
 
 5. `yarn android`
 
 6. You can verify whether it works by evaluating the `global._v8runtime().version` JavaScript statement.
-
-## Installation for React Native < 0.66
-
-`react-native-v8` v1 does not support previous react-native versions. Please check [the installation guide from the previous version](https://github.com/Kudo/react-native-v8/blob/0.67-stable/README.md).
 
 ## Builtin JavaScript object
 
