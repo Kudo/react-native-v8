@@ -14,8 +14,7 @@ jobs:
       matrix:
         rn-version: ['0.71']
         v8-android-variant:
-          # [v8-android-jit, v8-android-jit-nointl, v8-android, v8-android-nointl]
-          [v8-android-jit@next, v8-android-jit-nointl@next, v8-android@next, v8-android-nointl@next]
+          [v8-android-jit, v8-android-jit-nointl, v8-android, v8-android-nointl]
         # include:
         #   - rn-version: '0.69'
         #     v8-android-variant: v8-android-jit
