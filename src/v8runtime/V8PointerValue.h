@@ -24,6 +24,8 @@ class V8PointerValue final : public V8Runtime::PointerValue {
 
   v8::Local<v8::Value> Get(v8::Isolate *isolate) const;
 
+  void Reset(v8::Isolate *isolate, v8::Local<v8::Value> value);
+
  public:
   static V8PointerValue *
   createFromOneByte(v8::Isolate *isolate, const char *str, size_t length);

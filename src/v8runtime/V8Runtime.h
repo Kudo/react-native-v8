@@ -50,6 +50,14 @@ class V8Runtime : public facebook::jsi::Runtime {
       const v8::ScriptOrigin &origin,
       v8::ScriptCompiler::CachedData *cachedData);
 
+  enum InternalFieldType {
+    kInvalid = 0,
+    kHostObject = 1,
+    kNativeState = 2,
+    kMaxValue = kNativeState,
+  };
+  InternalFieldType GetInternalFieldType(v8::Local<v8::Object> object) const;
+
   static v8::Platform *GetPlatform();
 
   //
@@ -101,6 +109,14 @@ class V8Runtime : public facebook::jsi::Runtime {
 
   std::string symbolToString(const facebook::jsi::Symbol &) override;
 
+  facebook::jsi::BigInt createBigIntFromInt64(int64_t) override;
+  facebook::jsi::BigInt createBigIntFromUint64(uint64_t) override;
+  bool bigintIsInt64(const facebook::jsi::BigInt &) override;
+  bool bigintIsUint64(const facebook::jsi::BigInt &) override;
+  uint64_t truncate(const facebook::jsi::BigInt &) override;
+  facebook::jsi::String bigintToString(const facebook::jsi::BigInt &, int)
+      override;
+
   facebook::jsi::String createStringFromAscii(const char *str, size_t length)
       override;
   facebook::jsi::String createStringFromUtf8(const uint8_t *utf8, size_t length)
@@ -114,6 +130,13 @@ class V8Runtime : public facebook::jsi::Runtime {
       const facebook::jsi::Object &) override;
   facebook::jsi::HostFunctionType &getHostFunction(
       const facebook::jsi::Function &) override;
+
+  bool hasNativeState(const facebook::jsi::Object &) override;
+  std::shared_ptr<facebook::jsi::NativeState> getNativeState(
+      const facebook::jsi::Object &) override;
+  void setNativeState(
+      const facebook::jsi::Object &,
+      std::shared_ptr<facebook::jsi::NativeState> state) override;
 
   facebook::jsi::Value getProperty(
       const facebook::jsi::Object &,
@@ -148,6 +171,8 @@ class V8Runtime : public facebook::jsi::Runtime {
   facebook::jsi::Value lockWeakObject(facebook::jsi::WeakObject &) override;
 
   facebook::jsi::Array createArray(size_t length) override;
+  facebook::jsi::ArrayBuffer createArrayBuffer(
+      std::shared_ptr<facebook::jsi::MutableBuffer> buffer) override;
   size_t size(const facebook::jsi::Array &) override;
   size_t size(const facebook::jsi::ArrayBuffer &) override;
   uint8_t *data(const facebook::jsi::ArrayBuffer &) override;

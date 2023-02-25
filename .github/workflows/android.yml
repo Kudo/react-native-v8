@@ -12,18 +12,15 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        rn-version: ['0.70']
+        rn-version: ['0.71']
         v8-android-variant:
-          [v8-android-jit, v8-android-jit-nointl, v8-android, v8-android-nointl]
-        include:
-          - rn-version: '0.69'
-            v8-android-variant: v8-android-jit
-          - rn-version: '0.68'
-            v8-android-variant: v8-android-jit
-          - rn-version: '0.67'
-            v8-android-variant: v8-android-jit
-          - rn-version: '0.66'
-            v8-android-variant: v8-android-jit
+          # [v8-android-jit, v8-android-jit-nointl, v8-android, v8-android-nointl]
+          [v8-android-jit@next, v8-android-jit-nointl@next, v8-android@next, v8-android-nointl@next]
+        # include:
+        #   - rn-version: '0.69'
+        #     v8-android-variant: v8-android-jit
+        #   - rn-version: '0.68'
+        #     v8-android-variant: v8-android-jit
 
     steps:
       - uses: actions/checkout@v2

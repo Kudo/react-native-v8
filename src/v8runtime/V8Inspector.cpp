@@ -148,7 +148,10 @@ InspectorClient::InspectorClient(
       ToStringView(inspectorName_);
   int contextGroupId = nextContextGroupId_++;
   session_ = inspector_->connect(
-      contextGroupId, channel_.get(), inspectorNameStringView);
+      contextGroupId,
+      channel_.get(),
+      inspectorNameStringView,
+      v8_inspector::V8Inspector::kFullyTrusted);
   context_.Reset(isolate_, context);
 
   inspector_->contextCreated(v8_inspector::V8ContextInfo(

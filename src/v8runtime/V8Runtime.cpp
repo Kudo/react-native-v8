@@ -367,6 +367,17 @@ std::unique_ptr<v8::ScriptCompiler::Source> V8Runtime::UseFakeSourceIfNeeded(
   return nullptr;
 }
 
+V8Runtime::InternalFieldType V8Runtime::GetInternalFieldType(
+    v8::Local<v8::Object> object) const {
+  if (object->InternalFieldCount() != 2) {
+    return V8Runtime::InternalFieldType::kInvalid;
+  }
+  v8::Local<v8::Value> typeValue = object->GetInternalField(0);
+  assert(typeValue->IsUint32());
+  return static_cast<V8Runtime::InternalFieldType>(
+      v8::Local<v8::Uint32>::Cast(typeValue)->Value());
+}
+
 // static
 v8::Platform *V8Runtime::GetPlatform() {
   return s_platform.get();
@@ -572,7 +583,9 @@ jsi::PropNameID V8Runtime::createPropNameIDFromSymbol(
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
 
-  assert(static_cast<const V8PointerValue *>(getPointerValue(sym))->Get(isolate_)->IsSymbol());
+  assert(static_cast<const V8PointerValue *>(getPointerValue(sym))
+             ->Get(isolate_)
+             ->IsSymbol());
 
   return make<jsi::PropNameID>(
       const_cast<PointerValue *>(getPointerValue(sym)));
@@ -611,6 +624,115 @@ bool V8Runtime::compare(const jsi::PropNameID &a, const jsi::PropNameID &b) {
 
 std::string V8Runtime::symbolToString(const jsi::Symbol &symbol) {
   return jsi::Value(*this, symbol).toString(*this).utf8(*this);
+}
+
+jsi::BigInt V8Runtime::createBigIntFromInt64(int64_t value) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::Local<v8::BigInt> v8BigInt = v8::BigInt::New(isolate_, value);
+  return make<jsi::BigInt>(new V8PointerValue(isolate_, v8BigInt));
+}
+
+jsi::BigInt V8Runtime::createBigIntFromUint64(uint64_t value) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::Local<v8::BigInt> v8BigInt = v8::BigInt::NewFromUnsigned(isolate_, value);
+  return make<jsi::BigInt>(new V8PointerValue(isolate_, v8BigInt));
+}
+
+bool V8Runtime::bigintIsInt64(const jsi::BigInt &value) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  const V8PointerValue *v8PointerValue =
+      static_cast<const V8PointerValue *>(getPointerValue(value));
+  assert(v8PointerValue->Get(isolate_)->IsBigInt());
+  v8::Local<v8::BigInt> v8BigInt =
+      v8::Local<v8::BigInt>::Cast(v8PointerValue->Get(isolate_));
+  bool lossless = false;
+  v8BigInt->Int64Value(&lossless);
+  return lossless == true;
+}
+
+bool V8Runtime::bigintIsUint64(const jsi::BigInt &value) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  const V8PointerValue *v8PointerValue =
+      static_cast<const V8PointerValue *>(getPointerValue(value));
+  assert(v8PointerValue->Get(isolate_)->IsBigInt());
+  v8::Local<v8::BigInt> v8BigInt =
+      v8::Local<v8::BigInt>::Cast(v8PointerValue->Get(isolate_));
+  bool lossless = false;
+  v8BigInt->Uint64Value(&lossless);
+  return lossless == true;
+}
+
+uint64_t V8Runtime::truncate(const jsi::BigInt &value) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  const V8PointerValue *v8PointerValue =
+      static_cast<const V8PointerValue *>(getPointerValue(value));
+  assert(v8PointerValue->Get(isolate_)->IsBigInt());
+  v8::Local<v8::BigInt> v8BigInt =
+      v8::Local<v8::BigInt>::Cast(v8PointerValue->Get(isolate_));
+  return v8BigInt->Uint64Value();
+}
+
+jsi::String V8Runtime::bigintToString(const jsi::BigInt &value, int radix) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  const V8PointerValue *v8PointerValue =
+      static_cast<const V8PointerValue *>(getPointerValue(value));
+  assert(v8PointerValue->Get(isolate_)->IsBigInt());
+  v8::Local<v8::BigInt> v8Value =
+      v8::Local<v8::BigInt>::Cast(v8PointerValue->Get(isolate_));
+
+  // V8 does not expose `toString(radix)` in its API, so we have to use
+  // `BigInt.prototype.toString.call(value, radix)` instead.
+  v8::Local<v8::Object> global = context_.Get(isolate_)->Global();
+  v8::Local<v8::Object> bigintClass = v8::Local<v8::Object>::Cast(
+      global
+          ->Get(
+              isolate_->GetCurrentContext(),
+              v8::String::NewFromUtf8Literal(isolate_, "BigInt"))
+          .ToLocalChecked());
+  v8::Local<v8::Object> bigintProto = v8::Local<v8::Object>::Cast(
+      bigintClass
+          ->Get(
+              isolate_->GetCurrentContext(),
+              v8::String::NewFromUtf8Literal(isolate_, "prototype"))
+          .ToLocalChecked());
+  v8::Local<v8::Function> bigintToStringFunction =
+      v8::Local<v8::Function>::Cast(
+          bigintProto
+              ->Get(
+                  isolate_->GetCurrentContext(),
+                  v8::String::NewFromUtf8Literal(isolate_, "toString"))
+              .ToLocalChecked());
+  v8::Local<v8::Value> args[] = {v8::Integer::New(isolate_, radix)};
+  v8::Local<v8::Value> result =
+      bigintToStringFunction
+          ->Call(isolate_->GetCurrentContext(), v8Value, 1, args)
+          .ToLocalChecked();
+  assert(result->IsString());
+  return V8Runtime::make<jsi::String>(new V8PointerValue(isolate_, result));
 }
 
 jsi::String V8Runtime::createStringFromAscii(const char *str, size_t length) {
@@ -685,7 +807,7 @@ jsi::Object V8Runtime::createObject(
       nullptr,
       nullptr,
       HostObjectProxy::Enumerator));
-  hostObjectTemplate->SetInternalFieldCount(1);
+  hostObjectTemplate->SetInternalFieldCount(2);
 
   if (!hostObjectTemplate->NewInstance(isolate_->GetCurrentContext())
            .ToLocal(&v8Object)) {
@@ -695,7 +817,10 @@ jsi::Object V8Runtime::createObject(
 
   v8::Local<v8::External> wrappedHostObjectProxy =
       v8::External::New(isolate_, hostObjectProxy);
-  v8Object->SetInternalField(0, wrappedHostObjectProxy);
+  v8Object->SetInternalField(
+      0,
+      v8::Integer::NewFromUnsigned(isolate_, InternalFieldType::kHostObject));
+  v8Object->SetInternalField(1, wrappedHostObjectProxy);
   hostObjectProxy->BindFinalizer(v8Object);
 
   return make<jsi::Object>(new V8PointerValue(isolate_, v8Object));
@@ -715,7 +840,7 @@ std::shared_ptr<jsi::HostObject> V8Runtime::getHostObject(
   v8::Local<v8::Object> v8Object =
       JSIV8ValueConverter::ToV8Object(*this, object);
   v8::Local<v8::External> internalField =
-      v8::Local<v8::External>::Cast(v8Object->GetInternalField(0));
+      v8::Local<v8::External>::Cast(v8Object->GetInternalField(1));
   HostObjectProxy *hostObjectProxy =
       reinterpret_cast<HostObjectProxy *>(internalField->Value());
   assert(hostObjectProxy);
@@ -750,6 +875,107 @@ jsi::HostFunctionType &V8Runtime::getHostFunction(
       reinterpret_cast<HostFunctionProxy *>(wrappedHostFunctionProxy->Value());
   assert(hostFunctionProxy);
   return hostFunctionProxy->GetHostFunction();
+}
+
+bool V8Runtime::hasNativeState(const jsi::Object &object) {
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::Local<v8::Object> v8Object =
+      JSIV8ValueConverter::ToV8Object(*this, object);
+  return GetInternalFieldType(v8Object) == InternalFieldType::kNativeState;
+}
+
+std::shared_ptr<jsi::NativeState> V8Runtime::getNativeState(
+    const jsi::Object &object) {
+  if (isHostObject(object)) {
+    throw jsi::JSINativeException("native state unsupported on HostObject");
+  }
+  assert(hasNativeState(object));
+
+  // We are guarenteed at this point to have hasNativeState(obj) == true
+  // so the internal data should be a NativeState
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::Local<v8::Object> v8Object =
+      JSIV8ValueConverter::ToV8Object(*this, object);
+  auto *nativeStatePtr = reinterpret_cast<std::shared_ptr<jsi::NativeState> *>(
+      v8Object->GetAlignedPointerFromInternalField(1));
+  return std::shared_ptr(*nativeStatePtr);
+}
+
+void V8Runtime::setNativeState(
+    const jsi::Object &object,
+    std::shared_ptr<jsi::NativeState> state) {
+  if (isHostObject(object)) {
+    throw jsi::JSINativeException("native state unsupported on HostObject");
+  }
+
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::Local<v8::Object> v8ObjectOriginal =
+      JSIV8ValueConverter::ToV8Object(*this, object);
+
+  v8::Local<v8::ObjectTemplate> objectTemplate =
+      v8::ObjectTemplate::New(isolate_);
+  objectTemplate->SetInternalFieldCount(2);
+  v8::Local<v8::Object> v8Object;
+  if (!objectTemplate->NewInstance(isolate_->GetCurrentContext())
+           .ToLocal(&v8Object)) {
+    throw jsi::JSError(*this, "Unable to create new Object for setNativeState");
+  }
+  V8PointerValue *v8PointerValue = static_cast<V8PointerValue *>(
+      const_cast<Runtime::PointerValue *>(getPointerValue(object)));
+  v8PointerValue->Reset(isolate_, v8Object);
+
+  v8Object->SetInternalField(
+      0,
+      v8::Integer::NewFromUnsigned(isolate_, InternalFieldType::kNativeState));
+  // Allocate a shared_ptr on the C++ heap and use it as context of NativeState.
+  auto *nativeStatePtr =
+      new std::shared_ptr<jsi::NativeState>(std::move(state));
+  v8Object->SetAlignedPointerInInternalField(
+      1, reinterpret_cast<void *>(nativeStatePtr));
+
+  // Clone properties to the new object created from object template with
+  // two internal fields.
+  v8::Local<v8::Object> global = context_.Get(isolate_)->Global();
+  v8::Local<v8::Object> objectClass = v8::Local<v8::Object>::Cast(
+      global
+          ->Get(
+              isolate_->GetCurrentContext(),
+              v8::String::NewFromUtf8Literal(isolate_, "Object"))
+          .ToLocalChecked());
+  v8::Local<v8::Function> objectAssignFunction = v8::Local<v8::Function>::Cast(
+      objectClass
+          ->Get(
+              isolate_->GetCurrentContext(),
+              v8::String::NewFromUtf8Literal(isolate_, "assign"))
+          .ToLocalChecked());
+  v8::Local<v8::Value> args[] = {v8Object, v8ObjectOriginal};
+  objectAssignFunction->Call(
+      isolate_->GetCurrentContext(), v8::Undefined(isolate_), 2, args);
+
+  // Bind a global handle with weak callback to cleanup the shared_ptr
+  // on the C++ heap.
+  v8::Global<v8::Object> weakV8Object(isolate_, v8Object);
+  weakV8Object.SetWeak(
+      &weakV8Object,
+      [](const v8::WeakCallbackInfo<v8::Global<v8::Object>> &data) {
+        v8::Global<v8::Object> *weakV8ObjectPtr = data.GetParameter();
+        weakV8ObjectPtr->Reset();
+        delete reinterpret_cast<std::shared_ptr<jsi::NativeState> *>(
+            data.GetInternalField(1));
+      },
+      v8::WeakCallbackType::kInternalFields);
 }
 
 jsi::Value V8Runtime::getProperty(
@@ -936,7 +1162,7 @@ bool V8Runtime::isHostObject(const jsi::Object &object) const {
 
   v8::Local<v8::Object> v8Object =
       JSIV8ValueConverter::ToV8Object(*this, object);
-  return v8Object->InternalFieldCount() == 1;
+  return GetInternalFieldType(v8Object) == InternalFieldType::kHostObject;
 }
 
 bool V8Runtime::isHostFunction(const jsi::Function &function) const {
@@ -1019,6 +1245,11 @@ jsi::Array V8Runtime::createArray(size_t length) {
       v8::Array::New(isolate_, static_cast<int>(length));
   return make<jsi::Object>(new V8PointerValue(isolate_, v8Array))
       .getArray(*this);
+}
+
+jsi::ArrayBuffer V8Runtime::createArrayBuffer(
+    std::shared_ptr<jsi::MutableBuffer> buffer) {
+  throw std::logic_error("Not implemented");
 }
 
 size_t V8Runtime::size(const jsi::Array &array) {

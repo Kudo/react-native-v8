@@ -4,6 +4,9 @@ import type { ConfigPlugin } from '@expo/config-plugins';
 
 const withV8ExpoAdapter: ConfigPlugin = (config) => {
   return withAppBuildGradle(config, (config) => {
+    if (config.jsEngine !== 'jsc') {
+      throw new Error('Must setup `expo.jsEngine` as `jsc` in app.json.');
+    }
     if (config.modResults.language === 'groovy') {
       config.modResults.contents = updateAndroidAppGradle(config.modResults.contents);
     } else {
