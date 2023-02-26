@@ -7,22 +7,6 @@
 
 #pragma once
 
-#ifndef FOLLY_NO_CONFIG
-#define FOLLY_NO_CONFIG 1
-#endif
-
-#ifndef FOLLY_MOBILE
-#define FOLLY_MOBILE 1
-#endif
-
-#ifndef FOLLY_USE_LIBCPP
-#define FOLLY_USE_LIBCPP 1
-#endif
-
-#ifndef FOLLY_HAVE_PTHREAD
-#define FOLLY_HAVE_PTHREAD 1
-#endif
-
 #include <jsireact/JSIExecutor.h>
 
 namespace rnv8 {
