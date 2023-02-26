@@ -51,8 +51,8 @@ struct V8RuntimeConfig {
   // Bytecode caching mode
   CodecacheMode codecacheMode;
 
-  // codecache path
-  std::string codecachePath;
+  // The directory to store codecache files
+  std::string codecacheDir;
 };
 
 } // namespace rnv8

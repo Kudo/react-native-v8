@@ -47,8 +47,8 @@ public final class V8RuntimeConfig {
   // Bytecode caching mode
   public @CodecacheMode int codecacheMode;
 
-  // Codecache blob
-  @Nullable public String codecachePath;
+  // The directory to store codecache files
+  @Nullable public String codecacheDir;
 
   public static V8RuntimeConfig createDefault() {
     final V8RuntimeConfig config = new V8RuntimeConfig();
@@ -56,7 +56,7 @@ public final class V8RuntimeConfig {
     config.enableInspector = false;
     config.snapshotBlobPath = null;
     config.codecacheMode = CODECACHE_MODE_NONE;
-    config.codecachePath = null;
+    config.codecacheDir = null;
     return config;
   }
 

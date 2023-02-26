@@ -68,14 +68,15 @@ public class V8ExecutorFactory implements JavaScriptExecutorFactory {
   }
 
   @Nullable
-  public static String getBundleAssetName(
+  public static String getV8BundleAssetName(
       final Context context,
+      final String assetName,
       final boolean useDeveloperSupport) {
     if (useDeveloperSupport) {
       return null;
     }
     final boolean hasCache =
-        new File(context.getCodeCacheDir(), "v8codecache.bin").exists();
+        new File(context.getCodeCacheDir(), assetName).exists();
     if (BuildConfig.V8_CACHE_MODE ==
             V8RuntimeConfig.CODECACHE_MODE_STUB_BUNDLE &&
         hasCache) {
