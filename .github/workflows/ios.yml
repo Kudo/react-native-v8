@@ -1,0 +1,63 @@
+name: E2E tests for iOS
+
+on:
+  push:
+    branches:
+      - main
+      - "*-stable"
+  pull_request:
+
+jobs:
+  e2e-test:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Restore yarn caches
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-workspace-modules-${{ hashFiles('yarn.lock') }}
+
+      - name: Yarn install
+        run: yarn install --frozen-lockfile
+
+      - name: Generate TestApp
+        run: |
+          yarn create expo-app TestApp
+          cd TestApp
+          yarn add v8-ios
+          yarn add file:../react-native-v8
+          jq '.expo.ios.bundleIdentifier = "com.testapp" | .expo.plugins += ["react-native-v8"] | .expo.jsEngine = "jsc"' app.json > app.json.tmp && mv -f app.json.tmp app.json
+          echo 'if (global._v8runtime) { console.log(`=== V8 version[${global._v8runtime().version}] ===`); }' >> App.js
+        working-directory: ..
+
+      - name: Build TestApp
+        working-directory: ../TestApp
+        run: |
+          npx expo prebuild -p ios
+          cd ios
+          xcodebuild -workspace ./TestApp.xcworkspace -scheme TestApp -configuration Release -derivedDataPath ./build -destination 'generic/platform=iOS Simulator' build
+
+      - name: Run TestApp
+        working-directory: ../TestApp
+        run: |
+          SIMUDID=$(xcrun simctl list devices available -j | jq -r '.devices."com.apple.CoreSimulator.SimRuntime.iOS-16-2"[] | select(.name=="iPhone 14 Pro") | .udid')
+          echo "Using simulator udid[${SIMUDID}]"
+          xcrun simctl boot ${SIMUDID}
+          xcrun simctl install booted ./build/Build/Products/Release-iphonesimulator/TestApp.app
+          xcrun simctl spawn booted log stream --predicate 'process == "TestApp"' --level=debug > sim.log &
+          LOG_PID=$!
+          xcrun simctl launch booted com.testapp
+          sleep 5
+          kill -SIGINT $LOG_PID
+          grep -E "=== V8 version\[.+\] ===" sim.log > /dev/null
+
+      - name: Upload failed artifacts
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts-${{ matrix.rn-version }}-${{ matrix.v8-android-variant }}
+          path: |
+            ../TestApp/sim.log
