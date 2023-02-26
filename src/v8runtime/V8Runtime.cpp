@@ -949,8 +949,9 @@ void V8Runtime::setNativeState(
               v8::String::NewFromUtf8Literal(isolate_, "assign"))
           .ToLocalChecked());
   v8::Local<v8::Value> args[] = {v8Object, v8ObjectOriginal};
-  objectAssignFunction->Call(
-      isolate_->GetCurrentContext(), v8::Undefined(isolate_), 2, args);
+  objectAssignFunction
+      ->Call(isolate_->GetCurrentContext(), v8::Undefined(isolate_), 2, args)
+      .ToLocalChecked();
 
   // Bind a global handle with weak callback to cleanup the shared_ptr
   // on the C++ heap.
