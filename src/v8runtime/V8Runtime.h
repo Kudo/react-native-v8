@@ -41,10 +41,10 @@ class V8Runtime : public facebook::jsi::Runtime {
   void ReportException(v8::Isolate *isolate, v8::TryCatch *tryCatch) const;
 
   std::unique_ptr<v8::ScriptCompiler::CachedData> LoadCodeCacheIfNeeded(
-      const std::string &codecachePath);
+      const std::string &sourceURL);
   bool SaveCodeCacheIfNeeded(
       const v8::Local<v8::Script> &script,
-      const std::string &codecachePath,
+      const std::string &sourceURL,
       v8::ScriptCompiler::CachedData *cachedData);
   std::unique_ptr<v8::ScriptCompiler::Source> UseFakeSourceIfNeeded(
       const v8::ScriptOrigin &origin,

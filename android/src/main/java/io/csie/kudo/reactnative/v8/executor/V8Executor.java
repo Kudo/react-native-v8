@@ -32,9 +32,8 @@ public class V8Executor extends JavaScriptExecutor {
         config.snapshotBlobPath != null ? config.snapshotBlobPath
                                         : loadDefaultSnapshotBlobPath(),
         config.codecacheMode,
-        config.codecachePath != null
-            ? config.codecachePath
-            : loadDefaultCodecachePath(context, config.codecacheMode)));
+        config.codecacheDir != null ? config.codecacheDir
+                                    : context.getCodeCacheDir().toString()));
   }
 
   @Override
@@ -49,15 +48,6 @@ public class V8Executor extends JavaScriptExecutor {
     return "";
   }
 
-  private static String loadDefaultCodecachePath(
-      final Context context,
-      int codecacheMode) {
-    if (codecacheMode == V8RuntimeConfig.CODECACHE_MODE_PREBUILT) {
-      return "assets://" + Build.SUPPORTED_ABIS[0] + "/v8codecache.bin";
-    }
-    return new File(context.getCodeCacheDir(), "v8codecache.bin").toString();
-  }
-
   private static native HybridData initHybrid(
       AssetManager assetManager,
       String timezoneId,
@@ -66,7 +56,7 @@ public class V8Executor extends JavaScriptExecutor {
       String deviceName,
       String snapshotBlobPath,
       int codecacheMode,
-      String codecachePath);
+      String codecacheDir);
 
   /* package */ static native void onMainLoopIdle(
       RuntimeExecutor runtimeExecutor);

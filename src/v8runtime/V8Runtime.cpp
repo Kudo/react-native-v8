@@ -8,6 +8,7 @@
 #include "V8Runtime.h"
 
 #include <glog/logging.h>
+#include <filesystem>
 #include <mutex>
 #include <sstream>
 #include "HostProxy.h"
@@ -176,7 +177,7 @@ jsi::Value V8Runtime::ExecuteScript(
 
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
-  auto codecache = LoadCodeCacheIfNeeded(config_->codecachePath);
+  auto codecache = LoadCodeCacheIfNeeded(sourceURL);
   v8::ScriptCompiler::CachedData *cachedData = codecache.release();
 
   std::unique_ptr<v8::ScriptCompiler::Source> source =
@@ -198,9 +199,9 @@ jsi::Value V8Runtime::ExecuteScript(
   }
 
   if (cachedData && cachedData->rejected) {
-    LOG(INFO) << "[rnv8] cache missed.";
+    LOG(INFO) << "[rnv8] cache miss: " << sourceURL;
   }
-  SaveCodeCacheIfNeeded(compiledScript, config_->codecachePath, cachedData);
+  SaveCodeCacheIfNeeded(compiledScript, sourceURL, cachedData);
 
   v8::Local<v8::Value> result;
   if (!compiledScript->Run(context).ToLocal(&result)) {
@@ -263,7 +264,7 @@ void V8Runtime::ReportException(v8::Isolate *isolate, v8::TryCatch *tryCatch)
 }
 
 std::unique_ptr<v8::ScriptCompiler::CachedData>
-V8Runtime::LoadCodeCacheIfNeeded(const std::string &codecachePath) {
+V8Runtime::LoadCodeCacheIfNeeded(const std::string &sourceURL) {
   // caching is for main runtime only
   if (isSharedRuntime_) {
     return nullptr;
@@ -273,27 +274,20 @@ V8Runtime::LoadCodeCacheIfNeeded(const std::string &codecachePath) {
     return nullptr;
   }
 
-  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt) {
-    assert(config_->prebuiltCodecacheBlob);
-    return std::make_unique<v8::ScriptCompiler::CachedData>(
-        reinterpret_cast<const uint8_t *>(
-            config_->prebuiltCodecacheBlob->c_str()),
-        static_cast<int>(config_->prebuiltCodecacheBlob->size()),
-        v8::ScriptCompiler::CachedData::BufferPolicy::BufferNotOwned);
-  }
-
-  FILE *file = fopen(codecachePath.c_str(), "rb");
+  std::filesystem::path codecachePath(config_->codecacheDir);
+  codecachePath /= std::filesystem::path(sourceURL).filename();
+  auto *file = std::fopen(codecachePath.string().c_str(), "rb");
   if (!file) {
-    LOG(INFO) << "Cannot load codecache file: " << codecachePath;
+    LOG(INFO) << "Cannot load codecache file: " << codecachePath.string();
     return nullptr;
   }
-  fseek(file, 0, SEEK_END);
-  size_t size = ftell(file);
+  std::fseek(file, 0, SEEK_END);
+  size_t size = std::ftell(file);
   uint8_t *buffer = new uint8_t[size];
-  rewind(file);
+  std::rewind(file);
 
-  fread(buffer, size, 1, file);
-  fclose(file);
+  std::fread(buffer, size, 1, file);
+  std::fclose(file);
 
   return std::make_unique<v8::ScriptCompiler::CachedData>(
       buffer,
@@ -303,7 +297,7 @@ V8Runtime::LoadCodeCacheIfNeeded(const std::string &codecachePath) {
 
 bool V8Runtime::SaveCodeCacheIfNeeded(
     const v8::Local<v8::Script> &script,
-    const std::string &codecachePath,
+    const std::string &sourceURL,
     v8::ScriptCompiler::CachedData *cachedData) {
   // caching is for main runtime only
   if (isSharedRuntime_) {
@@ -314,8 +308,7 @@ bool V8Runtime::SaveCodeCacheIfNeeded(
     return false;
   }
 
-  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNone ||
-      config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt) {
+  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNone) {
     return false;
   }
 
@@ -328,14 +321,16 @@ bool V8Runtime::SaveCodeCacheIfNeeded(
     return false;
   }
 
-  FILE *file = fopen(codecachePath.c_str(), "wb");
-  if (!file) {
-    LOG(ERROR) << "Cannot save codecache file: " << codecachePath;
+  std::filesystem::path codecachePath(config_->codecacheDir);
+  codecachePath /= std::filesystem::path(sourceURL).filename();
+  if (auto *file = std::fopen(codecachePath.string().c_str(), "wb")) {
+    std::fwrite(newCachedData->data, 1, newCachedData->length, file);
+    std::fclose(file);
+    return true;
+  } else {
+    LOG(ERROR) << "Cannot save codecache file: " << codecachePath.string();
     return false;
   }
-  fwrite(newCachedData->data, 1, newCachedData->length, file);
-  fclose(file);
-  return true;
 }
 
 std::unique_ptr<v8::ScriptCompiler::Source> V8Runtime::UseFakeSourceIfNeeded(
@@ -350,9 +345,7 @@ std::unique_ptr<v8::ScriptCompiler::Source> V8Runtime::UseFakeSourceIfNeeded(
     return nullptr;
   }
 
-  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt ||
-      config_->codecacheMode ==
-          V8RuntimeConfig::CodecacheMode::kNormalWithStubBundle) {
+  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kStubBundle) {
     uint32_t payloadSize = (cachedData->data[8] << 0) |
         (cachedData->data[9] << 8) | (cachedData->data[10] << 16) |
         (cachedData->data[11] << 24);
@@ -961,8 +954,9 @@ void V8Runtime::setNativeState(
               v8::String::NewFromUtf8Literal(isolate_, "assign"))
           .ToLocalChecked());
   v8::Local<v8::Value> args[] = {v8Object, v8ObjectOriginal};
-  objectAssignFunction->Call(
-      isolate_->GetCurrentContext(), v8::Undefined(isolate_), 2, args);
+  objectAssignFunction
+      ->Call(isolate_->GetCurrentContext(), v8::Undefined(isolate_), 2, args)
+      .ToLocalChecked();
 
   // Bind a global handle with weak callback to cleanup the shared_ptr
   // on the C++ heap.

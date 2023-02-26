@@ -32,10 +32,7 @@ public final class V8RuntimeConfig {
   @Nullable public String snapshotBlobPath;
 
   @IntDef(
-      {CODECACHE_MODE_NONE,
-       CODECACHE_MODE_NORMAL,
-       CODECACHE_MODE_PREBUILT,
-       CODECACHE_MODE_NORMAL_WITH_STUB_BUNDLE})
+      {CODECACHE_MODE_NONE, CODECACHE_MODE_NORMAL, CODECACHE_MODE_STUB_BUNDLE})
   @Retention(RetentionPolicy.SOURCE)
   private @interface CodecacheMode {}
 
@@ -43,17 +40,15 @@ public final class V8RuntimeConfig {
   public static final int CODECACHE_MODE_NONE = 0;
   // Classic v8 bytecode caching
   public static final int CODECACHE_MODE_NORMAL = 1;
-  // **EXPERIMENTAL** Prebuilt bytecode caching
-  public static final int CODECACHE_MODE_PREBUILT = 2;
   // **EXPERIMENTAL** Classic v8 bytecode caching + loading stub JS bundle when
   // cache existed
-  public static final int CODECACHE_MODE_NORMAL_WITH_STUB_BUNDLE = 3;
+  public static final int CODECACHE_MODE_STUB_BUNDLE = 2;
 
   // Bytecode caching mode
   public @CodecacheMode int codecacheMode;
 
-  // Codecache blob
-  @Nullable public String codecachePath;
+  // The directory to store codecache files
+  @Nullable public String codecacheDir;
 
   public static V8RuntimeConfig createDefault() {
     final V8RuntimeConfig config = new V8RuntimeConfig();
@@ -61,7 +56,7 @@ public final class V8RuntimeConfig {
     config.enableInspector = false;
     config.snapshotBlobPath = null;
     config.codecacheMode = CODECACHE_MODE_NONE;
-    config.codecachePath = null;
+    config.codecacheDir = null;
     return config;
   }
 
