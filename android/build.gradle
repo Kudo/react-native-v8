@@ -87,18 +87,16 @@ if (v8AndroidVersionMajor < 11) {
 // These constant values should align to V8RuntimeConfig.java
 ext.CODECACHE_MODE_NONE = 0
 ext.CODECACHE_MODE_NORMAL = 1
-ext.CODECACHE_MODE_PREBUILT = 2
-ext.CODECACHE_MODE_NORMAL_WITH_STUB_BUNDLE = 3
+ext.CODECACHE_MODE_STUB_BUNDLE = 2
 def parseCacheMode(cacheMode) {
   switch (cacheMode) {
     case null:
       return ext.CODECACHE_MODE_NONE
     case "normal":
       return ext.CODECACHE_MODE_NORMAL
-    case "prebuilt":
-      return ext.CODECACHE_MODE_PREBUILT
+    case "stubBundle":
     case "normalWithStubBundle":
-      return ext.CODECACHE_MODE_NORMAL_WITH_STUB_BUNDLE
+      return ext.CODECACHE_MODE_STUB_BUNDLE
     default:
       throw new GradleException("Unsupported cache mode - ${cacheMode}")
   }
@@ -114,9 +112,6 @@ def reactNativeArchitectures() {
 }
 
 apply plugin: "com.android.library"
-if (v8CacheMode == CODECACHE_MODE_PREBUILT) {
-  apply from: "./mkcodecache.gradle"
-}
 
 android {
   compileSdkVersion safeExtGet("compileSdkVersion", 33)
@@ -188,7 +183,7 @@ android {
         assets.srcDirs += [ "${v8AndroidDir}/dist/snapshot_blob" ]
       }
 
-      if (v8CacheMode == CODECACHE_MODE_NORMAL_WITH_STUB_BUNDLE) {
+      if (v8CacheMode == CODECACHE_MODE_STUB_BUNDLE) {
         assets.srcDirs += [ "src/stub_bundle" ]
       }
     }

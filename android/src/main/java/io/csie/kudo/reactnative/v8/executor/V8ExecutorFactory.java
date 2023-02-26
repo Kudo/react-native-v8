@@ -77,7 +77,7 @@ public class V8ExecutorFactory implements JavaScriptExecutorFactory {
     final boolean hasCache =
         new File(context.getCodeCacheDir(), "v8codecache.bin").exists();
     if (BuildConfig.V8_CACHE_MODE ==
-            V8RuntimeConfig.CODECACHE_MODE_NORMAL_WITH_STUB_BUNDLE &&
+            V8RuntimeConfig.CODECACHE_MODE_STUB_BUNDLE &&
         hasCache) {
       return "stub.bundle";
     }

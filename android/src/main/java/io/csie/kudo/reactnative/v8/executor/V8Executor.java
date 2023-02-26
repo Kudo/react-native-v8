@@ -52,9 +52,6 @@ public class V8Executor extends JavaScriptExecutor {
   private static String loadDefaultCodecachePath(
       final Context context,
       int codecacheMode) {
-    if (codecacheMode == V8RuntimeConfig.CODECACHE_MODE_PREBUILT) {
-      return "assets://" + Build.SUPPORTED_ABIS[0] + "/v8codecache.bin";
-    }
     return new File(context.getCodeCacheDir(), "v8codecache.bin").toString();
   }
 

@@ -273,15 +273,6 @@ V8Runtime::LoadCodeCacheIfNeeded(const std::string &codecachePath) {
     return nullptr;
   }
 
-  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt) {
-    assert(config_->prebuiltCodecacheBlob);
-    return std::make_unique<v8::ScriptCompiler::CachedData>(
-        reinterpret_cast<const uint8_t *>(
-            config_->prebuiltCodecacheBlob->c_str()),
-        static_cast<int>(config_->prebuiltCodecacheBlob->size()),
-        v8::ScriptCompiler::CachedData::BufferPolicy::BufferNotOwned);
-  }
-
   FILE *file = fopen(codecachePath.c_str(), "rb");
   if (!file) {
     LOG(INFO) << "Cannot load codecache file: " << codecachePath;
@@ -314,8 +305,7 @@ bool V8Runtime::SaveCodeCacheIfNeeded(
     return false;
   }
 
-  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNone ||
-      config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt) {
+  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNone) {
     return false;
   }
 
@@ -350,9 +340,7 @@ std::unique_ptr<v8::ScriptCompiler::Source> V8Runtime::UseFakeSourceIfNeeded(
     return nullptr;
   }
 
-  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kPrebuilt ||
-      config_->codecacheMode ==
-          V8RuntimeConfig::CodecacheMode::kNormalWithStubBundle) {
+  if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kStubBundle) {
     uint32_t payloadSize = (cachedData->data[8] << 0) |
         (cachedData->data[9] << 8) | (cachedData->data[10] << 16) |
         (cachedData->data[11] << 24);

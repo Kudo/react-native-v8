@@ -43,11 +43,9 @@ struct V8RuntimeConfig {
     kNone = 0,
     // Classic v8 bytecode caching
     kNormal,
-    // **EXPERIMENTAL** Prebuilt bytecode caching
-    kPrebuilt,
     // **EXPERIMENTAL** Classic v8 bytecode caching + loading stub JS bundle
     // when cache existed
-    kNormalWithStubBundle,
+    kStubBundle,
   };
 
   // Bytecode caching mode
@@ -55,9 +53,6 @@ struct V8RuntimeConfig {
 
   // codecache path
   std::string codecachePath;
-
-  // Prebuild codecache blob
-  std::unique_ptr<const facebook::react::JSBigString> prebuiltCodecacheBlob;
 };
 
 } // namespace rnv8
