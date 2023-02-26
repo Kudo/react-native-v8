@@ -8,6 +8,7 @@ This project aims to support V8 replacement runtime for React Native. Designed a
 > **Note** From react-native-v8 2.0, the minimum requirement for react-native is 0.71.2.
 
 For earlier versions, please check out the older readmes.
+
 - [react-native>=0.66.0 readme](https://github.com/Kudo/react-native-v8/blob/1.0-stable/README.md)
 - [react-native<0.66.0 readme](https://github.com/Kudo/react-native-v8/blob/0.67-stable/README.md)
 
@@ -16,12 +17,12 @@ For earlier versions, please check out the older readmes.
 For managed projects, you can install through the single command:
 
 ```sh
-$ expo install react-native-v8 v8-android-jit
+$ npx expo install react-native-v8 v8-android-jit
 ```
 
 - Please make sure you have [`"android.jsEngine": "jsc"`](https://docs.expo.dev/versions/latest/config/app/#jsengine-2).
 
-For bare projects, you can run `expo prebuild -p android --clean` after the installation to prebuild again.
+For bare projects, you can run `npx expo prebuild -p android --clean` after the installation to prebuild again.
 
 ## Installation for React Native >= 0.71
 
@@ -133,10 +134,19 @@ For detailed V8 features, please check [the v8-android-buildscripts feature flag
 | `v8-android`            | No  | Yes  |
 | `v8-android-nointl`     | No  | No   |
 
-## iOS Support (Experimented)
+## iOS Support (Experimental)
 
-We did have experimented iOS support. To adopt V8 for Xcodeproj gets a little complicated, so we have a pre-shaped template.
-Please check [react-native-template-v8](packages/react-native-template-v8/README.md) for more information.
+You could try the experimental ios support on an Expo project which SDK version is greater or equal to 48.
+
+For managed projects, you can install through the single command:
+
+```sh
+$ npx expo install react-native-v8 v8-ios
+```
+
+- Please make sure you have [`"ios.jsEngine": "jsc"`](https://docs.expo.dev/versions/latest/config/app/#jsengine-1).
+
+For bare projects, you can run `npx expo prebuild -p ios --clean` after the installation to prebuild again.
 
 ## FAQ
 
