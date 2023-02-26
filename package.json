@@ -18,6 +18,7 @@
     "android",
     "v8"
   ],
+  "author": "Kudo Chien",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Kudo/react-native-v8/issues"

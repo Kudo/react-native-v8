@@ -41,7 +41,11 @@ V8Runtime::V8Runtime(
       s_platform = v8::platform::NewDefaultPlatform();
       v8::V8::InitializeICU();
       v8::V8::InitializePlatform(s_platform.get());
+#if TARGET_OS_IOS
+      v8::V8::SetFlagsFromString("--nolazy --nofreeze_flags_after_init");
+#else
       v8::V8::SetFlagsFromString("--nolazy");
+#endif
       v8::V8::Initialize();
     }
   }
