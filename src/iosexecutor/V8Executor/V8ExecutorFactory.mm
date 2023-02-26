@@ -8,8 +8,8 @@
 
 #include "V8ExecutorFactory.h"
 
+#import <RNV8/V8RuntimeFactory.h>
 #import <React/RCTLog.h>
-#import "../../v8runtime/V8Runtime.h"
 
 namespace jsi = facebook::jsi;
 namespace react = facebook::react;
@@ -18,7 +18,7 @@ namespace rnv8 {
 
 std::unique_ptr<react::JSExecutor> V8ExecutorFactory::createJSExecutor(
     std::shared_ptr<react::ExecutorDelegate> delegate,
-    std::shared_ptr<react::MessageQueueThread> __unused jsQueue)
+    std::shared_ptr<react::MessageQueueThread> jsQueue)
 {
   auto installBindings = [runtimeInstaller = runtimeInstaller_](jsi::Runtime &runtime) {
     react::Logger iosLoggingBinder = [](const std::string &message, unsigned int logLevel) {
@@ -30,8 +30,13 @@ std::unique_ptr<react::JSExecutor> V8ExecutorFactory::createJSExecutor(
       runtimeInstaller(runtime);
     }
   };
-  return folly::make_unique<JSIExecutor>(
-      std::make_shared<V8Runtime>(""), delegate, JSIExecutor::defaultTimeoutInvoker, std::move(installBindings));
+  auto config = std::make_unique<V8RuntimeConfig>();
+  config->enableInspector = true;
+  return folly::make_unique<react::JSIExecutor>(
+      createV8Runtime(std::move(config), jsQueue),
+      delegate,
+      react::JSIExecutor::defaultTimeoutInvoker,
+      std::move(installBindings));
 }
 
 } // namespace rnv8
