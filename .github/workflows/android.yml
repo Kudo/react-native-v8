@@ -2,10 +2,20 @@ name: E2E tests for Android
 
 on:
   push:
-    branches:
-      - main
-      - "*-stable"
+    branches: [main, '*-stable']
+    paths:
+      - .github/workflows/android.yml
+      - android/**
+      - src/v8runtime/**
+      - package.json
+      - yarn.lock
   pull_request:
+    paths:
+      - .github/workflows/android.yml
+      - android/**
+      - src/v8runtime/**
+      - package.json
+      - yarn.lock
 
 jobs:
   e2e-test:
