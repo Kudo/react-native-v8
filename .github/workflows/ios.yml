@@ -2,10 +2,20 @@ name: E2E tests for iOS
 
 on:
   push:
-    branches:
-      - main
-      - "*-stable"
+    branches: [main, '*-stable']
+    paths:
+      - .github/workflows/ios.yml
+      - src/iosexecutor/**
+      - src/v8runtime/**
+      - package.json
+      - yarn.lock
   pull_request:
+    paths:
+      - .github/workflows/ios.yml
+      - src/iosexecutor/**
+      - src/v8runtime/**
+      - package.json
+      - yarn.lock
 
 jobs:
   e2e-test:
@@ -41,20 +51,14 @@ jobs:
           xcodebuild -workspace ./TestApp.xcworkspace -scheme TestApp -configuration Release -derivedDataPath ./build -destination 'generic/platform=iOS Simulator' build | xcpretty
 
       - name: Run TestApp
-        working-directory: ../TestApp
+        working-directory: ../TestApp/ios
         run: |
           SIMUDID=$(xcrun simctl list devices available -j | jq -r '.devices."com.apple.CoreSimulator.SimRuntime.iOS-16-2"[] | select(.name=="iPhone 14 Pro") | .udid')
           echo "Using simulator udid[${SIMUDID}]"
           xcrun simctl boot ${SIMUDID}
-          sleep 5
-          xcrun simctl list devices available
-          echo "ooxx Install"
-          find ./build/Build/Products/Release-iphonesimulator
           xcrun simctl install booted ./build/Build/Products/Release-iphonesimulator/TestApp.app
-          echo "ooxx Log"
           xcrun simctl spawn booted log stream --predicate 'process == "TestApp"' --level=debug > sim.log &
           LOG_PID=$!
-          echo "ooxx Launch"
           xcrun simctl launch booted com.testapp
           sleep 5
           kill -SIGINT $LOG_PID
@@ -63,7 +67,7 @@ jobs:
       - name: Collect failure files
         if: failure()
         run: |
-          cp ../TestApp/sim.log .
+          cp ../TestApp/ios/sim.log .
 
       - name: Upload failed artifacts
         if: failure()
