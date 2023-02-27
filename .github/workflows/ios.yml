@@ -46,9 +46,11 @@ jobs:
           SIMUDID=$(xcrun simctl list devices available -j | jq -r '.devices."com.apple.CoreSimulator.SimRuntime.iOS-16-2"[] | select(.name=="iPhone 14 Pro") | .udid')
           echo "Using simulator udid[${SIMUDID}]"
           xcrun simctl boot ${SIMUDID}
+          sleep 5
+          xcrun simctl list devices available
           echo "ooxx Install"
-          xcrun simctl install booted ./build/Build/Products/Release-iphonesimulator/TestApp.app
           find ./build/Build/Products/Release-iphonesimulator
+          xcrun simctl install booted ./build/Build/Products/Release-iphonesimulator/TestApp.app
           echo "ooxx Log"
           xcrun simctl spawn booted log stream --predicate 'process == "TestApp"' --level=debug > sim.log &
           LOG_PID=$!
