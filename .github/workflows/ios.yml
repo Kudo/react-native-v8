@@ -38,7 +38,7 @@ jobs:
         run: |
           npx expo prebuild -p ios
           cd ios
-          xcodebuild -workspace ./TestApp.xcworkspace -scheme TestApp -configuration Release -derivedDataPath ./build -destination 'generic/platform=iOS Simulator' build
+          xcodebuild -workspace ./TestApp.xcworkspace -scheme TestApp -configuration Release -derivedDataPath ./build -destination 'generic/platform=iOS Simulator' build | xcpretty
 
       - name: Run TestApp
         working-directory: ../TestApp
@@ -46,13 +46,22 @@ jobs:
           SIMUDID=$(xcrun simctl list devices available -j | jq -r '.devices."com.apple.CoreSimulator.SimRuntime.iOS-16-2"[] | select(.name=="iPhone 14 Pro") | .udid')
           echo "Using simulator udid[${SIMUDID}]"
           xcrun simctl boot ${SIMUDID}
+          echo "ooxx Install"
           xcrun simctl install booted ./build/Build/Products/Release-iphonesimulator/TestApp.app
+          find ./build/Build/Products/Release-iphonesimulator
+          echo "ooxx Log"
           xcrun simctl spawn booted log stream --predicate 'process == "TestApp"' --level=debug > sim.log &
           LOG_PID=$!
+          echo "ooxx Launch"
           xcrun simctl launch booted com.testapp
           sleep 5
           kill -SIGINT $LOG_PID
           grep -E "=== V8 version\[.+\] ===" sim.log > /dev/null
+
+      - name: Collect failure files
+        if: failure()
+        run: |
+          cp ../TestApp/sim.log .
 
       - name: Upload failed artifacts
         if: failure()
@@ -60,4 +69,4 @@ jobs:
         with:
           name: artifacts-${{ matrix.rn-version }}-${{ matrix.v8-android-variant }}
           path: |
-            ../TestApp/sim.log
+            sim.log
