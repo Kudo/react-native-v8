@@ -35,6 +35,7 @@
     "expo-module.config.json",
     "app.plugin.js",
     "plugin/",
+    "RNV8.podspec",
     "src/"
   ],
   "devDependencies": {
