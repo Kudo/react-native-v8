@@ -1,4 +1,4 @@
-name: E2E tests for Android
+name: E2E tests on bare React Native Android project
 
 on:
   push:
@@ -52,7 +52,7 @@ jobs:
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
+          api-level: 33
           script: |
             adb logcat -c
             python3 scripts/gen_project.py --rn-version ${{ matrix.rn-version }} --v8-android-variant ${{ matrix.v8-android-variant }} TestApp
