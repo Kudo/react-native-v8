@@ -84,4 +84,16 @@ public class V8ExecutorFactory implements JavaScriptExecutorFactory {
     }
     return null;
   }
+
+  /**
+   * For Expo integration where we cannot get exact `getBundleAssetName`,
+   * use a hardcoded **index.android.bundle** default name instead.
+   */
+  @Nullable
+  public static String getBundleAssetName(
+      final Context context,
+      final boolean useDeveloperSupport) {
+    return getV8BundleAssetName(
+        context, "index.android.bundle", useDeveloperSupport);
+  }
 }
