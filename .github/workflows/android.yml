@@ -53,6 +53,8 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
+          arch: x86_64
+          target: google_apis
           script: |
             adb logcat -c
             python3 scripts/gen_project.py --rn-version ${{ matrix.rn-version }} --v8-android-variant ${{ matrix.v8-android-variant }} TestApp
