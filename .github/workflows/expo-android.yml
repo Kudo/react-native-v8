@@ -43,7 +43,7 @@ jobs:
         run: |
           yarn create expo-app TestApp
           cd TestApp
-          yarn add v8-ios
+          yarn add v8-android-jit
           yarn add file:../react-native-v8
           jq '.expo.android.package = "com.testapp" | .expo.plugins += ["react-native-v8"] | .expo.jsEngine = "jsc"' app.json > app.json.tmp && mv -f app.json.tmp app.json
           echo 'if (global._v8runtime) { console.log(`=== V8 version[${global._v8runtime().version}] ===`); }' >> App.js
