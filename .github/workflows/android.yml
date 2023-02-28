@@ -58,7 +58,7 @@ jobs:
           script: |
             adb logcat -c
             python3 scripts/gen_project.py --rn-version ${{ matrix.rn-version }} --v8-android-variant ${{ matrix.v8-android-variant }} TestApp
-            sleep 5
+            sleep 10
             adb logcat -d > TestApp/adb.log
             grep -E "=== V8 version\[.+\] ===" TestApp/adb.log > /dev/null
 
