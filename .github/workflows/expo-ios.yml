@@ -1,17 +1,17 @@
-name: E2E tests for iOS
+name: E2E tests on Expo iOS project
 
 on:
   push:
     branches: [main, '*-stable']
     paths:
-      - .github/workflows/ios.yml
+      - .github/workflows/expo-ios.yml
       - src/iosexecutor/**
       - src/v8runtime/**
       - package.json
       - yarn.lock
   pull_request:
     paths:
-      - .github/workflows/ios.yml
+      - .github/workflows/expo-ios.yml
       - src/iosexecutor/**
       - src/v8runtime/**
       - package.json
@@ -73,6 +73,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v3
         with:
-          name: artifacts-${{ matrix.rn-version }}-${{ matrix.v8-android-variant }}
+          name: artifacts
           path: |
             sim.log
