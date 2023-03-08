@@ -1,5 +1,9 @@
 import type { ConfigPlugin } from 'expo/config-plugins';
-declare const _default: ConfigPlugin<void>;
+export type PluginOptions = {
+    android?: boolean;
+    ios?: boolean;
+};
+declare const _default: ConfigPlugin<PluginOptions>;
 export default _default;
 /**
  * Updates **android/app/build.gradle** to add the packaging options

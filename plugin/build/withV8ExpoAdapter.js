@@ -3,9 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateIosAppDelegate = exports.updateAndroidAppGradle = void 0;
 const config_plugins_1 = require("expo/config-plugins");
 const generateCode_1 = require("./generateCode");
-const withV8ExpoAdapter = (config) => {
-    config = withAndroidGradles(config);
-    config = withIosAppDelegate(config);
+const withV8ExpoAdapter = (config, opts) => {
+    const { android = true, ios = true } = opts ?? {};
+    if (android) {
+        config = withAndroidGradles(config);
+    }
+    if (ios) {
+        config = withIosAppDelegate(config);
+    }
     return config;
 };
 const pkg = require('react-native-v8/package.json');

@@ -4,9 +4,19 @@ import type { ConfigPlugin } from 'expo/config-plugins';
 
 import { mergeContents, MergeResults } from './generateCode';
 
-const withV8ExpoAdapter: ConfigPlugin = (config) => {
-  config = withAndroidGradles(config);
-  config = withIosAppDelegate(config);
+export type PluginOptions = {
+  android?: boolean;
+  ios?: boolean;
+}
+
+const withV8ExpoAdapter: ConfigPlugin<PluginOptions> = (config, opts) => {
+  const { android = true, ios = true } = opts ?? {};
+  if (android) {
+    config = withAndroidGradles(config);
+  }
+  if (ios) {
+    config = withIosAppDelegate(config);
+  }
   return config;
 };
 
