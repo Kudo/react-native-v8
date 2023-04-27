@@ -151,11 +151,11 @@ class V8Runtime : public facebook::jsi::Runtime {
       const facebook::jsi::Object &,
       const facebook::jsi::String &name) override;
   void setPropertyValue(
-      facebook::jsi::Object &,
+      const facebook::jsi::Object &,
       const facebook::jsi::PropNameID &name,
       const facebook::jsi::Value &value) override;
   void setPropertyValue(
-      facebook::jsi::Object &,
+      const facebook::jsi::Object &,
       const facebook::jsi::String &name,
       const facebook::jsi::Value &value) override;
 
@@ -168,7 +168,7 @@ class V8Runtime : public facebook::jsi::Runtime {
 
   facebook::jsi::WeakObject createWeakObject(
       const facebook::jsi::Object &) override;
-  facebook::jsi::Value lockWeakObject(facebook::jsi::WeakObject &) override;
+  facebook::jsi::Value lockWeakObject(const facebook::jsi::WeakObject &) override;
 
   facebook::jsi::Array createArray(size_t length) override;
   facebook::jsi::ArrayBuffer createArrayBuffer(
@@ -179,7 +179,7 @@ class V8Runtime : public facebook::jsi::Runtime {
   facebook::jsi::Value getValueAtIndex(const facebook::jsi::Array &, size_t i)
       override;
   void setValueAtIndexImpl(
-      facebook::jsi::Array &,
+      const facebook::jsi::Array &,
       size_t i,
       const facebook::jsi::Value &value) override;
 
