@@ -22,7 +22,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        rn-version: ['0.71']
+        rn-version: ['0.72', '0.71']
         v8-android-variant:
           [v8-android-jit, v8-android-jit-nointl, v8-android, v8-android-nointl]
         # include:
