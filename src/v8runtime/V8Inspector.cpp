@@ -150,8 +150,12 @@ InspectorClient::InspectorClient(
   session_ = inspector_->connect(
       contextGroupId,
       channel_.get(),
+#if V8_MAJOR_VERSION >= 11
       inspectorNameStringView,
       v8_inspector::V8Inspector::kFullyTrusted);
+#else
+      inspectorNameStringView);
+#endif
   context_.Reset(isolate_, context);
 
   inspector_->contextCreated(v8_inspector::V8ContextInfo(
