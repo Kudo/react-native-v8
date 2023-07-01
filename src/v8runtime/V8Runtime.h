@@ -150,6 +150,16 @@ class V8Runtime : public facebook::jsi::Runtime {
   bool hasProperty(
       const facebook::jsi::Object &,
       const facebook::jsi::String &name) override;
+#if REACT_NATIVE_TARGET_VERSION >= 72
+  void setPropertyValue(
+      const facebook::jsi::Object &,
+      const facebook::jsi::PropNameID &name,
+      const facebook::jsi::Value &value) override;
+  void setPropertyValue(
+      const facebook::jsi::Object &,
+      const facebook::jsi::String &name,
+      const facebook::jsi::Value &value) override;
+#else
   void setPropertyValue(
       facebook::jsi::Object &,
       const facebook::jsi::PropNameID &name,
@@ -158,6 +168,7 @@ class V8Runtime : public facebook::jsi::Runtime {
       facebook::jsi::Object &,
       const facebook::jsi::String &name,
       const facebook::jsi::Value &value) override;
+#endif
 
   bool isArray(const facebook::jsi::Object &) const override;
   bool isArrayBuffer(const facebook::jsi::Object &) const override;
@@ -168,7 +179,12 @@ class V8Runtime : public facebook::jsi::Runtime {
 
   facebook::jsi::WeakObject createWeakObject(
       const facebook::jsi::Object &) override;
+#if REACT_NATIVE_TARGET_VERSION >= 72
+  facebook::jsi::Value lockWeakObject(
+      const facebook::jsi::WeakObject &) override;
+#else
   facebook::jsi::Value lockWeakObject(facebook::jsi::WeakObject &) override;
+#endif
 
   facebook::jsi::Array createArray(size_t length) override;
   facebook::jsi::ArrayBuffer createArrayBuffer(
@@ -178,10 +194,17 @@ class V8Runtime : public facebook::jsi::Runtime {
   uint8_t *data(const facebook::jsi::ArrayBuffer &) override;
   facebook::jsi::Value getValueAtIndex(const facebook::jsi::Array &, size_t i)
       override;
+#if REACT_NATIVE_TARGET_VERSION >= 72
+  void setValueAtIndexImpl(
+      const facebook::jsi::Array &,
+      size_t i,
+      const facebook::jsi::Value &value) override;
+#else
   void setValueAtIndexImpl(
       facebook::jsi::Array &,
       size_t i,
       const facebook::jsi::Value &value) override;
+#endif
 
   facebook::jsi::Function createFunctionFromHostFunction(
       const facebook::jsi::PropNameID &name,
