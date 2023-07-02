@@ -33,6 +33,7 @@
     "expo/",
     "!expo/build",
     "expo-module.config.json",
+    "react-native.config.js",
     "app.plugin.js",
     "plugin/",
     "RNV8.podspec",
