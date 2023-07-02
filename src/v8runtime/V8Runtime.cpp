@@ -1076,7 +1076,11 @@ bool V8Runtime::hasProperty(
 }
 
 void V8Runtime::setPropertyValue(
+#if REACT_NATIVE_TARGET_VERSION >= 72
+    const jsi::Object &object,
+#else
     jsi::Object &object,
+#endif
     const jsi::PropNameID &name,
     const jsi::Value &value) {
   v8::Locker locker(isolate_);
@@ -1098,7 +1102,11 @@ void V8Runtime::setPropertyValue(
 }
 
 void V8Runtime::setPropertyValue(
+#if REACT_NATIVE_TARGET_VERSION >= 72
+    const jsi::Object &object,
+#else
     jsi::Object &object,
+#endif
     const jsi::String &name,
     const jsi::Value &value) {
   v8::Locker locker(isolate_);
@@ -1220,7 +1228,11 @@ jsi::WeakObject V8Runtime::createWeakObject(const jsi::Object &weakObject) {
       new V8PointerValue(isolate_, std::move(weakRef)));
 }
 
+#if REACT_NATIVE_TARGET_VERSION >= 72
+jsi::Value V8Runtime::lockWeakObject(const jsi::WeakObject &weakObject) {
+#else
 jsi::Value V8Runtime::lockWeakObject(jsi::WeakObject &weakObject) {
+#endif
   v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
@@ -1302,7 +1314,11 @@ jsi::Value V8Runtime::getValueAtIndex(const jsi::Array &array, size_t i) {
 }
 
 void V8Runtime::setValueAtIndexImpl(
+#if REACT_NATIVE_TARGET_VERSION >= 72
+    const jsi::Array &array,
+#else
     jsi::Array &array,
+#endif
     size_t i,
     const jsi::Value &value) {
   v8::Locker locker(isolate_);
