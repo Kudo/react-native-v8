@@ -4,7 +4,7 @@ exports.updateIosAppDelegate = exports.updateAndroidAppGradle = void 0;
 const config_plugins_1 = require("expo/config-plugins");
 const generateCode_1 = require("./generateCode");
 const withV8ExpoAdapter = (config, opts) => {
-    const { android = true, ios = true } = opts ?? {};
+    const { android = true, ios = false } = opts ?? {};
     if (android) {
         config = withAndroidGradles(config);
     }

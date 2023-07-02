@@ -10,7 +10,7 @@ export type PluginOptions = {
 }
 
 const withV8ExpoAdapter: ConfigPlugin<PluginOptions> = (config, opts) => {
-  const { android = true, ios = true } = opts ?? {};
+  const { android = true, ios = false } = opts ?? {};
   if (android) {
     config = withAndroidGradles(config);
   }
