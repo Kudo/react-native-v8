@@ -73,11 +73,18 @@ export function updateAndroidAppGradle(contents: string): string {
 android {
     androidComponents {
         onVariants(selector().withBuildType('release')) {
+            packaging.jniLibs.pickFirsts.set([])
             packaging.jniLibs.excludes.add('**/**/libjsc*')
             packaging.jniLibs.excludes.add('**/**/libhermes*')
         }
+        onVariants(selector().withBuildType('debug')) {
+            packaging.jniLibs.pickFirsts.set([])
+            packaging.jniLibs.excludes.add('**/**/libjsc*')
+            packaging.jniLibs.pickFirsts.add('**/**/libhermes*')
+        }
     }
-}`;
+}
+`;
 
   let mergeResults: MergeResults;
   mergeResults = mergeContents({
