@@ -84,6 +84,10 @@ android {
         }
     }
 }
+
+dependencies {
+    debugImplementation('com.facebook.react:hermes-android')
+}
 `;
 
   let mergeResults: MergeResults;
