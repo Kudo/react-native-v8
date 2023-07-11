@@ -227,7 +227,6 @@ void InspectorClient::SendRemoteMessage(
     const v8_inspector::StringView &message) {
   if (remoteConn_) {
     v8::Isolate *isolate = GetIsolate();
-    v8::Locker locker(isolate);
     v8::Isolate::Scope scopedIsolate(isolate);
     v8::HandleScope scopedHandle(isolate);
     v8::Context::Scope scopedContext(GetContext().Get(isolate));
@@ -249,25 +248,13 @@ void InspectorClient::AwakePauseLockWithMessage(const std::string &message) {
 
 void InspectorClient::DispatchProxy(const std::string &message) {
   std::string normalizedString = stripMetroCachePrevention(message);
-
-  auto messageObj = folly::parseJson(message);
-  auto method = messageObj["method"].asString();
-
-  // For `v8::CpuProfiler` or some other modules with thread local storage, we
-  // should dispatch messages in the js thread.
-  if (method == "Profiler.start" || method == "Profiler.stop") {
-    jsQueue_->runOnQueue([this, normalizedString]() {
-      v8::Isolate *isolate = GetIsolate();
-      v8::Locker locker(isolate);
-      v8::Isolate::Scope scopedIsolate(isolate);
-      v8::HandleScope scopedHandle(isolate);
-      v8::Context::Scope scopedContext(GetContext().Get(isolate));
-      session_->dispatchProtocolMessage(ToStringView(normalizedString));
-    });
-    return;
-  }
-
-  session_->dispatchProtocolMessage(ToStringView(normalizedString));
+  jsQueue_->runOnQueue([this, normalizedString]() {
+    v8::Isolate *isolate = GetIsolate();
+    v8::Isolate::Scope scopedIsolate(isolate);
+    v8::HandleScope scopedHandle(isolate);
+    v8::Context::Scope scopedContext(GetContext().Get(isolate));
+    session_->dispatchProtocolMessage(ToStringView(normalizedString));
+  });
 }
 
 void InspectorClient::DispatchProtocolMessage(const std::string &message) {
@@ -276,7 +263,6 @@ void InspectorClient::DispatchProtocolMessage(const std::string &message) {
     return;
   }
   v8::Isolate *isolate = GetIsolate();
-  v8::Locker locker(isolate);
   v8::Isolate::Scope scopedIsolate(isolate);
   v8::HandleScope scopedHandle(isolate);
   v8::Context::Scope scopedContext(GetContext().Get(isolate));
@@ -290,7 +276,6 @@ void InspectorClient::DispatchProtocolMessages(
     return;
   }
   v8::Isolate *isolate = GetIsolate();
-  v8::Locker locker(isolate);
   v8::Isolate::Scope scopedIsolate(isolate);
   v8::HandleScope scopedHandle(isolate);
   v8::Context::Scope scopedContext(GetContext().Get(isolate));

@@ -69,7 +69,6 @@ V8PointerValue *V8PointerValue::createFromUtf8(
 
 void V8PointerValue::invalidate() {
   {
-    v8::Locker locker(isolate_);
     v8::Isolate::Scope scopedIsolate(isolate_);
     value_.Reset();
   }
