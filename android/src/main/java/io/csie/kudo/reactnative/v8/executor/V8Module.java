@@ -58,7 +58,11 @@ public class V8Module
       final RuntimeExecutor runtimeExecutor = getReactApplicationContext()
                                                   .getCatalystInstance()
                                                   .getRuntimeExecutor();
-      V8Executor.onMainLoopIdle(runtimeExecutor);
+                                                  
+      if (runtimeExecutor != null) {
+        V8Executor.onMainLoopIdle(runtimeExecutor);
+      }
+
       mLastMainLoopIdleCallbackTime = SystemClock.uptimeMillis();
     }
     return true;
