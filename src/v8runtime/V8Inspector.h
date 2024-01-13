@@ -9,8 +9,14 @@
 
 #include <cxxreact/MessageQueueThread.h>
 #include <condition_variable>
-#include "jsinspector/InspectorInterfaces.h"
 #include "v8-inspector.h"
+#ifdef REACT_NATIVE_0_73
+#include "jsinspector-modern/InspectorInterfaces.h"
+using IRemoteConnection = facebook::react::jsinspector_modern::IRemoteConnection;
+#else
+#include "jsinspector/InspectorInterfaces.h"
+using IRemoteConnection = facebook::react::IRemoteConnection;
+#endif
 
 namespace rnv8 {
 
@@ -84,7 +90,7 @@ class InspectorClient final
   v8::Isolate *isolate_;
   v8::Global<v8::Context> context_;
 
-  std::unique_ptr<facebook::react::IRemoteConnection> remoteConn_;
+  std::unique_ptr<IRemoteConnection> remoteConn_;
   std::string inspectorName_;
 
   std::mutex connectionMutex_;

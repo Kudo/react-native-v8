@@ -15,7 +15,11 @@
 #include "folly/json.h"
 #include "v8.h"
 
+#ifdef REACT_NATIVE_0_73
+namespace react = facebook::react::jsinspector_modern;
+#else
 namespace react = facebook::react;
+#endif
 
 namespace rnv8 {
 
