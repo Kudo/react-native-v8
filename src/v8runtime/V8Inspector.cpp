@@ -15,12 +15,6 @@
 #include "folly/json.h"
 #include "v8.h"
 
-#if REACT_NATIVE_TARGET_VERSION >= 73
-namespace react = facebook::react::jsinspector_modern;
-#else
-namespace react = facebook::react;
-#endif
-
 namespace rnv8 {
 
 static const char kInspectorName[] = "React Native V8 Inspector";
