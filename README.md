@@ -93,6 +93,59 @@ $ yarn add react-native-v8 v8-android-jit
    @Override
 ```
 
+For React Native 0.73 and above, you can use the following code instead:
+
+```diff
+--- a/android/app/src/main/java/com/rn073/MainApplication.kt
++++ b/android/app/src/main/java/com/rn073/MainApplication.kt
+@@ -1,15 +1,20 @@
+ package com.rn073;
+
+ import android.app.Application
++
+ import com.facebook.react.PackageList
+ import com.facebook.react.ReactApplication
+ import com.facebook.react.ReactHost
+ import com.facebook.react.ReactNativeHost
+ import com.facebook.react.ReactPackage
++import com.facebook.react.bridge.JavaScriptExecutorFactory
+ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
+ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
+ import com.facebook.react.defaults.DefaultReactNativeHost
+ import com.facebook.react.flipper.ReactNativeFlipper
++import com.facebook.react.modules.systeminfo.AndroidInfoHelpers
+ import com.facebook.soloader.SoLoader
+
++import io.csie.kudo.reactnative.v8.executor.V8ExecutorFactory;
++
+ class MainApplication : Application(), ReactApplication {
+
+   override val reactNativeHost: ReactNativeHost =
+      object : DefaultReactNativeHost(this) {
+        override fun getPackages(): List<ReactPackage> =
+            PackageList(this).packages.apply {
+              // Packages that cannot be auto linked yet can be added manually here, for example:
+              // add(MyReactNativePackage())
+            }
+        override fun getJSMainModuleName(): String = "index"
+
+        override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
+
+        override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
+        override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
++
++       override fun getJavaScriptExecutorFactory(): JavaScriptExecutorFactory =
++            V8ExecutorFactory(
++                applicationContext,
++                packageName,
++                AndroidInfoHelpers.getFriendlyDeviceName(),
++                useDeveloperSupport
++            )
+       };
+
+    override val reactHost: ReactHost
+```
+
 4. Disable Hermes
 
 ```diff
