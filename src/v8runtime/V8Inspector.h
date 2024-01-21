@@ -12,10 +12,10 @@
 #include "v8-inspector.h"
 #if REACT_NATIVE_TARGET_VERSION >= 73
 #include "jsinspector-modern/InspectorInterfaces.h"
-namespace react = facebook::react::jsinspector_modern;
+namespace jsinspector = facebook::react::jsinspector_modern;
 #else
 #include "jsinspector/InspectorInterfaces.h"
-namespace react = facebook::react;
+namespace jsinspector = facebook::react;
 #endif
 
 namespace rnv8 {
@@ -90,7 +90,7 @@ class InspectorClient final
   v8::Isolate *isolate_;
   v8::Global<v8::Context> context_;
 
-  std::unique_ptr<react::IRemoteConnection> remoteConn_;
+  std::unique_ptr<jsinspector::IRemoteConnection> remoteConn_;
   std::string inspectorName_;
 
   std::mutex connectionMutex_;

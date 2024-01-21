@@ -98,7 +98,7 @@ void InspectorFrontend::sendNotification(
   client_->SendRemoteMessage(message->string());
 }
 
-class LocalConnection : public react::ILocalConnection {
+class LocalConnection : public jsinspector::ILocalConnection {
  public:
   LocalConnection(std::weak_ptr<InspectorClient> weakClient)
       : weakClient_(weakClient) {}
@@ -191,11 +191,11 @@ void InspectorClient::ConnectToReactFrontend() {
   std::lock_guard<std::mutex> lock(connectionMutex_);
 
   auto weakClient = CreateWeakPtr();
-  pageId_ = react::getInspectorInstance().addPage(
+  pageId_ = jsinspector::getInspectorInstance().addPage(
       inspectorName_,
       "V8",
       [weakClient = std::move(weakClient)](
-          std::unique_ptr<react::IRemoteConnection> remoteConn) {
+          std::unique_ptr<jsinspector::IRemoteConnection> remoteConn) {
         auto client = weakClient.lock();
         if (client) {
           client->remoteConn_ = std::move(remoteConn);
@@ -210,7 +210,7 @@ void InspectorClient::Disconnect() {
   if (remoteConn_) {
     remoteConn_->onDisconnect();
   }
-  react::getInspectorInstance().removePage(pageId_);
+  jsinspector::getInspectorInstance().removePage(pageId_);
 }
 
 void InspectorClient::DisconnectFromReactFrontend() {
