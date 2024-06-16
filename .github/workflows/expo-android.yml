@@ -24,11 +24,11 @@ jobs:
       - uses: actions/checkout@v2
       - uses: oven-sh/setup-bun@v1
 
-      - name: Use JDK 11
+      - name: Use JDK 17
         uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
 
       - name: Restore yarn caches
         uses: actions/cache@v2
