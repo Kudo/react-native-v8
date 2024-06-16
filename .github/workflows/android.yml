@@ -33,6 +33,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - uses: oven-sh/setup-bun@v1
 
       - name: Use JDK 11
         uses: actions/setup-java@v2
