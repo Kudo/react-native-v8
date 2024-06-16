@@ -77,21 +77,21 @@ class ProjectConfigPatcher:
             f.write(new_content)
 
     def _patch_react_native_host(self):
-        main_app_files = glob.glob("android/**/MainApplication.java", recursive=True)
+        main_app_files = glob.glob("android/**/MainApplication.kt", recursive=True)
         v8_block = """
-        @Override
-        protected com.facebook.react.bridge.JavaScriptExecutorFactory getJavaScriptExecutorFactory() {
-          return new io.csie.kudo.reactnative.v8.executor.V8ExecutorFactory(
-              getApplicationContext(),
-              getPackageName(),
-              com.facebook.react.modules.systeminfo.AndroidInfoHelpers.getFriendlyDeviceName(),
-              getUseDeveloperSupport());
+        override fun getJavaScriptExecutorFactory(): com.facebook.react.bridge.JavaScriptExecutorFactory {
+          return io.csie.kudo.reactnative.v8.executor.V8ExecutorFactory(
+            applicationContext,
+            packageName,
+            com.facebook.react.modules.systeminfo.AndroidInfoHelpers.getFriendlyDeviceName(),
+            useDeveloperSupport
+          )
         }
 """
         for file in main_app_files:
             self._replace_file_content(
                 file,
-                r"(protected String getJSMainModuleName\(\) \{\n.*?\n.*?\}\n)",
+                r'(override fun getJSMainModuleName\(\): String = "index")',
                 "\\1" + v8_block,
                 re_flags=(re.DOTALL | re.MULTILINE),
             )
