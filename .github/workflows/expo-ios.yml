@@ -23,6 +23,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - uses: oven-sh/setup-bun@v1
 
       - name: Restore yarn caches
         uses: actions/cache@v2

@@ -46,7 +46,7 @@ def parse_args():
 def main():
     args = parse_args()
     subprocess.run(
-        ["npx", "react-native", "init", args.project_dir, "--version", args.rn_version]
+        ["npx", "react-native", "init", args.project_dir, "--pm", "bun", "--version", args.rn_version]
     )
 
     install_tarball = None
