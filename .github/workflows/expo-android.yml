@@ -41,7 +41,7 @@ jobs:
 
       - name: Generate TestApp
         run: |
-          yarn create expo-app TestApp
+          yarn create expo-app -t blank@@sdk-50 TestApp
           cd TestApp
           yarn add v8-android-jit
           yarn add file:../react-native-v8
