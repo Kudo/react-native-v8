@@ -19,7 +19,7 @@ on:
 
 jobs:
   e2e-test:
-    runs-on: macos-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         rn-version: ['0.72', '0.71']
