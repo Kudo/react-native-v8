@@ -76,7 +76,7 @@ def main():
     patcher.add_v8_support()
     patcher.add_vm_hint()
     subprocess.run(
-        ["npx", "react-native", "run-android", "--variant", "release", "--no-packager"]
+        ["npx", "react-native", "run-android", "--mode", "release", "--no-packager"]
     )
 
 
