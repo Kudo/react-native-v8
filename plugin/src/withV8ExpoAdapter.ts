@@ -131,6 +131,10 @@ export function updateIosAppDelegate(contents: string): string {
 #define FOLLY_HAVE_PTHREAD 1
 #endif
 
+#ifndef FOLLY_CFG_NO_COROUTINES
+#define FOLLY_CFG_NO_COROUTINES 1
+#endif
+
 #import <memory>
 #import <React/RCTCxxBridgeDelegate.h>
 #import <React/RCTJSIExecutorRuntimeInstaller.h>
