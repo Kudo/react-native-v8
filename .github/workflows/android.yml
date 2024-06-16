@@ -19,7 +19,7 @@ on:
 
 jobs:
   e2e-test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         rn-version: ['0.72', '0.71']
@@ -49,12 +49,19 @@ jobs:
       - name: Yarn install
         run: yarn install --frozen-lockfile
 
+      - name: ⚙️ Enable KVM for Android virtualization
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
           arch: x86_64
-          target: google_apis_playstore
+          target: google_apis
           script: |
             adb logcat -c
             python3 scripts/gen_project.py --rn-version ${{ matrix.rn-version }} --v8-android-variant ${{ matrix.v8-android-variant }} TestApp
