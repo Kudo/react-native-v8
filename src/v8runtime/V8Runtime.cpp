@@ -1552,6 +1552,11 @@ bool V8Runtime::instanceOf(const jsi::Object &o, const jsi::Function &f) {
   return result;
 }
 
+#if REACT_NATIVE_TARGET_VERSION >= 74
+void V8Runtime::setExternalMemoryPressure(const jsi::Object &obj, size_t amount) {
+}
+#endif
+
 //
 // JS function/object handler callbacks
 //
