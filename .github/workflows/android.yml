@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rn-version: ['0.73']
+        rn-version: ['0.74', '0.73']
         v8-android-variant:
           [v8-android-jit, v8-android-jit-nointl, v8-android, v8-android-nointl]
         # include:
