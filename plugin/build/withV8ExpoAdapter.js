@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateIosAppDelegate = exports.updateAndroidAppGradle = void 0;
+exports.updateIosAppDelegate50 = exports.updateIosAppDelegate = exports.updateAndroidAppGradle = void 0;
+const semver_1 = __importDefault(require("semver"));
 const config_plugins_1 = require("expo/config-plugins");
 const generateCode_1 = require("./generateCode");
 const withV8ExpoAdapter = (config, opts) => {
@@ -43,7 +47,12 @@ const withIosAppDelegate = (config) => {
             throw new Error('Must setup `expo.jsEngine` as `jsc` in app.json.');
         }
         if (config.modResults.language === 'objcpp') {
-            config.modResults.contents = updateIosAppDelegate(config.modResults.contents);
+            if (config.sdkVersion && semver_1.default.lt(config.sdkVersion, '51.0.0')) {
+                config.modResults.contents = updateIosAppDelegate50(config.modResults.contents);
+            }
+            else {
+                config.modResults.contents = updateIosAppDelegate50(config.modResults.contents);
+            }
         }
         else {
             throw new Error('Cannot update AppDelegate file for react-native-v8 because the file is not objcpp');
@@ -95,6 +104,99 @@ exports.updateAndroidAppGradle = updateAndroidAppGradle;
  * Updates **AppDelegate.mm**
  */
 function updateIosAppDelegate(contents) {
+    const mergeTagPrefix = 'react-native-v8';
+    let didMerge = false;
+    let didClear = false;
+    const imports = `\
+#ifndef FOLLY_NO_CONFIG
+#define FOLLY_NO_CONFIG 1
+#endif
+
+#ifndef FOLLY_MOBILE
+#define FOLLY_MOBILE 1
+#endif
+
+#ifndef FOLLY_USE_LIBCPP
+#define FOLLY_USE_LIBCPP 1
+#endif
+
+#ifndef FOLLY_HAVE_PTHREAD
+#define FOLLY_HAVE_PTHREAD 1
+#endif
+
+#ifndef FOLLY_CFG_NO_COROUTINES
+#define FOLLY_CFG_NO_COROUTINES 1
+#endif
+
+#import <memory>
+#import <objc/runtime.h>
+#import <React/RCTCxxBridgeDelegate.h>
+#import <React/RCTJSIExecutorRuntimeInstaller.h>
+#import <React/RCTSurfacePresenterBridgeAdapter.h>
+#import <react/renderer/runtimescheduler/RuntimeScheduler.h>
+#import <react/renderer/runtimescheduler/RuntimeSchedulerBinding.h>
+#import <RNV8/V8ExecutorFactory.h>
+`;
+    let mergeResults;
+    mergeResults = (0, generateCode_1.mergeContents)({
+        tag: `${mergeTagPrefix}:imports`,
+        src: contents,
+        newSrc: imports,
+        anchor: /^#import "AppDelegate\.h"/m,
+        offset: 1,
+        comment: '//',
+    });
+    didMerge || (didMerge = mergeResults.didMerge);
+    didClear || mergeResults.didClear;
+    const swizzleJsExecutorFactory = `\
+method_exchangeImplementations(
+  class_getInstanceMethod(RCTRootViewFactory.class, @selector(jsExecutorFactoryForBridge:)),
+  class_getInstanceMethod(self.class, @selector(jsExecutorFactoryForBridge:)));
+`;
+    mergeResults = (0, generateCode_1.mergeContents)({
+        tag: `${mergeTagPrefix}:swizzleJsExecutorFactory`,
+        src: mergeResults.contents,
+        newSrc: swizzleJsExecutorFactory,
+        anchor: /^\s*return \[super application:application didFinishLaunchingWithOptions:launchOptions]/m,
+        offset: 0,
+        comment: '//',
+    });
+    didMerge || (didMerge = mergeResults.didMerge);
+    didClear || mergeResults.didClear;
+    const jsExecutorFactoryForBridge = `
+- (std::unique_ptr<facebook::react::JSExecutorFactory>)jsExecutorFactoryForBridge:(RCTBridge *)bridge
+{
+  RCTAssert(!RCTIsNewArchEnabled(), @"react-native-v8 does not support new architecture yet.");
+  auto runtimeScheduler = std::make_shared<facebook::react::RuntimeScheduler>(RCTRuntimeExecutorFromBridge(bridge));
+  return std::make_unique<rnv8::V8ExecutorFactory>(
+    facebook::react::RCTJSIExecutorRuntimeInstaller([bridge, runtimeScheduler = std::move(runtimeScheduler)](facebook::jsi::Runtime &runtime) {
+      if (!bridge) {
+        return;
+      }
+      if (runtimeScheduler) {
+        facebook::react::RuntimeSchedulerBinding::createAndInstallIfNeeded(runtime, runtimeScheduler);
+      }
+  }));
+}
+`;
+    mergeResults = (0, generateCode_1.mergeContents)({
+        tag: `${mergeTagPrefix}:jsExecutorFactoryForBridge`,
+        src: mergeResults.contents,
+        newSrc: jsExecutorFactoryForBridge,
+        anchor: /^@end$/gm,
+        findLastAnchor: true,
+        offset: 0,
+        comment: '//',
+    });
+    didMerge || (didMerge = mergeResults.didMerge);
+    didClear || mergeResults.didClear;
+    if (didMerge || didClear) {
+        return mergeResults.contents;
+    }
+    return contents;
+}
+exports.updateIosAppDelegate = updateIosAppDelegate;
+function updateIosAppDelegate50(contents) {
     const mergeTagPrefix = 'react-native-v8';
     let didMerge = false;
     let didClear = false;
@@ -209,4 +311,4 @@ function updateIosAppDelegate(contents) {
     }
     return contents;
 }
-exports.updateIosAppDelegate = updateIosAppDelegate;
+exports.updateIosAppDelegate50 = updateIosAppDelegate50;

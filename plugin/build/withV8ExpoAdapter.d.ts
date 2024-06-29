@@ -13,3 +13,4 @@ export declare function updateAndroidAppGradle(contents: string): string;
  * Updates **AppDelegate.mm**
  */
 export declare function updateIosAppDelegate(contents: string): string;
+export declare function updateIosAppDelegate50(contents: string): string;
