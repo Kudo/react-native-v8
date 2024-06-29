@@ -22,14 +22,14 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v1
 
       - name: 🔨 Switch to Xcode 15.4
         run: sudo xcode-select --switch /Applications/Xcode_15.4.app
 
       - name: Restore yarn caches
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: ${{ runner.os }}-workspace-modules-${{ hashFiles('yarn.lock') }}
@@ -75,7 +75,7 @@ jobs:
 
       - name: Upload failed artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: artifacts
           path: |
