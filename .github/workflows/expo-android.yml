@@ -45,7 +45,6 @@ jobs:
       - name: Generate TestApp
         run: |
           bun link
-          cd ..
           bunx create-expo-app -t blank@@sdk-51 TestApp
           cd TestApp
           bun add v8-android-jit
@@ -54,7 +53,7 @@ jobs:
           echo 'if (global._v8runtime) { console.log(`=== V8 version[${global._v8runtime().version}] ===`); }' >> App.js
 
       - name: Build TestApp
-        working-directory: ../TestApp
+        working-directory: TestApp
         run: |
           npx expo prebuild -p android
           cd android
@@ -73,7 +72,7 @@ jobs:
           api-level: 34
           arch: x86_64
           target: google_apis
-          working-directory: ../TestApp/android
+          working-directory: TestApp/android
           script: |
             adb install -r app/build/outputs/apk/release/app-release.apk
             adb logcat -c
@@ -85,7 +84,7 @@ jobs:
       - name: Collect failure files
         if: failure()
         run: |
-          cp ../TestApp/android/adb.log .
+          cp TestApp/android/adb.log .
 
       - name: Upload failed artifacts
         if: failure()

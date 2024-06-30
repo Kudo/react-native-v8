@@ -48,15 +48,15 @@ def main():
     subprocess.run(
         ["bun", "link"],
     )
-    print(["bunx", "@react-native-community/cli", "init", args.project_dir, "--version", args.rn_version])
     subprocess.run(
-        ["bunx", "@react-native-community/cli", "init", args.project_dir, "--version", args.rn_version]
+        ["npx", "@react-native-community/cli", "init", args.project_dir, "--pm", "bun", "--version", args.rn_version]
     )
 
     os.chdir(args.project_dir)
     subprocess.run(["bun", "add", args.v8_android_variant])
 
     if not args.npm_source:
+        assert install_tarball
         subprocess.run(
             [
                 "bun",
