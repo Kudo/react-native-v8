@@ -239,6 +239,12 @@ class V8Runtime : public facebook::jsi::Runtime {
       const facebook::jsi::Object &o,
       const facebook::jsi::Function &f) override;
 
+#if REACT_NATIVE_TARGET_VERSION >= 74
+  void setExternalMemoryPressure(
+      const facebook::jsi::Object &obj,
+      size_t amount) override;
+#endif
+
  private:
   friend class V8PointerValue;
   friend class JSIV8ValueConverter;

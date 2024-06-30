@@ -92,8 +92,10 @@ add_library(
 target_include_directories(
   reactnative_internal_static
   PRIVATE
+  "${REACT_NATIVE_DIR}/ReactCommon"
   "${REACT_NATIVE_DIR}/ReactCommon/jsiexecutor"
   "${REACT_NATIVE_DIR}/ReactCommon/reactperflogger"
+  "${REACT_NATIVE_DIR}/ReactCommon/runtimeexecutor"
 )
 
 target_link_libraries(
