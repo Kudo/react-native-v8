@@ -39,23 +39,23 @@ jobs:
 
       - name: Generate TestApp
         run: |
-          bun link
           bunx create-expo-app -t blank@@sdk-51 TestApp
           cd TestApp
           bun add v8-ios
-          bun link react-native-v8 --save
+          bun add file:../react-native-v8
           jq '.expo.ios.bundleIdentifier = "com.testapp" | .expo.plugins += [["react-native-v8", {"ios":true}]] | .expo.jsEngine = "jsc"' app.json > app.json.tmp && mv -f app.json.tmp app.json
           echo 'if (global._v8runtime) { console.log(`=== V8 version[${global._v8runtime().version}] ===`); }' >> App.js
+        working-directory: ..
 
       - name: Build TestApp
-        working-directory: TestApp
+        working-directory: ../TestApp
         run: |
           npx expo prebuild -p ios
           cd ios
           xcodebuild -workspace ./TestApp.xcworkspace -scheme TestApp -configuration Release -derivedDataPath ./build -destination 'generic/platform=iOS Simulator' build | xcpretty
 
       - name: Run TestApp
-        working-directory: TestApp/ios
+        working-directory: ../TestApp/ios
         run: |
           SIMUDID=$(xcrun simctl list devices available -j | jq -r '.devices."com.apple.CoreSimulator.SimRuntime.iOS-17-5"[] | select(.name=="iPhone 15 Pro") | .udid')
           echo "Using simulator udid[${SIMUDID}]"
@@ -71,7 +71,7 @@ jobs:
       - name: Collect failure files
         if: failure()
         run: |
-          cp TestApp/ios/sim.log .
+          cp ../TestApp/ios/sim.log .
 
       - name: Upload failed artifacts
         if: failure()

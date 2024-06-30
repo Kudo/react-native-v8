@@ -46,11 +46,15 @@ def parse_args():
 def main():
     args = parse_args()
     subprocess.run(
-        ["bun", "link"],
-    )
-    subprocess.run(
         ["npx", "@react-native-community/cli", "init", args.project_dir, "--pm", "bun", "--version", args.rn_version]
     )
+
+    install_tarball = None
+    if not args.npm_source:
+        subprocess.run(["npm", "pack", "--pack-destination", args.project_dir])
+        install_tarball = os.path.abspath(
+            glob.glob(os.path.join(args.project_dir, "react-native-v8-*.tgz"))[0]
+        )
 
     os.chdir(args.project_dir)
     subprocess.run(["bun", "add", args.v8_android_variant])
@@ -60,9 +64,8 @@ def main():
         subprocess.run(
             [
                 "bun",
-                "link",
-                "react-native-v8",
-                "--save",
+                "add",
+                "react-native-v8@file:{}".format(install_tarball),
             ]
         )
     else:
