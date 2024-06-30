@@ -50,6 +50,7 @@ jobs:
       - name: Build TestApp
         working-directory: ${{ runner.temp }}/TestApp
         run: |
+          find node_modules/react-native-v8 -ls
           npx expo prebuild -p ios
           cd ios
           xcodebuild -workspace ./TestApp.xcworkspace -scheme TestApp -configuration Release -derivedDataPath ./build -destination 'generic/platform=iOS Simulator' build | xcpretty
