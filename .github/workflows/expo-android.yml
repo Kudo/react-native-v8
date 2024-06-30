@@ -8,23 +8,20 @@ on:
       - android/**
       - src/v8runtime/**
       - package.json
-      - yarn.lock
+      - bun.lockb
   pull_request:
     paths:
       - .github/workflows/expo-android.yml
       - android/**
       - src/v8runtime/**
       - package.json
-      - yarn.lock
+      - bun.lockb
 
 jobs:
   e2e-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
       - uses: oven-sh/setup-bun@v1
 
       - name: 🧹 Cleanup GitHub Linux runner disk space
@@ -36,21 +33,21 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Restore yarn caches
+      - name: Restore node_modules caches
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-workspace-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-workspace-modules-${{ hashFiles('bun.lockb') }}
 
-      - name: Yarn install
-        run: yarn install --frozen-lockfile
+      - name: Bun install
+        run: bun install --frozen-lockfile
 
       - name: Generate TestApp
         run: |
-          yarn create expo-app -t blank@@sdk-51 TestApp
+          bunx create-expo-app -t blank@@sdk-51 TestApp
           cd TestApp
-          yarn add v8-android-jit
-          yarn add file:../react-native-v8
+          bun add v8-android-jit
+          bun add file:../react-native-v8
           jq '.expo.android.package = "com.testapp" | .expo.plugins += ["react-native-v8"] | .expo.jsEngine = "jsc"' app.json > app.json.tmp && mv -f app.json.tmp app.json
           echo 'if (global._v8runtime) { console.log(`=== V8 version[${global._v8runtime().version}] ===`); }' >> App.js
         working-directory: ..

@@ -8,14 +8,14 @@ on:
       - android/**
       - src/v8runtime/**
       - package.json
-      - yarn.lock
+      - bun.lockb
   pull_request:
     paths:
       - .github/workflows/android.yml
       - android/**
       - src/v8runtime/**
       - package.json
-      - yarn.lock
+      - bun.lockb
 
 jobs:
   e2e-test:
@@ -33,9 +33,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
       - uses: oven-sh/setup-bun@v1
 
       - name: 🧹 Cleanup GitHub Linux runner disk space
@@ -47,14 +44,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Restore yarn caches
+      - name: Restore node_modules caches
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-workspace-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-workspace-modules-${{ hashFiles('bun.lockb') }}
 
-      - name: Yarn install
-        run: yarn install --frozen-lockfile
+      - name: Bun install
+        run: bun install --frozen-lockfile
 
       - name: ⚙️ Enable KVM for Android virtualization
         shell: bash
