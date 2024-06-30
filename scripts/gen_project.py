@@ -48,8 +48,9 @@ def main():
     subprocess.run(
         ["bun", "link"],
     )
+    print(["bunx", "@react-native-community/cli", "init", args.project_dir, "--version", args.rn_version])
     subprocess.run(
-        ["bunx", "@react-native-community/cli", "init", args.project_dir, "--pm", "bun", "--version", args.rn_version]
+        ["bunx", "@react-native-community/cli", "init", args.project_dir, "--version", args.rn_version]
     )
 
     os.chdir(args.project_dir)
