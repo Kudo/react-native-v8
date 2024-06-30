@@ -46,7 +46,7 @@ def parse_args():
 def main():
     args = parse_args()
     subprocess.run(
-        ["npx", "react-native", "init", args.project_dir, "--pm", "bun", "--version", args.rn_version]
+        ["bunx", "@react-native-community/cli", "init", args.project_dir, "--pm", "bun", "--version", args.rn_version]
     )
 
     install_tarball = None
@@ -57,26 +57,25 @@ def main():
         )
 
     os.chdir(args.project_dir)
-    subprocess.run(["yarn", "add", args.v8_android_variant])
+    subprocess.run(["bun", "add", args.v8_android_variant])
 
     if not args.npm_source:
         assert install_tarball
-        subprocess.run(["yarn", "cache", "clean", "react-native-v8"])
         subprocess.run(
             [
-                "yarn",
+                "bun",
                 "add",
                 "react-native-v8@file:{}".format(install_tarball),
             ]
         )
     else:
-        subprocess.run(["yarn", "add", "react-native-v8@{}".format(args.npm_source)])
+        subprocess.run(["bun", "add", "react-native-v8@{}".format(args.npm_source)])
 
     patcher = ProjectConfigPatcher()
     patcher.add_v8_support()
     patcher.add_vm_hint()
     subprocess.run(
-        ["npx", "react-native", "run-android", "--mode", "release", "--no-packager"]
+        ["bun", "react-native", "run-android", "--mode", "release", "--no-packager"]
     )
 
 
