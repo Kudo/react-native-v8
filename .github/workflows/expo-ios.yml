@@ -39,6 +39,9 @@ jobs:
 
       - name: Generate TestApp
         run: |
+          pwd
+          cd ..
+          pwd
           bunx create-expo-app -t blank@@sdk-51 TestApp
           cd TestApp
           bun add v8-ios
@@ -46,7 +49,6 @@ jobs:
           jq '.expo.ios.bundleIdentifier = "com.testapp" | .expo.plugins += [["react-native-v8", {"ios":true}]] | .expo.jsEngine = "jsc"' app.json > app.json.tmp && mv -f app.json.tmp app.json
           echo 'if (global._v8runtime) { console.log(`=== V8 version[${global._v8runtime().version}] ===`); }' >> App.js
           pwd
-        working-directory: ..
 
       - name: Build TestApp
         working-directory: ../TestApp
