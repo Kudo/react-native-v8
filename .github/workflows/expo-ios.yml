@@ -45,11 +45,13 @@ jobs:
           bun add file:../react-native-v8
           jq '.expo.ios.bundleIdentifier = "com.testapp" | .expo.plugins += [["react-native-v8", {"ios":true}]] | .expo.jsEngine = "jsc"' app.json > app.json.tmp && mv -f app.json.tmp app.json
           echo 'if (global._v8runtime) { console.log(`=== V8 version[${global._v8runtime().version}] ===`); }' >> App.js
+          pwd
         working-directory: ..
 
       - name: Build TestApp
         working-directory: ../TestApp
         run: |
+          pwd
           npx expo prebuild -p ios
           cd ios
           xcodebuild -workspace ./TestApp.xcworkspace -scheme TestApp -configuration Release -derivedDataPath ./build -destination 'generic/platform=iOS Simulator' build | xcpretty
