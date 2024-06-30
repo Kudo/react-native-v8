@@ -57,7 +57,7 @@ const withIosAppDelegate: ConfigPlugin = (config) => {
       if (config.sdkVersion && semver.lt(config.sdkVersion, '51.0.0')) {
         config.modResults.contents = updateIosAppDelegate50(config.modResults.contents);
       } else {
-        config.modResults.contents = updateIosAppDelegate50(config.modResults.contents);
+        config.modResults.contents = updateIosAppDelegate(config.modResults.contents);
       }
     } else {
       throw new Error(

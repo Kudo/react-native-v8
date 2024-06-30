@@ -51,7 +51,7 @@ const withIosAppDelegate = (config) => {
                 config.modResults.contents = updateIosAppDelegate50(config.modResults.contents);
             }
             else {
-                config.modResults.contents = updateIosAppDelegate50(config.modResults.contents);
+                config.modResults.contents = updateIosAppDelegate(config.modResults.contents);
             }
         }
         else {
