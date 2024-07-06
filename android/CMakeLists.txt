@@ -16,7 +16,7 @@ else()
     set (CMAKE_CXX_STANDARD 17)
 endif()
 
-string(APPEND CMAKE_CXX_FLAGS " -DREACT_NATIVE_MINOR_VERSION=${REACT_NATIVE_MINOR_VERSION} -fexceptions -fno-omit-frame-pointer -frtti -Wno-sign-compare -fstack-protector-all")
+string(APPEND CMAKE_CXX_FLAGS " -DREACT_NATIVE_MINOR_VERSION=${REACT_NATIVE_MINOR_VERSION} -DREACT_NATIVE_PATCH_VERSION=${REACT_NATIVE_PATCH_VERSION} -fexceptions -fno-omit-frame-pointer -frtti -Wno-sign-compare -fstack-protector-all")
 
 include("${REACT_NATIVE_DIR}/ReactAndroid/cmake-utils/folly-flags.cmake")
 add_compile_options(${folly_FLAGS})
