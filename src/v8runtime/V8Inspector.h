@@ -11,7 +11,7 @@
 #include <condition_variable>
 #include "v8-inspector.h"
 
-#if REACT_NATIVE_TARGET_VERSION >= 73
+#if REACT_NATIVE_MINOR_VERSION >= 73
 
 #if __has_include(<React-jsinspector/jsinspector/InspectorInterfaces.h>)
 #include <React-jsinspector/jsinspector/InspectorInterfaces.h>
@@ -23,7 +23,7 @@ namespace jsinspector = facebook::react::jsinspector_modern;
 #else
 #include "jsinspector/InspectorInterfaces.h"
 namespace jsinspector = facebook::react;
-#endif // REACT_NATIVE_TARGET_VERSION >= 73
+#endif // REACT_NATIVE_MINOR_VERSION >= 73
 
 namespace rnv8 {
 

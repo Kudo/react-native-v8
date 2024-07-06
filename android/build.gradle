@@ -135,7 +135,7 @@ android {
       cmake {
         arguments "-DANDROID_STL=c++_shared",
                   "-DREACT_NATIVE_DIR=${toPlatformFileString(reactNativeDir)}",
-                  "-DREACT_NATIVE_TARGET_VERSION=${rnMinorVersion}",
+                  "-DREACT_NATIVE_MINOR_VERSION=${rnMinorVersion}",
                   "-DV8_ANDROID_DIR=${v8AndroidDir}",
                   "-DSO_DIR=${extractSoDir}"
         targets   "v8executor"

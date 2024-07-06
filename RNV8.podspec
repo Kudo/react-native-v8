@@ -33,7 +33,7 @@ Pod::Spec.new do |s|
     'HEADER_SEARCH_PATHS' => "\"$(PODS_ROOT)/boost\"",
   }
 
-  compiler_flags = folly_compiler_flags + ' ' + "-DREACT_NATIVE_TARGET_VERSION=#{reactNativeTargetVersion}"
+  compiler_flags = folly_compiler_flags + ' ' + "-DREACT_NATIVE_MINOR_VERSION=#{reactNativeTargetVersion}"
   s.compiler_flags = compiler_flags
 
   s.dependency 'v8-ios'

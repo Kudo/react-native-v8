@@ -467,7 +467,7 @@ jsi::Runtime::PointerValue *V8Runtime::cloneSymbol(
   return new V8PointerValue(isolate_, v8PointerValue->Get(isolate_));
 }
 
-#if REACT_NATIVE_TARGET_VERSION >= 70
+#if REACT_NATIVE_MINOR_VERSION >= 70
 jsi::Runtime::PointerValue *V8Runtime::cloneBigInt(
     const Runtime::PointerValue *pv) {
   if (!pv) {
@@ -572,7 +572,7 @@ jsi::PropNameID V8Runtime::createPropNameIDFromString(const jsi::String &str) {
       reinterpret_cast<const uint8_t *>(*utf8), utf8.length());
 }
 
-#if REACT_NATIVE_TARGET_VERSION >= 69
+#if REACT_NATIVE_MINOR_VERSION >= 69
 jsi::PropNameID V8Runtime::createPropNameIDFromSymbol(
     const facebook::jsi::Symbol &sym) {
   v8::Locker locker(isolate_);
@@ -1076,7 +1076,7 @@ bool V8Runtime::hasProperty(
 }
 
 void V8Runtime::setPropertyValue(
-#if REACT_NATIVE_TARGET_VERSION >= 72
+#if REACT_NATIVE_MINOR_VERSION >= 72
     const jsi::Object &object,
 #else
     jsi::Object &object,
@@ -1102,7 +1102,7 @@ void V8Runtime::setPropertyValue(
 }
 
 void V8Runtime::setPropertyValue(
-#if REACT_NATIVE_TARGET_VERSION >= 72
+#if REACT_NATIVE_MINOR_VERSION >= 72
     const jsi::Object &object,
 #else
     jsi::Object &object,
@@ -1228,7 +1228,7 @@ jsi::WeakObject V8Runtime::createWeakObject(const jsi::Object &weakObject) {
       new V8PointerValue(isolate_, std::move(weakRef)));
 }
 
-#if REACT_NATIVE_TARGET_VERSION >= 72
+#if REACT_NATIVE_MINOR_VERSION >= 72
 jsi::Value V8Runtime::lockWeakObject(const jsi::WeakObject &weakObject) {
 #else
 jsi::Value V8Runtime::lockWeakObject(jsi::WeakObject &weakObject) {
@@ -1314,7 +1314,7 @@ jsi::Value V8Runtime::getValueAtIndex(const jsi::Array &array, size_t i) {
 }
 
 void V8Runtime::setValueAtIndexImpl(
-#if REACT_NATIVE_TARGET_VERSION >= 72
+#if REACT_NATIVE_MINOR_VERSION >= 72
     const jsi::Array &array,
 #else
     jsi::Array &array,
@@ -1479,7 +1479,7 @@ bool V8Runtime::strictEquals(const jsi::Symbol &a, const jsi::Symbol &b) const {
   return result;
 }
 
-#if REACT_NATIVE_TARGET_VERSION >= 70
+#if REACT_NATIVE_MINOR_VERSION >= 70
 bool V8Runtime::strictEquals(const jsi::BigInt &a, const jsi::BigInt &b) const {
   v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
@@ -1552,7 +1552,7 @@ bool V8Runtime::instanceOf(const jsi::Object &o, const jsi::Function &f) {
   return result;
 }
 
-#if REACT_NATIVE_TARGET_VERSION >= 74
+#if REACT_NATIVE_MINOR_VERSION >= 74
 void V8Runtime::setExternalMemoryPressure(const jsi::Object &obj, size_t amount) {
 }
 #endif
