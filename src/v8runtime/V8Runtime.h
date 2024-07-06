@@ -75,6 +75,9 @@ class V8Runtime : public facebook::jsi::Runtime {
       const std::shared_ptr<const facebook::jsi::PreparedJavaScript> &js)
       override;
 
+#if REACT_NATIVE_MINOR_VERSION >= 75 || (REACT_NATIVE_MINOR_VERSION >= 74 && REACT_NATIVE_PATCH_VERSION >= 3)
+  void queueMicrotask(const facebook::jsi::Function &callback) override;
+#endif // REACT_NATIVE_MINOR_VERSION >= 75 || (REACT_NATIVE_MINOR_VERSION >= 74 && REACT_NATIVE_PATCH_VERSION >= 3
   bool drainMicrotasks(int maxMicrotasksHint = -1) override;
 
   facebook::jsi::Object global() override;

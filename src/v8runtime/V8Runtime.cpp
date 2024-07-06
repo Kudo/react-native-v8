@@ -414,6 +414,12 @@ jsi::Value V8Runtime::evaluatePreparedJavaScript(
   return evaluateJavaScript(sourceJs, sourceJs->sourceURL());
 }
 
+#if REACT_NATIVE_MINOR_VERSION >= 75 || (REACT_NATIVE_MINOR_VERSION >= 74 && REACT_NATIVE_PATCH_VERSION >= 3)
+void V8Runtime::queueMicrotask(const jsi::Function &callback) {
+  // TODO: add this when we revisit new architecture support
+}
+#endif // REACT_NATIVE_MINOR_VERSION >= 75 || (REACT_NATIVE_MINOR_VERSION >= 74 && REACT_NATIVE_PATCH_VERSION >= 3
+
 bool V8Runtime::drainMicrotasks(int maxMicrotasksHint) {
   v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
