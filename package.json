@@ -1,6 +1,6 @@
 {
   "name": "react-native-v8",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Opt-in V8 runtime for React Native Android",
   "scripts": {
     "build": "expo-module build",
