@@ -11,7 +11,9 @@ end
 if ENV["REACT_NATIVE_OVERRIDE_VERSION"]
   reactNativeVersion = ENV["REACT_NATIVE_OVERRIDE_VERSION"]
 end
-reactNativeTargetVersion = reactNativeVersion.split('.')[1].to_i
+reactNativeVersions = reactNativeVersion.split('.')
+reactNativeMinorVersion = reactNativeVersions[1].to_i
+reactNativePatchVersion = reactNativeVersions[2].to_i
 
 folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -Wno-comma -Wno-shorten-64-to-32'
 
@@ -33,7 +35,7 @@ Pod::Spec.new do |s|
     'HEADER_SEARCH_PATHS' => "\"$(PODS_ROOT)/boost\"",
   }
 
-  compiler_flags = folly_compiler_flags + ' ' + "-DREACT_NATIVE_TARGET_VERSION=#{reactNativeTargetVersion}"
+  compiler_flags = folly_compiler_flags + ' ' + "-DREACT_NATIVE_MINOR_VERSION=#{reactNativeMinorVersion} -DREACT_NATIVE_PATCH_VERSION=#{reactNativePatchVersion}"
   s.compiler_flags = compiler_flags
 
   s.dependency 'v8-ios'

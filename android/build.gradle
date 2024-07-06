@@ -41,6 +41,7 @@ def reactNativeManifestAsJson = new JsonSlurper().parseText(reactNativeManifest.
 def reactNativeVersion = reactNativeManifestAsJson.version as String
 def (major, minor, patch) = reactNativeVersion.tokenize('.')
 def rnMinorVersion = Integer.parseInt(minor)
+def rnPatchVersion = Integer.parseInt(patch)
 def extractSoDir = "${buildDir}/jniLibs"
 def prefabHeadersDir = "${buildDir}/prefab-headers"
 
@@ -135,7 +136,8 @@ android {
       cmake {
         arguments "-DANDROID_STL=c++_shared",
                   "-DREACT_NATIVE_DIR=${toPlatformFileString(reactNativeDir)}",
-                  "-DREACT_NATIVE_TARGET_VERSION=${rnMinorVersion}",
+                  "-DREACT_NATIVE_MINOR_VERSION=${rnMinorVersion}",
+                  "-DREACT_NATIVE_PATCH_VERSION=${rnPatchVersion}",
                   "-DV8_ANDROID_DIR=${v8AndroidDir}",
                   "-DSO_DIR=${extractSoDir}"
         targets   "v8executor"

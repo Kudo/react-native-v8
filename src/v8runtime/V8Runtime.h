@@ -75,6 +75,9 @@ class V8Runtime : public facebook::jsi::Runtime {
       const std::shared_ptr<const facebook::jsi::PreparedJavaScript> &js)
       override;
 
+#if REACT_NATIVE_MINOR_VERSION >= 75 || (REACT_NATIVE_MINOR_VERSION >= 74 && REACT_NATIVE_PATCH_VERSION >= 3)
+  void queueMicrotask(const facebook::jsi::Function &callback) override;
+#endif // REACT_NATIVE_MINOR_VERSION >= 75 || (REACT_NATIVE_MINOR_VERSION >= 74 && REACT_NATIVE_PATCH_VERSION >= 3
   bool drainMicrotasks(int maxMicrotasksHint = -1) override;
 
   facebook::jsi::Object global() override;
@@ -83,7 +86,7 @@ class V8Runtime : public facebook::jsi::Runtime {
 
  protected:
   PointerValue *cloneSymbol(const Runtime::PointerValue *pv) override;
-#if REACT_NATIVE_TARGET_VERSION >= 70
+#if REACT_NATIVE_MINOR_VERSION >= 70
   PointerValue *cloneBigInt(const Runtime::PointerValue *pv) override;
 #endif
   PointerValue *cloneString(const Runtime::PointerValue *pv) override;
@@ -98,7 +101,7 @@ class V8Runtime : public facebook::jsi::Runtime {
       size_t length) override;
   facebook::jsi::PropNameID createPropNameIDFromString(
       const facebook::jsi::String &str) override;
-#if REACT_NATIVE_TARGET_VERSION >= 69
+#if REACT_NATIVE_MINOR_VERSION >= 69
   facebook::jsi::PropNameID createPropNameIDFromSymbol(
       const facebook::jsi::Symbol &sym) override;
 #endif
@@ -150,7 +153,7 @@ class V8Runtime : public facebook::jsi::Runtime {
   bool hasProperty(
       const facebook::jsi::Object &,
       const facebook::jsi::String &name) override;
-#if REACT_NATIVE_TARGET_VERSION >= 72
+#if REACT_NATIVE_MINOR_VERSION >= 72
   void setPropertyValue(
       const facebook::jsi::Object &,
       const facebook::jsi::PropNameID &name,
@@ -179,7 +182,7 @@ class V8Runtime : public facebook::jsi::Runtime {
 
   facebook::jsi::WeakObject createWeakObject(
       const facebook::jsi::Object &) override;
-#if REACT_NATIVE_TARGET_VERSION >= 72
+#if REACT_NATIVE_MINOR_VERSION >= 72
   facebook::jsi::Value lockWeakObject(
       const facebook::jsi::WeakObject &) override;
 #else
@@ -194,7 +197,7 @@ class V8Runtime : public facebook::jsi::Runtime {
   uint8_t *data(const facebook::jsi::ArrayBuffer &) override;
   facebook::jsi::Value getValueAtIndex(const facebook::jsi::Array &, size_t i)
       override;
-#if REACT_NATIVE_TARGET_VERSION >= 72
+#if REACT_NATIVE_MINOR_VERSION >= 72
   void setValueAtIndexImpl(
       const facebook::jsi::Array &,
       size_t i,
@@ -223,7 +226,7 @@ class V8Runtime : public facebook::jsi::Runtime {
   bool strictEquals(
       const facebook::jsi::Symbol &a,
       const facebook::jsi::Symbol &b) const override;
-#if REACT_NATIVE_TARGET_VERSION >= 70
+#if REACT_NATIVE_MINOR_VERSION >= 70
   bool strictEquals(
       const facebook::jsi::BigInt &a,
       const facebook::jsi::BigInt &b) const override;
@@ -239,7 +242,7 @@ class V8Runtime : public facebook::jsi::Runtime {
       const facebook::jsi::Object &o,
       const facebook::jsi::Function &f) override;
 
-#if REACT_NATIVE_TARGET_VERSION >= 74
+#if REACT_NATIVE_MINOR_VERSION >= 74
   void setExternalMemoryPressure(
       const facebook::jsi::Object &obj,
       size_t amount) override;
