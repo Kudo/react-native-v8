@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cxxreact/MessageQueueThread.h>
+#include "MainLoopRegistry.h"
 #include "V8RuntimeConfig.h"
 #include "jsi/jsi.h"
 #include "libplatform/libplatform.h"
@@ -26,7 +27,8 @@ class V8Runtime : public facebook::jsi::Runtime {
       std::shared_ptr<facebook::react::MessageQueueThread> jsQueue);
   V8Runtime(
       const V8Runtime *v8Runtime,
-      std::unique_ptr<V8RuntimeConfig> config);
+      std::unique_ptr<V8RuntimeConfig> config,
+      bool sharedGlobalContext = false);
   ~V8Runtime();
 
   // Calling this function when the platform main runloop is idle
@@ -75,9 +77,11 @@ class V8Runtime : public facebook::jsi::Runtime {
       const std::shared_ptr<const facebook::jsi::PreparedJavaScript> &js)
       override;
 
-#if REACT_NATIVE_MINOR_VERSION >= 75 || (REACT_NATIVE_MINOR_VERSION >= 74 && REACT_NATIVE_PATCH_VERSION >= 3)
+#if REACT_NATIVE_MINOR_VERSION >= 75 || \
+    (REACT_NATIVE_MINOR_VERSION >= 74 && REACT_NATIVE_PATCH_VERSION >= 3)
   void queueMicrotask(const facebook::jsi::Function &callback) override;
-#endif // REACT_NATIVE_MINOR_VERSION >= 75 || (REACT_NATIVE_MINOR_VERSION >= 74 && REACT_NATIVE_PATCH_VERSION >= 3
+#endif // REACT_NATIVE_MINOR_VERSION >= 75 || (REACT_NATIVE_MINOR_VERSION >= 74
+       // && REACT_NATIVE_PATCH_VERSION >= 3
   bool drainMicrotasks(int maxMicrotasksHint = -1) override;
 
   facebook::jsi::Object global() override;
@@ -275,6 +279,7 @@ class V8Runtime : public facebook::jsi::Runtime {
   std::shared_ptr<InspectorClient> inspectorClient_;
   bool isSharedRuntime_ = false;
   std::shared_ptr<facebook::react::MessageQueueThread> jsQueue_;
+  MainLoopRegistry::Callback mainLoopIdleCallback_;
 };
 
 } // namespace rnv8

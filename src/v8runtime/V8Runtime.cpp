@@ -82,35 +82,70 @@ V8Runtime::V8Runtime(
         config_->deviceName);
     inspectorClient_->ConnectToReactFrontend();
   }
+  mainLoopIdleCallback_ = std::bind(&V8Runtime::OnMainLoopIdle, this);
+  MainLoopRegistry::GetInstance()->RegisterCallback(mainLoopIdleCallback_);
 }
 
 V8Runtime::V8Runtime(
     const V8Runtime *v8Runtime,
-    std::unique_ptr<V8RuntimeConfig> config)
+    std::unique_ptr<V8RuntimeConfig> config,
+    bool sharedGlobalContext)
     : config_(std::move(config)) {
-  isSharedRuntime_ = true;
-  isolate_ = v8Runtime->isolate_;
-  jsQueue_ = v8Runtime->jsQueue_;
+  if (!sharedGlobalContext) {
+    arrayBufferAllocator_.reset(
+        v8::ArrayBuffer::Allocator::NewDefaultAllocator());
+    v8::Isolate::CreateParams createParams;
+    createParams.array_buffer_allocator = arrayBufferAllocator_.get();
+    if (v8Runtime->config_->snapshotBlob) {
+      snapshotBlob_ = std::make_unique<v8::StartupData>();
+      snapshotBlob_->data = v8Runtime->config_->snapshotBlob->c_str();
+      snapshotBlob_->raw_size =
+          static_cast<int>(v8Runtime->config_->snapshotBlob->size());
+      createParams.snapshot_blob = snapshotBlob_.get();
+    }
+    config_->codecacheMode = V8RuntimeConfig::CodecacheMode::kNone;
 
-  v8::Locker locker(isolate_);
-  v8::Isolate::Scope scopedIsolate(isolate_);
-  v8::HandleScope scopedHandle(isolate_);
-  context_.Reset(isolate_, CreateGlobalContext(isolate_));
+    isolate_ = v8::Isolate::New(createParams);
+#if defined(__ANDROID__)
+    if (!v8Runtime->config_->timezoneId.empty()) {
+      isolate_->DateTimeConfigurationChangeNotification(
+          v8::Isolate::TimeZoneDetection::kCustom,
+          v8Runtime->config_->timezoneId.c_str());
+    }
+#endif
+    v8::Locker locker(isolate_);
+    v8::Isolate::Scope scopedIsolate(isolate_);
+    v8::HandleScope scopedHandle(isolate_);
+    context_.Reset(isolate_, CreateGlobalContext(isolate_));
+    v8::Context::Scope scopedContext(context_.Get(isolate_));
+    jsQueue_ = v8Runtime->jsQueue_;
+    mainLoopIdleCallback_ = std::bind(&V8Runtime::OnMainLoopIdle, this);
+    MainLoopRegistry::GetInstance()->RegisterCallback(mainLoopIdleCallback_);
+  } else {
+    isSharedRuntime_ = true;
+    isolate_ = v8Runtime->isolate_;
+    jsQueue_ = v8Runtime->jsQueue_;
 
-  auto localContext = context_.Get(isolate_);
-  localContext->SetSecurityToken(
-      v8Runtime->context_.Get(isolate_)->GetSecurityToken());
+    v8::Locker locker(isolate_);
+    v8::Isolate::Scope scopedIsolate(isolate_);
+    v8::HandleScope scopedHandle(isolate_);
+    context_.Reset(isolate_, CreateGlobalContext(isolate_));
 
-  bool inheritProtoResult =
-      localContext->Global()
-          ->GetPrototype()
-          .As<v8::Object>()
-          ->SetPrototype(
-              localContext,
-              v8Runtime->context_.Get(isolate_)->Global()->GetPrototype())
-          .FromJust();
-  if (!inheritProtoResult) {
-    LOG(ERROR) << "Unable to inherit prototype from parent shared runtime.";
+    auto localContext = context_.Get(isolate_);
+    localContext->SetSecurityToken(
+        v8Runtime->context_.Get(isolate_)->GetSecurityToken());
+
+    bool inheritProtoResult =
+        localContext->Global()
+            ->GetPrototype()
+            .As<v8::Object>()
+            ->SetPrototype(
+                localContext,
+                v8Runtime->context_.Get(isolate_)->Global()->GetPrototype())
+            .FromJust();
+    if (!inheritProtoResult) {
+      LOG(ERROR) << "Unable to inherit prototype from parent shared runtime.";
+    }
   }
 
   if (config_->enableInspector) {
@@ -124,6 +159,8 @@ V8Runtime::V8Runtime(
 }
 
 V8Runtime::~V8Runtime() {
+  MainLoopRegistry::GetInstance()->UnregisterCallback(mainLoopIdleCallback_);
+  mainLoopIdleCallback_ = nullptr;
   {
     v8::Locker locker(isolate_);
     v8::Isolate::Scope scopedIsolate(isolate_);
@@ -274,6 +311,10 @@ V8Runtime::LoadCodeCacheIfNeeded(const std::string &sourceURL) {
     return nullptr;
   }
 
+  if (sourceURL.empty()) {
+    return nullptr;
+  }
+
   if (config_->codecacheMode == V8RuntimeConfig::CodecacheMode::kNone) {
     return nullptr;
   }
@@ -305,6 +346,10 @@ bool V8Runtime::SaveCodeCacheIfNeeded(
     v8::ScriptCompiler::CachedData *cachedData) {
   // caching is for main runtime only
   if (isSharedRuntime_) {
+    return false;
+  }
+
+  if (sourceURL.empty()) {
     return false;
   }
 
@@ -414,11 +459,20 @@ jsi::Value V8Runtime::evaluatePreparedJavaScript(
   return evaluateJavaScript(sourceJs, sourceJs->sourceURL());
 }
 
-#if REACT_NATIVE_MINOR_VERSION >= 75 || (REACT_NATIVE_MINOR_VERSION >= 74 && REACT_NATIVE_PATCH_VERSION >= 3)
+#if REACT_NATIVE_MINOR_VERSION >= 75 || \
+    (REACT_NATIVE_MINOR_VERSION >= 74 && REACT_NATIVE_PATCH_VERSION >= 3)
 void V8Runtime::queueMicrotask(const jsi::Function &callback) {
-  // TODO: add this when we revisit new architecture support
+  v8::Locker locker(isolate_);
+  v8::Isolate::Scope scopedIsolate(isolate_);
+  v8::HandleScope scopedHandle(isolate_);
+  v8::Context::Scope scopedContext(context_.Get(isolate_));
+
+  v8::Local<v8::Function> v8Function =
+      JSIV8ValueConverter::ToV8Function(*this, callback);
+  isolate_->EnqueueMicrotask(v8Function);
 }
-#endif // REACT_NATIVE_MINOR_VERSION >= 75 || (REACT_NATIVE_MINOR_VERSION >= 74 && REACT_NATIVE_PATCH_VERSION >= 3
+#endif // REACT_NATIVE_MINOR_VERSION >= 75 || (REACT_NATIVE_MINOR_VERSION >= 74
+       // && REACT_NATIVE_PATCH_VERSION >= 3
 
 bool V8Runtime::drainMicrotasks(int maxMicrotasksHint) {
   v8::Locker locker(isolate_);
@@ -1559,8 +1613,9 @@ bool V8Runtime::instanceOf(const jsi::Object &o, const jsi::Function &f) {
 }
 
 #if REACT_NATIVE_MINOR_VERSION >= 74
-void V8Runtime::setExternalMemoryPressure(const jsi::Object &obj, size_t amount) {
-}
+void V8Runtime::setExternalMemoryPressure(
+    const jsi::Object &obj,
+    size_t amount) {}
 #endif
 
 //

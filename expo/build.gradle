@@ -15,6 +15,7 @@ buildscript {
 }
 
 android {
+  namespace "io.csie.kudo.reactnative.v8.expo"
   compileSdkVersion safeExtGet("compileSdkVersion", 31)
 
   compileOptions {
