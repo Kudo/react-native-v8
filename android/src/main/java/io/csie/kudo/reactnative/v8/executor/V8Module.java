@@ -20,9 +20,9 @@ public class V8Module
   }
 
   @Override
-  public void onCatalystInstanceDestroy() {
+  public void invalidate() {
     unregisterMainIdleHandler();
-    super.onCatalystInstanceDestroy();
+    super.invalidate();
   }
 
   @Override

@@ -15,7 +15,6 @@ import com.facebook.react.bridge.JavaScriptExecutor;
 import com.facebook.react.bridge.RuntimeExecutor;
 import com.facebook.soloader.SoLoader;
 import io.csie.kudo.reactnative.v8.BuildConfig;
-import java.io.File;
 
 public class V8Executor extends JavaScriptExecutor {
   static {
