@@ -12,6 +12,7 @@ import android.content.res.AssetManager;
 import android.os.Build;
 import com.facebook.jni.HybridData;
 import com.facebook.react.bridge.JavaScriptExecutor;
+import com.facebook.react.bridge.RuntimeExecutor;
 import com.facebook.soloader.SoLoader;
 import io.csie.kudo.reactnative.v8.BuildConfig;
 
@@ -56,5 +57,6 @@ public class V8Executor extends JavaScriptExecutor {
       int codecacheMode,
       String codecacheDir);
 
-  /* package */ static native void onMainLoopIdle();
+  /* package */ static native void onMainLoopIdle(
+      RuntimeExecutor runtimeExecutor);
 }

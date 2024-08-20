@@ -6,6 +6,7 @@ import android.os.MessageQueue;
 import android.os.SystemClock;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.RuntimeExecutor;
 import com.facebook.react.bridge.UiThreadUtil;
 
 public class V8Module
@@ -54,7 +55,10 @@ public class V8Module
     if (getReactApplicationContext().hasActiveReactInstance() &&
         SystemClock.uptimeMillis() - mLastMainLoopIdleCallbackTime >
             MAIN_LOOP_IDLE_THROTTLE) {
-      V8Executor.onMainLoopIdle();
+      final RuntimeExecutor runtimeExecutor = getReactApplicationContext()
+                                                  .getCatalystInstance()
+                                                  .getRuntimeExecutor();
+      V8Executor.onMainLoopIdle(runtimeExecutor);
       mLastMainLoopIdleCallbackTime = SystemClock.uptimeMillis();
     }
     return true;

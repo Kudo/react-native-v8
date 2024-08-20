@@ -8,7 +8,6 @@
 #pragma once
 
 #include <cxxreact/MessageQueueThread.h>
-#include "MainLoopRegistry.h"
 #include "V8RuntimeConfig.h"
 #include "jsi/jsi.h"
 #include "libplatform/libplatform.h"
@@ -27,8 +26,7 @@ class V8Runtime : public facebook::jsi::Runtime {
       std::shared_ptr<facebook::react::MessageQueueThread> jsQueue);
   V8Runtime(
       const V8Runtime *v8Runtime,
-      std::unique_ptr<V8RuntimeConfig> config,
-      bool sharedGlobalContext = false);
+      std::unique_ptr<V8RuntimeConfig> config);
   ~V8Runtime();
 
   // Calling this function when the platform main runloop is idle
@@ -279,7 +277,6 @@ class V8Runtime : public facebook::jsi::Runtime {
   std::shared_ptr<InspectorClient> inspectorClient_;
   bool isSharedRuntime_ = false;
   std::shared_ptr<facebook::react::MessageQueueThread> jsQueue_;
-  MainLoopRegistry::Callback mainLoopIdleCallback_;
 };
 
 } // namespace rnv8

@@ -12,11 +12,11 @@
 #include <glog/logging.h>
 #include <jni.h>
 #include <react/jni/JReactMarker.h>
+#include <react/jni/JRuntimeExecutor.h>
 #include <react/jni/JSLoader.h>
 #include <react/jni/JSLogging.h>
 #include <react/jni/JavaScriptExecutorHolder.h>
 
-#include "MainLoopRegistry.h"
 #include "V8ExecutorFactory.h"
 #include "V8Runtime.h"
 #include "V8RuntimeConfig.h"
@@ -92,8 +92,16 @@ class V8ExecutorHolder
         std::move(config)));
   }
 
-  static void onMainLoopIdle(jni::alias_ref<jclass>) {
-    MainLoopRegistry::GetInstance()->OnMainLoopIdle();
+  static void onMainLoopIdle(
+      jni::alias_ref<jclass>,
+      jni::alias_ref<facebook::react::JRuntimeExecutor::javaobject>
+          runtimeExecutor) {
+    runtimeExecutor->cthis()->get()([](jsi::Runtime &runtime) {
+      auto v8Runtime = dynamic_cast<V8Runtime *>(&runtime);
+      if (v8Runtime) {
+        v8Runtime->OnMainLoopIdle();
+      }
+    });
   }
 
   static void registerNatives() {
