@@ -68,7 +68,6 @@ V8Runtime::V8Runtime(
         v8::Isolate::TimeZoneDetection::kCustom, config_->timezoneId.c_str());
   }
 #endif
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   context_.Reset(isolate_, CreateGlobalContext(isolate_));
@@ -130,7 +129,6 @@ V8Runtime::V8Runtime(
   isolate_ = v8Runtime->isolate_;
   jsQueue_ = v8Runtime->jsQueue_;
 
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   context_.Reset(isolate_, CreateGlobalContext(isolate_));
@@ -164,7 +162,6 @@ V8Runtime::V8Runtime(
 
 V8Runtime::~V8Runtime() {
   {
-    v8::Locker locker(isolate_);
     v8::Isolate::Scope scopedIsolate(isolate_);
     v8::HandleScope scopedHandle(isolate_);
     if (inspectorClient_) {
@@ -181,7 +178,6 @@ V8Runtime::~V8Runtime() {
 }
 
 void V8Runtime::OnMainLoopIdle() {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -425,7 +421,6 @@ v8::Platform *V8Runtime::GetPlatform() {
 jsi::Value V8Runtime::evaluateJavaScript(
     const std::shared_ptr<const jsi::Buffer> &buffer,
     const std::string &sourceURL) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -462,7 +457,6 @@ void V8Runtime::queueMicrotask(const jsi::Function &callback) {
        // && REACT_NATIVE_PATCH_VERSION >= 3
 
 bool V8Runtime::drainMicrotasks(int maxMicrotasksHint) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -478,7 +472,6 @@ bool V8Runtime::drainMicrotasks(int maxMicrotasksHint) {
 }
 
 jsi::Object V8Runtime::global() {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -503,7 +496,6 @@ jsi::Runtime::PointerValue *V8Runtime::cloneSymbol(
   if (!pv) {
     return nullptr;
   }
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -521,7 +513,6 @@ jsi::Runtime::PointerValue *V8Runtime::cloneBigInt(
     return nullptr;
   }
 
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -539,7 +530,6 @@ jsi::Runtime::PointerValue *V8Runtime::cloneString(
     return nullptr;
   }
 
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -556,7 +546,6 @@ jsi::Runtime::PointerValue *V8Runtime::cloneObject(
     return nullptr;
   }
 
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -575,7 +564,6 @@ jsi::Runtime::PointerValue *V8Runtime::clonePropNameID(
 jsi::PropNameID V8Runtime::createPropNameIDFromAscii(
     const char *str,
     size_t length) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -591,7 +579,6 @@ jsi::PropNameID V8Runtime::createPropNameIDFromAscii(
 jsi::PropNameID V8Runtime::createPropNameIDFromUtf8(
     const uint8_t *utf8,
     size_t length) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -605,7 +592,6 @@ jsi::PropNameID V8Runtime::createPropNameIDFromUtf8(
 }
 
 jsi::PropNameID V8Runtime::createPropNameIDFromString(const jsi::String &str) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -622,7 +608,6 @@ jsi::PropNameID V8Runtime::createPropNameIDFromString(const jsi::String &str) {
 #if REACT_NATIVE_MINOR_VERSION >= 69
 jsi::PropNameID V8Runtime::createPropNameIDFromSymbol(
     const facebook::jsi::Symbol &sym) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -637,7 +622,6 @@ jsi::PropNameID V8Runtime::createPropNameIDFromSymbol(
 #endif
 
 std::string V8Runtime::utf8(const jsi::PropNameID &sym) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -649,7 +633,6 @@ std::string V8Runtime::utf8(const jsi::PropNameID &sym) {
 }
 
 bool V8Runtime::compare(const jsi::PropNameID &a, const jsi::PropNameID &b) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -671,7 +654,6 @@ std::string V8Runtime::symbolToString(const jsi::Symbol &symbol) {
 }
 
 jsi::BigInt V8Runtime::createBigIntFromInt64(int64_t value) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -681,7 +663,6 @@ jsi::BigInt V8Runtime::createBigIntFromInt64(int64_t value) {
 }
 
 jsi::BigInt V8Runtime::createBigIntFromUint64(uint64_t value) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -691,7 +672,6 @@ jsi::BigInt V8Runtime::createBigIntFromUint64(uint64_t value) {
 }
 
 bool V8Runtime::bigintIsInt64(const jsi::BigInt &value) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -707,7 +687,6 @@ bool V8Runtime::bigintIsInt64(const jsi::BigInt &value) {
 }
 
 bool V8Runtime::bigintIsUint64(const jsi::BigInt &value) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -723,7 +702,6 @@ bool V8Runtime::bigintIsUint64(const jsi::BigInt &value) {
 }
 
 uint64_t V8Runtime::truncate(const jsi::BigInt &value) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -737,7 +715,6 @@ uint64_t V8Runtime::truncate(const jsi::BigInt &value) {
 }
 
 jsi::String V8Runtime::bigintToString(const jsi::BigInt &value, int radix) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -780,7 +757,6 @@ jsi::String V8Runtime::bigintToString(const jsi::BigInt &value, int radix) {
 }
 
 jsi::String V8Runtime::createStringFromAscii(const char *str, size_t length) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -795,7 +771,6 @@ jsi::String V8Runtime::createStringFromAscii(const char *str, size_t length) {
 }
 
 jsi::String V8Runtime::createStringFromUtf8(const uint8_t *str, size_t length) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -809,7 +784,6 @@ jsi::String V8Runtime::createStringFromUtf8(const uint8_t *str, size_t length) {
 }
 
 std::string V8Runtime::utf8(const jsi::String &str) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -823,7 +797,6 @@ std::string V8Runtime::utf8(const jsi::String &str) {
 }
 
 jsi::Object V8Runtime::createObject() {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -834,7 +807,6 @@ jsi::Object V8Runtime::createObject() {
 
 jsi::Object V8Runtime::createObject(
     std::shared_ptr<jsi::HostObject> hostObject) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -876,7 +848,6 @@ std::shared_ptr<jsi::HostObject> V8Runtime::getHostObject(
 
   // We are guarenteed at this point to have isHostObject(obj) == true
   // so the internal data should be HostObjectMetadata
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -896,7 +867,6 @@ jsi::HostFunctionType &V8Runtime::getHostFunction(
   assert(isHostFunction(function));
 
   // We know that isHostFunction(function) is true here, so its safe to proceed
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -922,7 +892,6 @@ jsi::HostFunctionType &V8Runtime::getHostFunction(
 }
 
 bool V8Runtime::hasNativeState(const jsi::Object &object) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -941,7 +910,6 @@ std::shared_ptr<jsi::NativeState> V8Runtime::getNativeState(
 
   // We are guarenteed at this point to have hasNativeState(obj) == true
   // so the internal data should be a NativeState
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -960,7 +928,6 @@ void V8Runtime::setNativeState(
     throw jsi::JSINativeException("native state unsupported on HostObject");
   }
 
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1026,7 +993,6 @@ void V8Runtime::setNativeState(
 jsi::Value V8Runtime::getProperty(
     const jsi::Object &object,
     const jsi::PropNameID &name) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1051,7 +1017,6 @@ jsi::Value V8Runtime::getProperty(
 jsi::Value V8Runtime::getProperty(
     const jsi::Object &object,
     const jsi::String &name) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1075,7 +1040,6 @@ jsi::Value V8Runtime::getProperty(
 bool V8Runtime::hasProperty(
     const jsi::Object &object,
     const jsi::PropNameID &name) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1100,7 +1064,6 @@ bool V8Runtime::hasProperty(
 bool V8Runtime::hasProperty(
     const jsi::Object &object,
     const jsi::String &name) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1130,7 +1093,6 @@ void V8Runtime::setPropertyValue(
 #endif
     const jsi::PropNameID &name,
     const jsi::Value &value) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1156,7 +1118,6 @@ void V8Runtime::setPropertyValue(
 #endif
     const jsi::String &name,
     const jsi::Value &value) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1175,7 +1136,6 @@ void V8Runtime::setPropertyValue(
 }
 
 bool V8Runtime::isArray(const jsi::Object &object) const {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1186,7 +1146,6 @@ bool V8Runtime::isArray(const jsi::Object &object) const {
 }
 
 bool V8Runtime::isArrayBuffer(const jsi::Object &object) const {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1197,7 +1156,6 @@ bool V8Runtime::isArrayBuffer(const jsi::Object &object) const {
 }
 
 bool V8Runtime::isFunction(const jsi::Object &object) const {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1208,7 +1166,6 @@ bool V8Runtime::isFunction(const jsi::Object &object) const {
 }
 
 bool V8Runtime::isHostObject(const jsi::Object &object) const {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1219,7 +1176,6 @@ bool V8Runtime::isHostObject(const jsi::Object &object) const {
 }
 
 bool V8Runtime::isHostFunction(const jsi::Function &function) const {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1235,7 +1191,6 @@ bool V8Runtime::isHostFunction(const jsi::Function &function) const {
 }
 
 jsi::Array V8Runtime::getPropertyNames(const jsi::Object &object) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1259,7 +1214,6 @@ jsi::Array V8Runtime::getPropertyNames(const jsi::Object &object) {
 }
 
 jsi::WeakObject V8Runtime::createWeakObject(const jsi::Object &weakObject) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1280,7 +1234,6 @@ jsi::Value V8Runtime::lockWeakObject(const jsi::WeakObject &weakObject) {
 #else
 jsi::Value V8Runtime::lockWeakObject(jsi::WeakObject &weakObject) {
 #endif
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1293,7 +1246,6 @@ jsi::Value V8Runtime::lockWeakObject(jsi::WeakObject &weakObject) {
 }
 
 jsi::Array V8Runtime::createArray(size_t length) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1310,7 +1262,6 @@ jsi::ArrayBuffer V8Runtime::createArrayBuffer(
 }
 
 size_t V8Runtime::size(const jsi::Array &array) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1320,7 +1271,6 @@ size_t V8Runtime::size(const jsi::Array &array) {
 }
 
 size_t V8Runtime::size(const jsi::ArrayBuffer &arrayBuffer) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1333,7 +1283,6 @@ size_t V8Runtime::size(const jsi::ArrayBuffer &arrayBuffer) {
 }
 
 uint8_t *V8Runtime::data(const jsi::ArrayBuffer &arrayBuffer) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1346,7 +1295,6 @@ uint8_t *V8Runtime::data(const jsi::ArrayBuffer &arrayBuffer) {
 }
 
 jsi::Value V8Runtime::getValueAtIndex(const jsi::Array &array, size_t i) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1368,7 +1316,6 @@ void V8Runtime::setValueAtIndexImpl(
 #endif
     size_t i,
     const jsi::Value &value) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1387,7 +1334,6 @@ jsi::Function V8Runtime::createFunctionFromHostFunction(
     const jsi::PropNameID &name,
     unsigned int paramCount,
     jsi::HostFunctionType func) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1433,7 +1379,6 @@ jsi::Value V8Runtime::call(
     const jsi::Value &jsThis,
     const jsi::Value *args,
     size_t count) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1477,7 +1422,6 @@ jsi::Value V8Runtime::callAsConstructor(
     const jsi::Function &function,
     const jsi::Value *args,
     size_t count) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1510,7 +1454,6 @@ jsi::Value V8Runtime::callAsConstructor(
 }
 
 bool V8Runtime::strictEquals(const jsi::Symbol &a, const jsi::Symbol &b) const {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1528,7 +1471,6 @@ bool V8Runtime::strictEquals(const jsi::Symbol &a, const jsi::Symbol &b) const {
 
 #if REACT_NATIVE_MINOR_VERSION >= 70
 bool V8Runtime::strictEquals(const jsi::BigInt &a, const jsi::BigInt &b) const {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1548,7 +1490,6 @@ bool V8Runtime::strictEquals(const jsi::BigInt &a, const jsi::BigInt &b) const {
 #endif
 
 bool V8Runtime::strictEquals(const jsi::String &a, const jsi::String &b) const {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1565,7 +1506,6 @@ bool V8Runtime::strictEquals(const jsi::String &a, const jsi::String &b) const {
 }
 
 bool V8Runtime::strictEquals(const jsi::Object &a, const jsi::Object &b) const {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
@@ -1582,7 +1522,6 @@ bool V8Runtime::strictEquals(const jsi::Object &a, const jsi::Object &b) const {
 }
 
 bool V8Runtime::instanceOf(const jsi::Object &o, const jsi::Function &f) {
-  v8::Locker locker(isolate_);
   v8::Isolate::Scope scopedIsolate(isolate_);
   v8::HandleScope scopedHandle(isolate_);
   v8::Context::Scope scopedContext(context_.Get(isolate_));
