@@ -63,6 +63,9 @@ v8::Local<v8::Value> JSIV8ValueConverter::ToV8Value(
   } else if (value.isString()) {
     return scopedHandle.Escape(ToV8String(
         runtime, std::move(value.getString(const_cast<V8Runtime &>(runtime)))));
+  } else if (value.isSymbol()) {
+    return scopedHandle.Escape(ToV8Symbol(
+        runtime, std::move(value.getSymbol(const_cast<V8Runtime &>(runtime)))));
   } else if (value.isObject()) {
     return scopedHandle.Escape(ToV8Object(
         runtime, std::move(value.getObject(const_cast<V8Runtime &>(runtime)))));
