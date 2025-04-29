@@ -259,8 +259,11 @@ jsi::Value V8Runtime::ExecuteScript(
 void V8Runtime::ReportException(v8::Isolate *isolate, v8::TryCatch *tryCatch)
     const {
   v8::HandleScope scopedHandle(isolate);
-  std::string exception =
-      JSIV8ValueConverter::ToSTLString(isolate, tryCatch->Exception());
+  std::string exception = JSIV8ValueConverter::ToSTLString(
+      isolate,
+      tryCatch->Exception()
+          ->ToDetailString(isolate->GetCurrentContext())
+          .FromMaybe(v8::Local<v8::String>()));
   v8::Local<v8::Message> message = tryCatch->Message();
   if (message.IsEmpty()) {
     // V8 didn't provide any extra information about this error; just
